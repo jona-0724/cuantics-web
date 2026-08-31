@@ -1,0 +1,23 @@
+Esta carpeta es un EXTRA opcional, no se usa si no la activas tú mismo.
+
+El sitio de Bry Care que te entregué ya funciona sin esto: usa un
+candado hecho con código (usuario "Brycare", contraseña "Melon2026")
+que es suficiente para que un visitante casual no llegue a la página
+por accidente, y que además permite el "link directo" que le darás a
+la persona de la feria sin pedirle contraseña.
+
+Esa protección vive en el código de la página (index.html de /brycare/),
+así que alguien muy técnico que mire el código fuente podría encontrar
+la contraseña o el link directo. Para un microsite de feria esto es
+normal y suficiente — no es una zona con información sensible.
+
+Si en algún momento quieres un candado "de verdad" (la ventana gris que
+pide usuario/contraseña que pone el navegador, no la página), y tu
+hosting es de tipo cPanel/Apache, puedes usar los archivos .htaccess y
+.htpasswd de esta carpeta. Usuario: Brycare — Contraseña: Melon2026
+(ya vienen codificados en .htpasswd).
+
+OJO: si activas esto sobre TODA la carpeta /brycare/, el link directo
+que le des a la persona de la feria también pedirá usuario y
+contraseña — ya no habría forma de que entre sin credenciales. Si aun
+así lo quieres así, avísame y te preparo esa versión.
