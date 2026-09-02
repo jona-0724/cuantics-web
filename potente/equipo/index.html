@@ -265,6 +265,29 @@
 
     <!-- ---------- vista administrador ---------- -->
     <div id="vistaAdmin" hidden>
+      <div class="pestanas" role="tablist" style="margin-bottom:26px">
+        <button class="pestana" role="tab" aria-selected="true"  data-panel="ferias">Ferias</button>
+        <button class="pestana" role="tab" aria-selected="false" data-panel="equipo">Equipo</button>
+      </div>
+
+      <!-- ===== panel Equipo ===== -->
+      <div id="panelEquipo" hidden>
+        <div class="seccion">
+          <h2 class="seccion__tit">Tu equipo</h2>
+          <p class="seccion__sub">Corrige los nombres, decide quién administra y desactiva a quien ya no trabaja contigo.</p>
+          <div id="listaEquipo"></div>
+          <p class="aviso" id="avisoEquipo" role="status" aria-live="polite"></p>
+          <div class="vacio" style="margin-top:20px;text-align:left">
+            <b style="color:var(--crema)">¿Falta alguien?</b><br>
+            Invítalo desde Supabase → Authentication → Users → Add user → Send invitation.
+            Entra como feriante y desde aquí lo puedes hacer administrador.
+            Crear cuentas necesita una clave de servidor, y esa no puede vivir dentro de una página web.
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== panel Ferias ===== -->
+      <div id="panelFerias">
       <div class="seccion">
         <h2 class="seccion__tit">Ferias</h2>
         <p class="seccion__sub">Crea una feria, ábrela para que el equipo marque, y arma los turnos.</p>
@@ -324,6 +347,7 @@
           <div id="listaTurnos"></div>
         </div>
       </div>
+      </div><!-- /panelFerias -->
     </div>
   </main>
 </div>
@@ -724,11 +748,87 @@ $$('[data-estado]').forEach(btn => btn.onclick = async () => {
   cargarFeriasAdmin()
 })
 
-$$('.pestana').forEach(t => t.onclick = () => {
-  $$('.pestana').forEach(x => x.setAttribute('aria-selected', String(x === t)))
+$$('.pestana[data-tab]').forEach(t => t.onclick = () => {
+  $$('.pestana[data-tab]').forEach(x => x.setAttribute('aria-selected', String(x === t)))
   mostrar($('#tabDisp'),   t.dataset.tab === 'disp')
   mostrar($('#tabTurnos'), t.dataset.tab === 'turnos')
 })
+
+/* ---------- pestañas de nivel superior: Ferias / Equipo ---------- */
+$$('.pestana[data-panel]').forEach(t => t.onclick = () => {
+  $$('.pestana[data-panel]').forEach(x => x.setAttribute('aria-selected', String(x === t)))
+  const equipo = t.dataset.panel === 'equipo'
+  mostrar($('#panelFerias'), !equipo)
+  mostrar($('#panelEquipo'), equipo)
+  if (equipo) cargarEquipo()
+})
+
+/* ==========================================================================
+   PANEL DE EQUIPO
+   Solo lo ve un administrador, y la base vuelve a comprobarlo: si alguien
+   forzara esta pantalla sin serlo, las políticas rechazarían cada cambio.
+   ========================================================================== */
+async function cargarEquipo(){
+  const cont = $('#listaEquipo')
+  cont.innerHTML = `<div class="vacio">Cargando…</div>`
+  const { data, error } = await sb.from('perfiles').select('*').order('nombre')
+  if (error) { cont.innerHTML = `<div class="vacio">${error.message}</div>`; return }
+
+  cont.innerHTML = ''
+  const lista = document.createElement('div'); lista.className = 'candidatos'
+
+  data.forEach(p => {
+    const soyYo = p.id === yo.id
+    const fila = document.createElement('div')
+    fila.className = 'cand' + (p.rol === 'admin' ? ' puesto' : '')
+    fila.style.opacity = p.activo ? '1' : '.55'
+
+    // nombre editable: al crearse la cuenta se rellena con la parte del correo,
+    // así que casi siempre hay que corregirlo a mano la primera vez.
+    const nom = document.createElement('input')
+    nom.type = 'text'; nom.value = p.nombre || ''
+    nom.style.maxWidth = '230px'
+    nom.setAttribute('aria-label', 'Nombre')
+    nom.onchange = () => guardarPerfil(p.id, { nombre: nom.value.trim() }, fila)
+    fila.appendChild(nom)
+
+    if (soyYo) {
+      const tu = document.createElement('span')
+      tu.className = 'marca si'; tu.textContent = 'Tú'
+      fila.appendChild(tu)
+    }
+
+    const rol = document.createElement('select')
+    ;[['feriante','Feriante'],['admin','Administrador']].forEach(([v,txt]) => {
+      const o = document.createElement('option'); o.value = v; o.textContent = txt
+      if (p.rol === v) o.selected = true
+      rol.appendChild(o)
+    })
+    rol.disabled = soyYo   // nadie se quita a sí mismo el control y se queda fuera
+    rol.onchange = () => guardarPerfil(p.id, { rol: rol.value }, fila, true)
+    fila.appendChild(rol)
+
+    const act = document.createElement('button')
+    act.className = 'btn btn--mini ' + (p.activo ? 'btn--linea' : 'btn--fuego')
+    act.textContent = p.activo ? 'Desactivar' : 'Reactivar'
+    act.disabled = soyYo
+    act.onclick = () => guardarPerfil(p.id, { activo: !p.activo }, fila, true)
+    fila.appendChild(act)
+
+    lista.appendChild(fila)
+  })
+
+  cont.appendChild(lista)
+}
+
+async function guardarPerfil(id, cambios, fila, recargar = false){
+  decir($('#avisoEquipo'), 'Guardando…')
+  const { error } = await sb.from('perfiles').update(cambios).eq('id', id)
+  if (error) return decir($('#avisoEquipo'), 'No se pudo guardar: ' + error.message, true)
+  decir($('#avisoEquipo'), 'Guardado ✓')
+  setTimeout(() => decir($('#avisoEquipo'), ''), 2000)
+  if (recargar) cargarEquipo()
+}
 
 function pintarDisponibilidad(){
   const cont = $('#tablaDisp')
