@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#120805">
+<link rel="canonical" href="https://cuantics.pe/potente/">
+<meta name="description" content="Potente lleva su estación de comida rápida a ferias, conciertos, catering corporativo y eventos. Sándwiches a la plancha, combos y refrescos caseros. Una marca de Happy Foods Group.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_PE">
+<meta property="og:site_name" content="Potente">
+<meta property="og:url" content="https://cuantics.pe/potente/">
+<meta property="og:title" content="Potente — comida potente para ferias y eventos">
+<meta property="og:description" content="Comida que atrae y retiene al público de tu evento. Ferias, conciertos, catering corporativo y celebraciones.">
+<meta property="og:image" content="https://cuantics.pe/potente/img/og-potente.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Potente — comida potente para ferias y eventos">
+<meta name="twitter:description" content="Comida que atrae y retiene al público de tu evento. Ferias, conciertos, catering corporativo y celebraciones.">
+<meta name="twitter:image" content="https://cuantics.pe/potente/img/og-potente.jpg">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/logo.png">
+<title>Potente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+  /* Un solo mundo visual: noche de feria — carbón, brasa y producto iluminado. */
+  :root{
+    --carbon:        #120805;
+    --carbon-hondo:  #0a0403;
+    --plancha:       #1b0d07;
+    --plancha-alta:  #24130a;
+    --linea:         #3d2214;
+    --linea-suave:   rgba(61,34,20,.6);
+    --brasa:         #f2811d;
+    --brasa-honda:   #d63317;
+    --chispa:        #ffc63c;
+    --crema:         #f7ead9;
+    --crema-media:   #e0cab3;
+    --humo:          #ab917c;
+
+    --f-display: "Anton", "Arial Narrow", Impact, sans-serif;
+    --f-body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+    --f-util: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+
+    --ancho: 1160px;
+    --grano: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    background:var(--carbon);
+    color:var(--crema);
+    font-family:var(--f-body);
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{ max-width:100%; display:block; }
+  a{ color:inherit; }
+  ::selection{ background:var(--brasa); color:#180a04; }
+  :focus-visible{ outline:2px solid var(--chispa); outline-offset:3px; border-radius:2px; }
+
+  .env{ max-width:var(--ancho); margin-inline:auto; padding-inline:24px; }
+
+  h1,h2,h3{ font-family:var(--f-display); font-weight:400; text-wrap:balance; margin:0; line-height:1; }
+
+  .eyebrow{
+    font-family:var(--f-util);
+    text-transform:uppercase; letter-spacing:.2em; font-weight:600;
+    font-size:.8rem; color:var(--brasa); margin:0;
+  }
+
+  .sec{ padding:clamp(56px,7.5vw,92px) 0; }
+  .sec-cab{ margin-bottom:clamp(30px,4vw,46px); max-width:44ch; }
+  .sec-tit{ font-size:clamp(1.9rem,4.4vw,3.05rem); text-transform:uppercase; margin-top:10px; }
+  .sec-cab p{ color:var(--crema-media); margin:14px 0 0; }
+
+  /* ---------- botones ---------- */
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:var(--f-util);
+    text-transform:uppercase; letter-spacing:.11em; font-weight:700; font-size:1.04rem;
+    padding:15px 28px; text-decoration:none; border-radius:2px;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, color .18s ease;
+  }
+  .btn--wa{ background:linear-gradient(140deg,#2fdc6e,#12873f); color:#04220f; box-shadow:0 10px 26px rgba(18,135,63,.32); }
+  .btn--wa:hover{ transform:translateY(-2px); box-shadow:0 14px 34px rgba(18,135,63,.46); }
+  .btn--fantasma{ color:var(--crema); border:1px solid var(--linea); background:rgba(255,255,255,.02); }
+  .btn--fantasma:hover{ border-color:var(--brasa); color:var(--chispa); transform:translateY(-2px); }
+  .btn svg{ width:19px; height:19px; flex:none; }
+  .acciones{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative; overflow:hidden;
+    padding:clamp(34px,5vw,58px) 0 0;
+    background:
+      radial-gradient(120% 88% at 66% 6%, rgba(242,129,29,.32) 0%, rgba(214,51,23,.14) 40%, rgba(18,8,5,0) 74%),
+      linear-gradient(180deg,#1c0d07 0%, var(--carbon) 66%);
+  }
+  .hero::after{
+    content:""; position:absolute; inset:0;
+    background-image:var(--grano); opacity:.055; pointer-events:none; mix-blend-mode:overlay;
+  }
+  .hero__grid{
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+    gap:24px 40px; align-items:center;
+    padding-bottom:clamp(40px,5vw,64px);
+  }
+  .hero__texto{ display:flex; flex-direction:column; align-items:flex-start; gap:22px; }
+  .hero__logo{
+    width:min(430px,80%);
+    filter:drop-shadow(0 14px 34px rgba(214,51,23,.42));
+    animation:respira 7s ease-in-out infinite;
+  }
+  @keyframes respira{
+    0%,100%{ filter:drop-shadow(0 12px 30px rgba(214,51,23,.36)); }
+    50%    { filter:drop-shadow(0 14px 46px rgba(242,129,29,.56)); }
+  }
+  .hero h1{
+    font-size:clamp(2.35rem,5.3vw,4.05rem);
+    text-transform:uppercase; max-width:17ch;
+    background:linear-gradient(172deg,#fff5e5 4%,var(--chispa) 40%,var(--brasa) 74%,var(--brasa-honda) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero__lede{ max-width:52ch; font-size:1.09rem; color:var(--crema-media); margin:0; }
+  .hero__foto{ position:relative; display:grid; place-items:center; }
+  .hero__foto::before{
+    content:""; position:absolute; width:96%; aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle,rgba(255,198,60,.36) 0%,rgba(242,129,29,.20) 34%,rgba(18,8,5,0) 68%);
+    animation:brasa 6s ease-in-out infinite;
+  }
+  @keyframes brasa{ 0%,100%{ transform:scale(1); opacity:.9; } 50%{ transform:scale(1.07); opacity:1; } }
+  .hero__foto img{ position:relative; width:min(500px,100%); filter:drop-shadow(0 26px 40px rgba(0,0,0,.6)); animation:flota 8s ease-in-out infinite; }
+  @keyframes flota{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-12px); } }
+
+  .valores{
+    position:relative; z-index:1;
+    border-top:1px solid var(--linea);
+    display:grid; grid-template-columns:repeat(4,1fr);
+  }
+  .valores div{
+    padding:18px 20px 20px 0;
+    font-family:var(--f-util); text-transform:uppercase; letter-spacing:.14em;
+    font-weight:600; font-size:.86rem; color:var(--crema);
+  }
+  .valores div::before{ content:""; display:block; width:26px; height:3px; background:var(--brasa); margin-bottom:12px; }
+
+  /* ---------- propósito ---------- */
+  .proposito{ background:var(--carbon-hondo); border-block:1px solid var(--linea); }
+  .proposito .env{ padding-block:clamp(38px,5vw,58px); }
+  .proposito p{
+    margin:0; max-width:34ch;
+    font-family:var(--f-display); text-transform:uppercase;
+    font-size:clamp(1.35rem,3vw,2.05rem); line-height:1.12; color:var(--crema);
+  }
+  .proposito span{ color:var(--brasa); }
+
+  /* ---------- carta ---------- */
+  .firmas{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:34px 26px; }
+  .plato{ display:flex; flex-direction:column; gap:12px; }
+  .plato__foto{
+    position:relative; display:flex; align-items:flex-end; justify-content:center;
+    padding:10px 0 6px; min-height:216px; overflow:visible;
+  }
+  .plato__foto::before{
+    content:""; position:absolute; width:92%; aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle,rgba(242,129,29,.26) 0%,rgba(214,51,23,.10) 40%,rgba(18,8,5,0) 68%);
+  }
+  .plato__foto img{
+    position:relative; width:auto; height:auto; max-height:200px; max-width:100%;
+    filter:drop-shadow(0 18px 26px rgba(0,0,0,.55)); transition:transform .3s ease;
+  }
+  .plato:hover .plato__foto img{ transform:translateY(-6px) scale(1.03); }
+  .badge{
+    font-family:var(--f-util); text-transform:uppercase; letter-spacing:.16em;
+    font-weight:700; font-size:.72rem; color:var(--chispa);
+  }
+  .plato h3{ font-size:1.5rem; text-transform:uppercase; color:var(--crema); }
+  .plato p{ margin:0; color:var(--humo); font-size:.95rem; line-height:1.5; }
+
+  .extras{
+    margin-top:clamp(44px,5vw,64px); padding-top:34px; border-top:1px solid var(--linea);
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:26px;
+  }
+  .extra{ display:flex; gap:16px; align-items:center; }
+  .extra__foto{ position:relative; flex:none; width:96px; min-height:96px; display:flex; align-items:center; justify-content:center; }
+  .extra__foto::before{
+    content:""; position:absolute; width:110%; aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle,rgba(242,129,29,.24),rgba(18,8,5,0) 66%);
+  }
+  .extra__foto img{ position:relative; width:auto; height:auto; max-width:100%; max-height:96px; filter:drop-shadow(0 10px 16px rgba(0,0,0,.5)); }
+  .extra h4{ margin:0 0 4px; font-family:var(--f-display); font-weight:400; font-size:1.1rem; text-transform:uppercase; color:var(--crema); line-height:1.1; }
+  .extra p{ margin:0; font-size:.88rem; color:var(--humo); line-height:1.45; }
+
+  /* ---------- combo ---------- */
+  .combo{
+    position:relative; border-block:1px solid var(--linea);
+    background:
+      radial-gradient(70% 100% at 50% 0%, rgba(242,129,29,.22), rgba(18,8,5,0) 70%),
+      var(--plancha);
+  }
+  .combo::before{ content:""; position:absolute; inset:0; background-image:var(--grano); opacity:.06; pointer-events:none; }
+  .combo .env{ position:relative; z-index:1; }
+  .combo__cab{ display:flex; flex-wrap:wrap; gap:20px 48px; align-items:flex-end; justify-content:space-between; margin-bottom:44px; }
+  .combo__cab h2{ font-size:clamp(2.1rem,5.2vw,3.6rem); text-transform:uppercase; color:var(--chispa); max-width:12ch; }
+  .combo__cab p{ margin:0; max-width:42ch; color:var(--crema-media); }
+  .combos{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:30px; }
+  .combo__item{ text-align:center; display:flex; flex-direction:column; gap:10px; align-items:center; }
+  .combo__item .plato__foto{ width:100%; min-height:250px; }
+  .combo__item .plato__foto img{ max-height:236px; }
+  .combo__item h3{ font-size:1.32rem; text-transform:uppercase; color:var(--crema); }
+  .combo__nota{ margin:40px 0 0; font-size:.95rem; color:var(--humo); font-style:italic; }
+
+  /* ---------- experiencias ---------- */
+  .exps{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; border:1px solid var(--linea); }
+  .exp{ padding:28px 26px 30px; border-right:1px solid var(--linea); display:flex; flex-direction:column; gap:10px; }
+  .exp:last-child{ border-right:none; }
+  .exp h3{ font-size:1.36rem; text-transform:uppercase; color:var(--chispa); line-height:1.05; }
+  .exp p{ margin:0; color:var(--humo); font-size:.94rem; }
+  .exp__para{
+    margin-top:auto; padding-top:14px; border-top:1px solid var(--linea-suave);
+    font-family:var(--f-util); text-transform:uppercase; letter-spacing:.14em;
+    font-size:.76rem; color:var(--crema-media);
+  }
+
+  /* ---------- incluye / alianza ---------- */
+  .duo{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(30px,5vw,60px); }
+  .duo h3{
+    font-family:var(--f-util); font-weight:700; text-transform:uppercase; letter-spacing:.2em;
+    font-size:.88rem; color:var(--brasa); padding-bottom:12px; border-bottom:1px solid var(--linea); margin-bottom:6px;
+  }
+  .lista{ list-style:none; margin:0; padding:0; }
+  .lista li{ position:relative; padding:12px 0 12px 26px; border-bottom:1px solid var(--linea-suave); color:var(--crema-media); font-size:1rem; }
+  .lista li:last-child{ border-bottom:none; }
+  .lista li::before{ content:"+"; position:absolute; left:0; top:11px; color:var(--brasa); font-family:var(--f-display); font-size:1.1rem; }
+
+  .incluye{ background:var(--plancha); border-block:1px solid var(--linea); }
+  .incluye__grid{ display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,.85fr); gap:clamp(34px,5vw,60px); align-items:center; }
+  .incluye__foto{ position:relative; display:grid; place-items:center; }
+  .incluye__foto::before{
+    content:""; position:absolute; width:92%; aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle,rgba(255,198,60,.24),rgba(18,8,5,0) 66%);
+  }
+  .incluye__foto img{ position:relative; width:min(380px,100%); filter:drop-shadow(0 22px 32px rgba(0,0,0,.55)); }
+
+  /* ---------- pasos ---------- */
+  .pasos{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:30px; }
+  .paso{ padding-top:20px; border-top:1px solid var(--linea); }
+  .paso__n{ font-family:var(--f-display); font-size:2.1rem; color:var(--brasa-honda); line-height:1; font-variant-numeric:tabular-nums; }
+  .paso h3{ font-size:1.14rem; text-transform:uppercase; color:var(--crema); margin:10px 0 8px; }
+  .paso p{ margin:0; color:var(--humo); font-size:.93rem; }
+
+  /* ---------- cierre ---------- */
+  .cierre{
+    position:relative; border-top:1px solid var(--linea);
+    background:
+      radial-gradient(80% 130% at 20% 100%, rgba(242,129,29,.26), rgba(18,8,5,0) 66%),
+      var(--plancha-alta);
+  }
+  .cierre .env{ padding-block:clamp(56px,7vw,88px); display:flex; flex-direction:column; align-items:flex-start; gap:24px; }
+  .cierre h2{ font-size:clamp(2.2rem,6vw,4.1rem); text-transform:uppercase; max-width:15ch; color:var(--crema); }
+  .cierre p{ margin:0; max-width:50ch; color:var(--crema-media); font-size:1.06rem; }
+  .datos{ display:flex; flex-wrap:wrap; gap:10px 34px; margin:0; padding:0; list-style:none; }
+  .datos a{ text-decoration:none; display:inline-flex; align-items:baseline; gap:10px; }
+  .datos span:first-child{ font-family:var(--f-util); text-transform:uppercase; letter-spacing:.16em; font-size:.74rem; color:var(--humo); }
+  .datos span:last-child{ font-weight:600; color:var(--crema); font-variant-numeric:tabular-nums; }
+  .datos a:hover span:last-child{ color:var(--chispa); }
+
+  footer{ padding:34px 0 46px; border-top:1px solid var(--linea); background:var(--carbon-hondo); }
+  .pie{ display:flex; flex-wrap:wrap; gap:14px 28px; justify-content:space-between; align-items:center; }
+  .pie p{ margin:0; color:var(--humo); font-size:.86rem; }
+  .pie strong{ color:var(--crema); font-weight:600; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:960px){
+    .firmas{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .extras{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .exps{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .exp:nth-child(2n){ border-right:none; }
+    .exp:nth-child(-n+2){ border-bottom:1px solid var(--linea); }
+    .pasos{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
+  @media (max-width:820px){
+    .hero__grid{ grid-template-columns:1fr; }
+    .hero__foto{ order:-1; }
+    .hero__foto img{ width:min(340px,72%); }
+    .valores{ grid-template-columns:repeat(2,1fr); }
+    .incluye__grid{ grid-template-columns:1fr; }
+    .incluye__foto{ display:none; }
+    .duo{ grid-template-columns:1fr; }
+    .combos{ grid-template-columns:1fr; gap:36px; }
+  }
+  @media (max-width:560px){
+    .firmas{ grid-template-columns:1fr; gap:30px; }
+    .extras{ grid-template-columns:1fr; }
+    .exps{ grid-template-columns:1fr; }
+    .exp{ border-right:none; border-bottom:1px solid var(--linea); }
+    .exp:last-child{ border-bottom:none; }
+    .pasos{ grid-template-columns:1fr; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FoodEstablishment",
+  "name": "Potente",
+  "slogan": "Sabroso como te gusta",
+  "description": "Estación de comida rápida para ferias, conciertos, catering corporativo y eventos de alta afluencia.",
+  "url": "https://cuantics.pe/potente/",
+  "image": "https://cuantics.pe/potente/img/og-potente.jpg",
+  "logo": "https://cuantics.pe/potente/img/logo.png",
+  "telephone": "+51992026641",
+  "servesCuisine": ["Comida rápida", "Comida callejera peruana"],
+  "areaServed": { "@type": "Country", "name": "Perú" },
+  "address": { "@type": "PostalAddress", "addressLocality": "Lima", "addressCountry": "PE" },
+  "parentOrganization": { "@type": "Organization", "name": "Happy Foods Group" },
+  "sameAs": ["https://www.instagram.com/potente.pe/"]
+}
+</script>
+</head>
+<body>
+<header class="hero">
+  <div class="env">
+    <div class="hero__grid">
+      <div class="hero__texto">
+        <img class="hero__logo" src="img/logo.png" alt="Potente — sabroso como te gusta">
+        <p class="eyebrow">Ferias · Conciertos · Catering · Eventos</p>
+        <h1>Comida que atrae y retiene al público de tu evento</h1>
+        <p class="hero__lede">Llevamos nuestra estación completa, nuestro equipo y nuestra carta a ferias, conciertos, festivales y eventos corporativos. Sabor callejero peruano, porciones generosas y servicio hecho para el alto tráfico.</p>
+        <div class="acciones">
+          <a class="btn btn--wa" id="waHero" href="#" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.74-.86-2.01-.96-.27-.1-.47-.15-.66.15-.2.3-.76.96-.94 1.16-.17.2-.34.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.9-2.19-.24-.57-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.03 1.01-1.03 2.46 0 1.45 1.06 2.85 1.2 3.05.15.2 2.08 3.18 5.04 4.46.7.3 1.25.48 1.68.62.71.22 1.35.19 1.86.12.57-.09 1.74-.71 1.99-1.4.25-.69.25-1.28.17-1.4-.07-.13-.27-.2-.57-.35M12.05 21.5h-.02a9.4 9.4 0 0 1-4.8-1.32l-.34-.2-3.57.93.95-3.48-.22-.36a9.36 9.36 0 0 1-1.43-5A9.42 9.42 0 0 1 18.72 5.3a9.36 9.36 0 0 1 2.76 6.65 9.42 9.42 0 0 1-9.43 9.55M20.06 3.94A11.75 11.75 0 0 0 11.7.5C5.2.5.02 5.68.02 12.05c0 2.05.54 4.05 1.56 5.82L0 24l6.3-1.65a11.7 11.7 0 0 0 5.6 1.42h.01c6.5 0 11.68-5.18 11.68-11.55a11.5 11.5 0 0 0-3.53-8.28"/></svg>
+            Cotiza tu evento
+          </a>
+          <a class="btn btn--fantasma" href="#carta">Ver la carta</a>
+        </div>
+      </div>
+      <div class="hero__foto">
+        <img src="img/burger.webp" alt="Burger Potente: doble carne, queso cheddar, lechuga y tomate">
+      </div>
+    </div>
+
+    <div class="valores">
+      <div>Sabor consistente</div>
+      <div>Velocidad</div>
+      <div>Higiene y orden</div>
+      <div>Marca que atrae</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="proposito">
+    <div class="env">
+      <p>Que la comida callejera peruana se viva como <span>una experiencia</span>: en cada feria, cada concierto y cada evento.</p>
+    </div>
+  </section>
+
+  <section class="sec" id="carta">
+    <div class="env">
+      <div class="sec-cab">
+        <p class="eyebrow">Nuestra carta</p>
+        <h2 class="sec-tit">Sándwiches que son nuestra firma</h2>
+        <p>Hechos al instante en la plancha, con porciones que se sienten en la mano.</p>
+      </div>
+
+      <div class="firmas">
+        <article class="plato">
+          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/burger.webp" alt="Burger Potente"></div>
+          <p class="badge">Producto insignia</p>
+          <h3>Burger Potente</h3>
+          <p>Hamburguesón de carne con lechuga, tomate y queso cheddar.</p>
+        </article>
+        <article class="plato">
+          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/choripan.webp" alt="Choripán Criollo"></div>
+          <p class="badge">El favorito</p>
+          <h3>Choripán Criollo</h3>
+          <p>Chorizo a la plancha con papas al hilo y salsas de la casa.</p>
+        </article>
+        <article class="plato">
+          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/hotdog.webp" alt="Hotdog Callejero"></div>
+          <p class="badge">Clásico de feria</p>
+          <h3>Hotdog Callejero</h3>
+          <p>Salchicha, papas al hilo y salsas de la casa.</p>
+        </article>
+        <article class="plato">
+          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/salchipapa.webp" alt="Salchipapa Potente"></div>
+          <p class="badge">Para compartir</p>
+          <h3>Salchipapas</h3>
+          <p>De salchicha o de chorizo, con papas crujientes y salsas.</p>
+        </article>
+      </div>
+
+      <div class="extras">
+        <div class="extra">
+          <div class="extra__foto"><img loading="lazy" decoding="async" src="img/papas.webp" alt="Papas crujientes"></div>
+          <div>
+            <h4>Papas Crujientes</h4>
+            <p>Porción generosa, siempre calientes.</p>
+          </div>
+        </div>
+        <div class="extra">
+          <div class="extra__foto"><img loading="lazy" decoding="async" src="img/pancho.webp" alt="Pancho en palo"></div>
+          <div>
+            <h4>Panchos</h4>
+            <p>Chorizo o hot-dog en palo. Se come caminando.</p>
+          </div>
+        </div>
+        <div class="extra">
+          <div class="extra__foto"><img loading="lazy" decoding="async" src="img/chicha.webp" alt="Vaso de chicha morada"></div>
+          <div>
+            <h4>Chicha Morada</h4>
+            <p>Refresco casero en 12 y 9 oz.</p>
+          </div>
+        </div>
+        <div class="extra">
+          <div class="extra__foto"><img loading="lazy" decoding="async" src="img/maracuya.webp" alt="Vaso de maracuyá"></div>
+          <div>
+            <h4>Maracuyá</h4>
+            <p>Refresco casero en 12 y 9 oz.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec combo">
+    <div class="env">
+      <div class="combo__cab">
+        <div>
+          <p class="eyebrow">La promoción estrella</p>
+          <h2 class="sec-tit">El Combo Potente</h2>
+        </div>
+        <p>Cualquier sándwich + porción de papas + refresco de 12 oz. Un solo pedido, una sola cola, cliente satisfecho.</p>
+      </div>
+
+      <div class="combos">
+        <article class="combo__item">
+          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/combo-burger.webp" alt="Combo Burger Potente"></div>
+          <p class="badge">El más pedido</p>
+          <h3>Combo Burger</h3>
+        </article>
+        <article class="combo__item">
+          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/combo-choripan.webp" alt="Combo Choripán"></div>
+          <p class="badge">Sabor criollo</p>
+          <h3>Combo Choripán</h3>
+        </article>
+        <article class="combo__item">
+          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/combo-hotdog.webp" alt="Combo Hotdog"></div>
+          <p class="badge">Rinde en volumen</p>
+          <h3>Combo Hotdog</h3>
+        </article>
+      </div>
+
+      <p class="combo__nota">Precio cerrado, acordado según el perfil y el aforo de tu evento.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="env">
+      <div class="sec-cab">
+        <p class="eyebrow">Experiencias Potente</p>
+        <h2 class="sec-tit">Nos adaptamos a tu evento</h2>
+        <p>Vamos con la estación completa y nuestro equipo, para atender al público como se merece.</p>
+      </div>
+
+      <div class="exps">
+        <article class="exp">
+          <h3>Ferias gastronómicas</h3>
+          <p>Módulo con la carta completa y atención de alto volumen durante todo el día.</p>
+          <p class="exp__para">Ferias de comida y festivales</p>
+        </article>
+        <article class="exp">
+          <h3>Conciertos y festivales</h3>
+          <p>Carta express y combos, armada para mover colas largas sin demora.</p>
+          <p class="exp__para">Eventos masivos</p>
+        </article>
+        <article class="exp">
+          <h3>Catering corporativo</h3>
+          <p>Combos servidos por invitado, con cantidad y horario acordados de antemano.</p>
+          <p class="exp__para">Empresas y lanzamientos</p>
+        </article>
+        <article class="exp">
+          <h3>Celebraciones a medida</h3>
+          <p>Carta y espacio para el branding del anfitrión en el módulo.</p>
+          <p class="exp__para">Cumpleaños y activaciones</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec incluye">
+    <div class="env incluye__grid">
+      <div>
+        <div class="sec-cab">
+          <p class="eyebrow">Qué incluye</p>
+          <h2 class="sec-tit">Llegamos listos para operar</h2>
+          <p>Solo necesitamos el espacio y el punto de energía. Del resto nos encargamos nosotros.</p>
+        </div>
+        <div class="duo">
+          <div>
+            <h3>Incluye</h3>
+            <ul class="lista">
+              <li>Módulo o estación con branding Potente</li>
+              <li>Equipo uniformado de 2 a 3 personas</li>
+              <li>Plancha, freidora y equipo de frío</li>
+              <li>Insumos, empaques y servilletas</li>
+              <li>Menú visible con precios y combos</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Complementos</h3>
+            <ul class="lista">
+              <li>Carta adaptada al público del evento</li>
+              <li>Branding co-marca en módulo y empaques</li>
+              <li>Preventa de tickets o combos por invitado</li>
+              <li>Refrescos de chicha morada o maracuyá</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="incluye__foto">
+        <img loading="lazy" decoding="async" src="img/choripapa.webp" alt="Choripapa Potente en empaque con branding">
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="env">
+      <div class="sec-cab">
+        <p class="eyebrow">Alianza de marca</p>
+        <h2 class="sec-tit">Sumemos fuerzas</h2>
+        <p>Tu evento con una marca de comida que atrae público, lo retiene y lo hace volver.</p>
+      </div>
+      <div class="duo">
+        <div>
+          <h3>Lo que aportamos</h3>
+          <ul class="lista">
+            <li>Estación operativa completa y equipo propio</li>
+            <li>Carta y combos adaptados a tu público</li>
+            <li>Branding co-marca en módulo y empaques</li>
+            <li>Difusión de tu evento en nuestras redes</li>
+            <li>Coordinación previa y comprobantes de pago</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Lo que necesitamos</h3>
+          <ul class="lista">
+            <li>Espacio con punto de energía</li>
+            <li>Fecha, horario y aforo estimado</li>
+            <li>Condiciones comerciales claras y por escrito</li>
+            <li>Acceso para el montaje</li>
+            <li>Un contacto único para coordinar</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="env">
+      <div class="sec-cab">
+        <p class="eyebrow">Cómo trabajamos contigo</p>
+        <h2 class="sec-tit">De tu mensaje al primer pedido</h2>
+      </div>
+      <div class="pasos">
+        <article class="paso">
+          <div class="paso__n">01</div>
+          <h3>Nos escribes</h3>
+          <p>Cuéntanos fecha, tipo de evento y aforo estimado por WhatsApp.</p>
+        </article>
+        <article class="paso">
+          <div class="paso__n">02</div>
+          <h3>Armamos la propuesta</h3>
+          <p>Carta y combos a la medida de tu público, con precio cerrado.</p>
+        </article>
+        <article class="paso">
+          <div class="paso__n">03</div>
+          <h3>Coordinamos</h3>
+          <p>Montaje, horarios y branding co-marca, todo por escrito antes del día.</p>
+        </article>
+        <article class="paso">
+          <div class="paso__n">04</div>
+          <h3>Servimos</h3>
+          <p>Llegamos, montamos y atendemos. Tú te concentras en tu evento.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cierre" id="contacto">
+    <div class="env">
+      <p class="eyebrow">Hablemos</p>
+      <h2>Hagamos que tu evento sea potente</h2>
+      <p>Escríbenos por WhatsApp con la fecha y el tipo de evento. Respondemos normalmente el mismo día.</p>
+      <a class="btn btn--wa" id="waCierre" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.74-.86-2.01-.96-.27-.1-.47-.15-.66.15-.2.3-.76.96-.94 1.16-.17.2-.34.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.9-2.19-.24-.57-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.03 1.01-1.03 2.46 0 1.45 1.06 2.85 1.2 3.05.15.2 2.08 3.18 5.04 4.46.7.3 1.25.48 1.68.62.71.22 1.35.19 1.86.12.57-.09 1.74-.71 1.99-1.4.25-.69.25-1.28.17-1.4-.07-.13-.27-.2-.57-.35M12.05 21.5h-.02a9.4 9.4 0 0 1-4.8-1.32l-.34-.2-3.57.93.95-3.48-.22-.36a9.36 9.36 0 0 1-1.43-5A9.42 9.42 0 0 1 18.72 5.3a9.36 9.36 0 0 1 2.76 6.65 9.42 9.42 0 0 1-9.43 9.55M20.06 3.94A11.75 11.75 0 0 0 11.7.5C5.2.5.02 5.68.02 12.05c0 2.05.54 4.05 1.56 5.82L0 24l6.3-1.65a11.7 11.7 0 0 0 5.6 1.42h.01c6.5 0 11.68-5.18 11.68-11.55a11.5 11.5 0 0 0-3.53-8.28"/></svg>
+        Cotiza tu evento
+      </a>
+      <ul class="datos">
+        <li><a id="waDato" href="#" target="_blank" rel="noopener"><span>WhatsApp</span><span>+51 992 026 641</span></a></li>
+        <li><a id="igDato" href="#" target="_blank" rel="noopener"><span>Instagram</span><span>@potente.pe</span></a></li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="env pie">
+    <p><strong>Potente</strong> — una marca de Happy Foods Group · Lima, Perú</p>
+    <p>Sabroso como te gusta</p>
+  </div>
+</footer>
+
+<script>
+  /* ====== CONFIGURACIÓN — edita solo estas líneas ====== */
+  var CONFIG = {
+    whatsapp: "51992026641",
+    mensaje: "Hola Potente! Vi su web y quiero cotizar su propuesta gastronomica para un evento.",
+    instagram: "https://www.instagram.com/potente.pe/"
+  };
+  /* ==================================================== */
+
+  (function () {
+    var wa = "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(CONFIG.mensaje);
+    ["waHero", "waCierre", "waDato"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) { el.href = wa; }
+    });
+    var ig = document.getElementById("igDato");
+    if (ig) { ig.href = CONFIG.instagram; }
+  })();
+</script>
+</body>
+</html>
