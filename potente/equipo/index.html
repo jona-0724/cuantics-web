@@ -178,6 +178,30 @@
     font-weight:700;font-size:.66rem;padding:3px 8px;border-radius:2px;white-space:nowrap;
     background:rgba(242,129,29,.18);color:var(--brasa);border:1px solid rgba(242,129,29,.45)}
 
+  /* ---------- barra de envío ----------
+     Va pegada al pie: en el celular la de arriba se pierde al hacer scroll,
+     que es justo cuando hace falta recordar lo que queda. */
+  .envio{position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:var(--plancha-alta);border-top:2px solid var(--brasa);
+    box-shadow:0 -8px 24px rgba(0,0,0,.45)}
+  .envio.listo{border-top-color:var(--si)}
+  .envio.mandada{border-top-color:var(--si);background:rgba(47,191,107,.1)}
+  .envio__in{max-width:1080px;margin:0 auto;padding:11px 20px;
+    display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+  .envio__txt{flex:1 1 150px;font-size:.88rem;line-height:1.3;color:var(--crema)}
+  .envio__txt b{color:var(--brasa)}
+  .envio.listo .envio__txt b,.envio.mandada .envio__txt b{color:var(--si)}
+  .envio .btn{flex:none}
+  .btn--fantasma{background:transparent;border:1px solid var(--linea);color:var(--humo)}
+  .btn--fantasma:hover{border-color:var(--crema-media);color:var(--crema)}
+  .btn[disabled]{opacity:.45;cursor:not-allowed;filter:grayscale(.5)}
+  /* Aire al final para que la barra no tape el último bloque. */
+  #vistaFeriante.con-envio{padding-bottom:96px}
+  @media (max-width:520px){
+    .envio__in{padding:10px 16px}
+    .envio__txt{flex-basis:100%}
+  }
+
   /* ---------- tablas admin ---------- */
   .scroll-x{overflow-x:auto;border:1px solid var(--linea);border-radius:4px}
   table{border-collapse:collapse;width:100%;min-width:520px}
@@ -358,6 +382,15 @@
         <div id="diasFeriante"></div>
         <p class="aviso" id="avisoGuardado" role="status" aria-live="polite"></p>
       </div>
+
+      <!-- Barra fija: acompaña al que va marcando y es donde se sube al final. -->
+      <div class="envio" id="barraEnvio" hidden>
+        <div class="envio__in">
+          <span class="envio__txt" id="envioTxt">—</span>
+          <button class="btn btn--fantasma btn--mini" id="btnSiguiente" type="button">Ir al siguiente</button>
+          <button class="btn btn--fuego" id="btnSubir" type="button">Subir mi disponibilidad</button>
+        </div>
+      </div>
     </div>
 
     <!-- ---------- vista administrador ---------- -->
@@ -480,10 +513,8 @@
 
         <div id="tabDisp">
           <div class="scroll-x" id="tablaDisp"></div>
-          <p class="leyenda">Haz clic en cualquier casilla para corregirla: pasa de
-            <b style="color:var(--si)">Sí</b> a <b style="color:var(--quizas)">Quizás</b>,
-            a <b style="color:var(--no)">No</b> y a vacío. Úsalo cuando alguien te avise por
-            fuera de la página.</p>
+          <p class="leyenda"><b style="color:var(--si)">Enviada</b> = respondió todos los bloques y le dio a subir. <b style="color:var(--brasa)">3/6</b> = va a medias, todavía no la sube.</p>
+          <p class="leyenda">Haz clic en cualquier casilla para corregirla: pasa de <b style="color:var(--si)">Sí</b> a <b style="color:var(--quizas)">Quizás</b>, a <b style="color:var(--no)">No</b> y a vacío. Úsalo cuando alguien te avise por fuera de la página.</p>
           <p class="aviso" id="avisoDisp" role="status" aria-live="polite"></p>
         </div>
 
@@ -578,6 +609,8 @@ let cacheDisp = []
 let cacheAsig = []
 let cachePerfiles = []
 let misMarcas = {}       // bloque_id → estado, solo del usuario actual
+let miEnvio = false      // ¿ya subió su disponibilidad de la feria abierta?
+let cacheEnvios = []     // vista admin: quién ya la subió
 
 /* ---------- utilidades ---------- */
 
@@ -782,16 +815,18 @@ async function abrirFeriaFeriante(f){
   mostrar($('#bloqueDisponibilidad'), true)
   $('#tituloFeriaSel').textContent = f.nombre
   $('#subFeriaSel').textContent = f.estado === 'abierta'
-    ? 'Marca cada bloque. Se guarda solo, no hay que confirmar nada.'
+    ? 'Responde los bloques y súbela al final. Lo que marques se va guardando solo.'
     : 'Turnos ya publicados. Estos son los bloques donde te toca trabajar.'
 
-  const [{ data: bloques }, { data: disp }, { data: asig }] = await Promise.all([
+  const [{ data: bloques }, { data: disp }, { data: asig }, { data: env }] = await Promise.all([
     sb.from('bloques').select('*').eq('feria_id', f.id).order('fecha').order('hora_inicio'),
     // Se filtra por perfil aquí además de en las políticas de la base: si algún
     // día se abre la lectura, la pantalla no debe empezar a mostrar lo ajeno.
     sb.from('disponibilidad').select('*').eq('perfil_id', yo.id),
-    sb.from('asignaciones').select('*').eq('perfil_id', yo.id)
+    sb.from('asignaciones').select('*').eq('perfil_id', yo.id),
+    sb.from('envios').select('*').eq('perfil_id', yo.id).eq('feria_id', f.id)
   ])
+  miEnvio = !!(env && env.length)
   cacheBloques = bloques || []
   misMarcas = Object.fromEntries((disp || []).map(d => [d.bloque_id, d.estado]))
   const mias = misMarcas
@@ -870,7 +905,10 @@ async function abrirFeriaFeriante(f){
     cont.appendChild(caja)
   }
 
-  mostrar($('#avanceFeriante'), f.estado === 'abierta')
+  const abierta = f.estado === 'abierta'
+  mostrar($('#avanceFeriante'), abierta)
+  mostrar($('#barraEnvio'), abierta)
+  $('#vistaFeriante').classList.toggle('con-envio', abierta)
   refrescarAvance()
 }
 
@@ -894,10 +932,61 @@ function refrescarAvance(){
   caja.classList.toggle('listo', completo)
   $('#avanceTit').textContent = completo ? '¡Listo!' : `${hechos} de ${total}`
   $('#avanceTxt').textContent = completo
-    ? 'Marcaste todos los bloques. Si algo te cambia, puedes corregirlo cuando quieras.'
+    ? 'Respondiste todos los bloques. Ya puedes subir tu disponibilidad, abajo.'
     : `Te ${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`} por responder. `
       + 'Están marcados abajo; contesta también los que no puedes, para que no queden en duda.'
   $('#avanceBarra').style.width = Math.round(hechos / total * 100) + '%'
+
+  // ---- barra de abajo ----
+  const barra = $('#barraEnvio')
+  const mandada = completo && miEnvio
+  barra.classList.toggle('listo', completo && !mandada)
+  barra.classList.toggle('mandada', mandada)
+  mostrar($('#btnSiguiente'), !completo)
+  const subir = $('#btnSubir')
+  subir.disabled = !completo || mandada
+  subir.textContent = mandada ? 'Enviada ✓' : 'Subir mi disponibilidad'
+
+  $('#envioTxt').innerHTML = mandada
+    ? '<b>Disponibilidad enviada.</b> Si algo te cambia, corrígelo y vuelve a subirla.'
+    : completo
+      ? '<b>Todo respondido.</b> Súbela para que quede registrada.'
+      : `Te <b>${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`}</b>. `
+        + 'Hasta que respondas todos no se puede subir.'
+}
+
+/* Lleva al primer bloque sin responder. En el celular la lista es larga y
+   buscar a mano lo que falta es la excusa perfecta para dejarlo a medias. */
+$('#btnSiguiente').onclick = () => {
+  const fila = $('#diasFeriante .bloque.falta')
+  if (!fila) return
+  fila.scrollIntoView({ behavior:'smooth', block:'center' })
+  fila.animate(
+    [{ filter:'brightness(1)' }, { filter:'brightness(1.9)' }, { filter:'brightness(1)' }],
+    { duration: 900 }
+  )
+}
+
+/* Subir = dar por cerrada la disponibilidad. Las marcas ya estaban guardadas;
+   esto registra que la persona terminó, que es lo que el admin necesita saber. */
+$('#btnSubir').onclick = async () => {
+  if (!feriaSel) return
+  const faltan = cacheBloques.filter(b => !misMarcas[b.id]).length
+  if (faltan) return decir($('#avisoGuardado'), 'Todavía te faltan bloques por responder.', true)
+
+  $('#btnSubir').disabled = true
+  decir($('#avisoGuardado'), 'Subiendo…')
+  const { error } = await sb.from('envios')
+    .upsert({ feria_id: feriaSel.id, perfil_id: yo.id, enviado_en: new Date().toISOString() },
+            { onConflict: 'feria_id,perfil_id' })
+  if (error) {
+    $('#btnSubir').disabled = false
+    return decir($('#avisoGuardado'), 'No se pudo subir: ' + error.message, true)
+  }
+  miEnvio = true
+  refrescarAvance()
+  decir($('#avisoGuardado'), '¡Gracias! Tu disponibilidad quedó registrada.')
+  setTimeout(() => decir($('#avisoGuardado'), ''), 3500)
 }
 
 async function marcar(bloque_id, estado, ops){
@@ -1085,17 +1174,19 @@ async function abrirFeriaAdmin(f){
   pintarEstado()
   decir($('#avisoEstado'), '')
 
-  const [b, d, a, p] = await Promise.all([
+  const [b, d, a, p, e] = await Promise.all([
     sb.from('bloques').select('*').eq('feria_id', f.id).order('fecha').order('hora_inicio'),
     sb.from('disponibilidad').select('*'),
     sb.from('asignaciones').select('*'),
-    sb.from('perfiles').select('*').eq('activo', true).order('nombre')
+    sb.from('perfiles').select('*').eq('activo', true).order('nombre'),
+    sb.from('envios').select('*').eq('feria_id', f.id)
   ])
   cacheBloques = b.data || []
   const ids = new Set(cacheBloques.map(x => x.id))
   cacheDisp = (d.data || []).filter(x => ids.has(x.bloque_id))
   cacheAsig = (a.data || []).filter(x => ids.has(x.bloque_id))
   cachePerfiles = p.data || []
+  cacheEnvios = e.data || []
 
   pintarDisponibilidad()
   pintarTurnos()
@@ -1246,13 +1337,18 @@ function pintarDisponibilidad(){
   cab += '</tr></thead>'
 
   const total = cacheBloques.length
+  const subieron = new Set(cacheEnvios.map(e => e.perfil_id))
   let cuerpo = '<tbody>'
   cachePerfiles.forEach(p => {
     const hechos = cacheBloques.filter(b => mapa[p.id + '|' + b.id]).length
-    const incompleto = hechos < total
+    // Vale como enviada solo si además respondió todo lo que hoy tiene la feria:
+    // si el admin agregó un bloque después, vuelve a quedar pendiente.
+    const enviada = hechos === total && subieron.has(p.id)
+    const incompleto = !enviada
     cuerpo += `<tr${incompleto ? ' class="fila-incompleta"' : ''}>` +
               `<td class="persona">${p.nombre}</td>` +
-              `<td class="avance-p${incompleto ? ' incompleto' : ''}">${hechos}/${total}</td>`
+              `<td class="avance-p${incompleto ? ' incompleto' : ''}">` +
+              `${enviada ? 'Enviada' : `${hechos}/${total}`}</td>`
     cacheBloques.forEach(b => {
       const v = mapa[p.id + '|' + b.id]
       const txt = v === 'si' ? 'Sí' : v === 'quizas' ? '?' : v === 'no' ? 'No' : '–'
@@ -1268,7 +1364,7 @@ function pintarDisponibilidad(){
   })
   cuerpo += '</tr></tbody>'
 
-  t.innerHTML = cab.replace('<th>Persona</th>', '<th>Persona</th><th>Avance</th>') + cuerpo
+  t.innerHTML = cab.replace('<th>Persona</th>', '<th>Persona</th><th>Estado</th>') + cuerpo
   t.onclick = ev => {
     const td = ev.target.closest('td.editable')
     if (td) cambiarMarcaAjena(td.dataset.p, td.dataset.b)
