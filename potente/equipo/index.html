@@ -156,6 +156,28 @@
   .op[aria-pressed="true"][data-v="quizas"]{background:var(--quizas);border-color:var(--quizas);color:#2b1c00}
   .op[aria-pressed="true"][data-v="no"]{background:var(--no);border-color:var(--no);color:#2b0700}
 
+  /* ---------- avance del feriante ----------
+     Una casilla en blanco es ambigua: no se sabe si dijo "no puedo" o si se
+     quedó a medias. Así que lo que falta se ve, y lo completo se celebra. */
+  .avance{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:0 0 20px;
+    padding:13px 16px;border-radius:4px;border:1px solid var(--brasa);
+    background:rgba(242,129,29,.08)}
+  .avance.listo{border-color:var(--si);background:rgba(47,191,107,.08)}
+  .avance__tit{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.14em;
+    font-weight:700;font-size:.82rem;color:var(--chispa)}
+  .avance.listo .avance__tit{color:var(--si)}
+  .avance__txt{font-size:.9rem;color:var(--crema-media);flex:1 1 240px}
+  .avance__barra{flex-basis:100%;height:5px;border-radius:3px;background:var(--linea);overflow:hidden}
+  .avance__barra i{display:block;height:100%;background:var(--brasa);transition:width .3s ease}
+  .avance.listo .avance__barra i{background:var(--si)}
+
+  /* Bloque todavía sin responder. */
+  .bloque.falta{background:rgba(242,129,29,.06);box-shadow:inset 3px 0 0 var(--brasa)}
+  .bloque.es-dk.falta{background:var(--dk-suave);box-shadow:none}
+  .pendiente{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.14em;
+    font-weight:700;font-size:.66rem;padding:3px 8px;border-radius:2px;white-space:nowrap;
+    background:rgba(242,129,29,.18);color:var(--brasa);border:1px solid rgba(242,129,29,.45)}
+
   /* ---------- tablas admin ---------- */
   .scroll-x{overflow-x:auto;border:1px solid var(--linea);border-radius:4px}
   table{border-collapse:collapse;width:100%;min-width:520px}
@@ -174,6 +196,16 @@
   .marca.no{background:rgba(194,69,47,.16);color:var(--no)}
   .marca.sin{color:var(--humo);opacity:.5}
   .conteo{font-variant-numeric:tabular-nums;font-weight:700;color:var(--chispa)}
+
+  /* Celdas que el administrador puede corregir con un clic. */
+  td.editable{cursor:pointer;user-select:none}
+  td.editable:hover .marca{outline:1px solid var(--brasa);outline-offset:1px}
+  td.editable .marca.sin{border:1px dashed var(--linea)}
+  td.avance-p{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700;
+    font-family:var(--f-util);letter-spacing:.06em;font-size:.8rem;color:var(--si)}
+  td.avance-p.incompleto{color:var(--brasa)}
+  tr.fila-incompleta td.persona{color:var(--brasa)}
+  .leyenda{margin:10px 0 0;font-size:.82rem;color:var(--humo)}
 
   /* ---------- turnos ---------- */
   .turno{border:1px solid var(--linea);border-radius:4px;padding:16px;margin-bottom:12px;background:var(--plancha)}
@@ -318,6 +350,11 @@
       <div class="seccion" id="bloqueDisponibilidad" hidden>
         <h2 class="seccion__tit" id="tituloFeriaSel">—</h2>
         <p class="seccion__sub" id="subFeriaSel">—</p>
+        <div class="avance" id="avanceFeriante" hidden>
+          <span class="avance__tit" id="avanceTit">—</span>
+          <span class="avance__txt" id="avanceTxt">—</span>
+          <span class="avance__barra"><i id="avanceBarra" style="width:0%"></i></span>
+        </div>
         <div id="diasFeriante"></div>
         <p class="aviso" id="avisoGuardado" role="status" aria-live="polite"></p>
       </div>
@@ -443,6 +480,11 @@
 
         <div id="tabDisp">
           <div class="scroll-x" id="tablaDisp"></div>
+          <p class="leyenda">Haz clic en cualquier casilla para corregirla: pasa de
+            <b style="color:var(--si)">Sí</b> a <b style="color:var(--quizas)">Quizás</b>,
+            a <b style="color:var(--no)">No</b> y a vacío. Úsalo cuando alguien te avise por
+            fuera de la página.</p>
+          <p class="aviso" id="avisoDisp" role="status" aria-live="polite"></p>
         </div>
 
         <div id="tabTurnos" hidden>
@@ -535,6 +577,7 @@ let cacheBloques = []
 let cacheDisp = []
 let cacheAsig = []
 let cachePerfiles = []
+let misMarcas = {}       // bloque_id → estado, solo del usuario actual
 
 /* ---------- utilidades ---------- */
 
@@ -750,7 +793,8 @@ async function abrirFeriaFeriante(f){
     sb.from('asignaciones').select('*').eq('perfil_id', yo.id)
   ])
   cacheBloques = bloques || []
-  const mias = Object.fromEntries((disp || []).map(d => [d.bloque_id, d.estado]))
+  misMarcas = Object.fromEntries((disp || []).map(d => [d.bloque_id, d.estado]))
+  const mias = misMarcas
   const misTurnos = Object.fromEntries((asig || []).map(a => [a.bloque_id, a.rol]))
 
   const cont = $('#diasFeriante'); cont.innerHTML = ''
@@ -790,9 +834,15 @@ async function abrirFeriaFeriante(f){
     caja.innerHTML = `<div class="dia__cab">${fecha(dia)}${previo ? ' · día previo' : ''}</div>`
     lista.forEach(bl => {
       const fila = document.createElement('div'); fila.className = 'bloque' + (esDk(bl) ? ' es-dk' : '')
+      fila.dataset.bloque = bl.id
       fila.innerHTML = `<span class="bloque__h">${hhmm(bl.hora_inicio)} – ${hhmm(bl.hora_fin)}</span>
         ${bl.etiqueta ? `<span class="bloque__et">${bl.etiqueta}</span>` : ''}`
       pintarSellos(fila, bl)
+      if (f.estado === 'abierta') {
+        const p = document.createElement('span')
+        p.className = 'pendiente'; p.textContent = 'Falta'
+        fila.appendChild(p)
+      }
       const d = donde(bl, f)
       const ub = document.createElement('span'); ub.className = 'donde'
       ub.innerHTML = `<b>${d.rotulo}</b><span>${d.sitio}</span>`
@@ -819,13 +869,51 @@ async function abrirFeriaFeriante(f){
     })
     cont.appendChild(caja)
   }
+
+  mostrar($('#avanceFeriante'), f.estado === 'abierta')
+  refrescarAvance()
+}
+
+/* Cuenta lo marcado y lo pinta. Se llama al abrir la feria y con cada clic,
+   para que el que va a medias lo vea sin tener que buscarlo. */
+function refrescarAvance(){
+  const total = cacheBloques.length
+  if (!total) return
+  const hechos = cacheBloques.filter(b => misMarcas[b.id]).length
+  const faltan = total - hechos
+  const completo = faltan === 0
+
+  $$('.bloque[data-bloque]', $('#diasFeriante')).forEach(fila => {
+    const pendiente = !misMarcas[fila.dataset.bloque]
+    fila.classList.toggle('falta', pendiente)
+    const et = $('.pendiente', fila)
+    if (et) mostrar(et, pendiente)
+  })
+
+  const caja = $('#avanceFeriante')
+  caja.classList.toggle('listo', completo)
+  $('#avanceTit').textContent = completo ? '¡Listo!' : `${hechos} de ${total}`
+  $('#avanceTxt').textContent = completo
+    ? 'Marcaste todos los bloques. Si algo te cambia, puedes corregirlo cuando quieras.'
+    : `Te ${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`} por responder. `
+      + 'Están marcados abajo; contesta también los que no puedes, para que no queden en duda.'
+  $('#avanceBarra').style.width = Math.round(hechos / total * 100) + '%'
 }
 
 async function marcar(bloque_id, estado, ops){
   $$('.op', ops).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === estado)))
+  const previo = misMarcas[bloque_id]
+  misMarcas[bloque_id] = estado
+  refrescarAvance()
   decir($('#avisoGuardado'), 'Guardando…')
   const { error } = await sb.from('disponibilidad')
     .upsert({ bloque_id, perfil_id: yo.id, estado }, { onConflict: 'bloque_id,perfil_id' })
+  if (error) {
+    // No se guardó: la pantalla no debe decir que sí.
+    if (previo === undefined) delete misMarcas[bloque_id]; else misMarcas[bloque_id] = previo
+    $$('.op', ops).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === previo)))
+    refrescarAvance()
+  }
   decir($('#avisoGuardado'), error ? 'No se pudo guardar: ' + error.message : 'Guardado ✓', !!error)
   if (!error) setTimeout(() => decir($('#avisoGuardado'), ''), 2000)
 }
@@ -1157,26 +1245,65 @@ function pintarDisponibilidad(){
   })
   cab += '</tr></thead>'
 
+  const total = cacheBloques.length
   let cuerpo = '<tbody>'
   cachePerfiles.forEach(p => {
-    cuerpo += `<tr><td class="persona">${p.nombre}</td>`
+    const hechos = cacheBloques.filter(b => mapa[p.id + '|' + b.id]).length
+    const incompleto = hechos < total
+    cuerpo += `<tr${incompleto ? ' class="fila-incompleta"' : ''}>` +
+              `<td class="persona">${p.nombre}</td>` +
+              `<td class="avance-p${incompleto ? ' incompleto' : ''}">${hechos}/${total}</td>`
     cacheBloques.forEach(b => {
       const v = mapa[p.id + '|' + b.id]
       const txt = v === 'si' ? 'Sí' : v === 'quizas' ? '?' : v === 'no' ? 'No' : '–'
-      cuerpo += `<td><span class="marca ${v || 'sin'}">${txt}</span></td>`
+      cuerpo += `<td class="editable" data-p="${p.id}" data-b="${b.id}" title="Clic para cambiar">` +
+                `<span class="marca ${v || 'sin'}">${txt}</span></td>`
     })
     cuerpo += '</tr>'
   })
-  cuerpo += `<tr><td class="persona">Disponibles</td>`
+  cuerpo += `<tr><td class="persona">Disponibles</td><td></td>`
   cacheBloques.forEach(b => {
     const n = cacheDisp.filter(d => d.bloque_id === b.id && d.estado === 'si').length
     cuerpo += `<td><span class="conteo">${n}</span></td>`
   })
   cuerpo += '</tr></tbody>'
 
-  t.innerHTML = cab + cuerpo
+  t.innerHTML = cab.replace('<th>Persona</th>', '<th>Persona</th><th>Avance</th>') + cuerpo
+  t.onclick = ev => {
+    const td = ev.target.closest('td.editable')
+    if (td) cambiarMarcaAjena(td.dataset.p, td.dataset.b)
+  }
   cont.innerHTML = ''
   cont.appendChild(t)
+}
+
+/* El administrador corrige la marca de cualquiera. Gira Sí → Quizás → No →
+   vacío, que es más rápido que un desplegable cuando hay que arreglar varias.
+   Existe porque los cambios de verdad llegan por WhatsApp, no por la página. */
+const GIRO = { undefined:'si', si:'quizas', quizas:'no', no:null }
+
+async function cambiarMarcaAjena(perfil_id, bloque_id){
+  const fila = cacheDisp.find(d => d.perfil_id === perfil_id && d.bloque_id === bloque_id)
+  const nuevo = GIRO[fila ? fila.estado : undefined]
+
+  decir($('#avisoDisp'), 'Guardando…')
+  if (nuevo === null) {
+    const { error } = await sb.from('disponibilidad').delete()
+      .eq('perfil_id', perfil_id).eq('bloque_id', bloque_id)
+    if (error) return decir($('#avisoDisp'), error.message, true)
+    cacheDisp = cacheDisp.filter(d => d !== fila)
+  } else {
+    const { error } = await sb.from('disponibilidad')
+      .upsert({ bloque_id, perfil_id, estado: nuevo }, { onConflict: 'bloque_id,perfil_id' })
+    if (error) return decir($('#avisoDisp'), error.message, true)
+    if (fila) fila.estado = nuevo
+    else cacheDisp.push({ bloque_id, perfil_id, estado: nuevo })
+  }
+
+  decir($('#avisoDisp'), 'Guardado ✓')
+  setTimeout(() => decir($('#avisoDisp'), ''), 1600)
+  pintarDisponibilidad()
+  pintarTurnos()
 }
 
 /* ==========================================================================
