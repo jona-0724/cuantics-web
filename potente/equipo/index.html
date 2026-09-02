@@ -148,7 +148,10 @@
   table{border-collapse:collapse;width:100%;min-width:520px}
   th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--linea-suave);font-size:.88rem}
   thead th{background:var(--plancha-alta);font-family:var(--f-util);text-transform:uppercase;
-    letter-spacing:.12em;font-size:.72rem;color:var(--humo);white-space:nowrap;position:sticky;top:0}
+    letter-spacing:.12em;font-size:.72rem;color:var(--humo);white-space:nowrap;position:sticky;top:0;
+    vertical-align:bottom;line-height:1.45}
+  thead th .hh{font-family:var(--f-body);font-size:.72rem;letter-spacing:0;
+    color:var(--crema-media);font-variant-numeric:tabular-nums;text-transform:none}
   tbody tr:last-child td{border-bottom:0}
   td.persona{white-space:nowrap;font-weight:600;color:var(--crema)}
   .marca{display:inline-block;min-width:26px;text-align:center;font-weight:700;
@@ -1027,9 +1030,13 @@ function pintarDisponibilidad(){
   const t = document.createElement('table')
   let cab = '<thead><tr><th>Persona</th>'
   cacheBloques.forEach(b => {
-    const color = esDk(b) ? 'style="color:var(--dk)"' : ''
-    cab += `<th ${color}>${fechaCorta(b.fecha)}<br><span style="opacity:.7">${motePlanBloque(b)}</span>` +
-           `${b.condicional ? '<br><span style="color:var(--quizas);font-size:.62rem">cond.</span>' : ''}</th>`
+    const color = esDk(b) ? ' style="color:var(--dk)"' : ''
+    cab += `<th${color}>` +
+           `${diaCorto(b.fecha)} ${fechaCorta(b.fecha)}` +
+           `<br><span style="opacity:.75">${motePlanBloque(b)}</span>` +
+           `<br><span class="hh">${hhmm(b.hora_inicio)}–${hhmm(b.hora_fin)}</span>` +
+           `${b.condicional ? '<br><span style="color:var(--quizas);font-size:.62rem">cond.</span>' : ''}` +
+           `</th>`
   })
   cab += '</tr></thead>'
 
