@@ -175,6 +175,38 @@
   .cand select{width:auto;padding:6px 9px;font-size:.85rem}
   .cand .btn{margin-left:auto}
 
+  /* ---------- cronograma en rejilla ---------- */
+  .crono{border-collapse:collapse;min-width:100%}
+  .crono th,.crono td{border:1px solid var(--linea);padding:0;vertical-align:top}
+  .crono thead th{
+    background:var(--plancha-alta);padding:9px 11px;text-align:left;vertical-align:bottom;
+    font-family:var(--f-util);text-transform:uppercase;white-space:nowrap;
+  }
+  .crono th.col-dk{background:rgba(154,124,242,.13)}
+  .crono th b{display:block;font-size:.82rem;letter-spacing:.1em;color:var(--crema);font-weight:700}
+  .crono th.col-dk b{color:var(--dk)}
+  .crono th small{display:block;font-size:.68rem;letter-spacing:.08em;color:var(--humo);font-weight:500;margin-top:3px}
+  .crono th.col-cupo{background:var(--plancha);position:sticky;left:0;z-index:2;min-width:78px}
+  .crono td.col-cupo{background:var(--plancha);position:sticky;left:0;z-index:1;
+    padding:10px 11px;font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-size:.74rem;color:var(--humo);white-space:nowrap}
+  .celda{padding:7px;display:flex;flex-direction:column;gap:5px;min-width:158px}
+  .celda select{padding:7px 8px;font-size:.84rem}
+  .celda select.rol{font-size:.74rem;padding:5px 8px;color:var(--humo)}
+  .celda.dk{background:rgba(154,124,242,.07)}
+  .celda.puesta select:first-child{border-color:var(--brasa);color:var(--crema)}
+  .sin-cupo{background:repeating-linear-gradient(45deg,transparent,transparent 6px,rgba(61,34,20,.35) 6px,rgba(61,34,20,.35) 12px)}
+
+  .leyenda{display:flex;flex-wrap:wrap;gap:8px 20px;margin:16px 0 0;font-size:.8rem;color:var(--humo)}
+  .leyenda span{display:flex;align-items:center;gap:7px}
+  .leyenda i{width:11px;height:11px;border-radius:2px;display:block}
+
+  .alertas{margin-top:20px;display:grid;gap:8px}
+  .alerta{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:3px;
+    border-left:3px solid var(--quizas);background:rgba(224,163,46,.08);font-size:.88rem;color:var(--crema-media)}
+  .alerta b{color:var(--chispa)}
+  .alerta.ok{border-left-color:var(--si);background:rgba(47,191,107,.08)}
+
   .fila-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
   .form-rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0 16px}
   fieldset{border:1px solid var(--linea);border-radius:4px;padding:16px;margin:0 0 18px}
@@ -443,6 +475,10 @@ function fecha(iso){
   const [a,m,d] = iso.split('-').map(Number)
   const f = new Date(a, m-1, d)
   return `${DIAS[f.getDay()]} ${d} de ${MESES[m-1]}`
+}
+function diaCorto(iso){
+  const [a,m,d] = iso.split('-').map(Number)
+  return DIAS[new Date(a, m-1, d).getDay()].slice(0,3)
 }
 function fechaCorta(iso){
   const [,m,d] = iso.split('-').map(Number)
@@ -754,8 +790,8 @@ function filaPlantilla(ini = '10:00', fin = '16:00', et = '', cupos = 3){
 $('#btnAgregarBloque').onclick = () => {
   $('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde', 3)); resumirDk()
 }
-$('#plantillas').appendChild(filaPlantilla('10:00','16:00','Mañana', 2))
-$('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde-noche', 3))
+$('#plantillas').appendChild(filaPlantilla('10:00','16:00','Mañana', 3))
+$('#plantillas').appendChild(filaPlantilla('16:00','21:00','Tarde', 3))
 
 /* El día previo se calcula, no se escribe: es siempre el anterior al primero. */
 function diaAnterior(iso){
@@ -1019,96 +1055,193 @@ function pintarDisponibilidad(){
   cont.appendChild(t)
 }
 
+/* ==========================================================================
+   CRONOGRAMA EN REJILLA
+   Columnas = slots (DK prep · mañana · tarde · DK despacho), filas = cupos.
+   Es la misma forma que el cuadro que el equipo ya usa en papel, para que
+   nadie tenga que reaprender a leerlo.
+   ========================================================================== */
 function pintarTurnos(){
   const cont = $('#listaTurnos'); cont.innerHTML = ''
   if (!cacheBloques.length) { cont.innerHTML = `<div class="vacio">Esta feria no tiene bloques.</div>`; return }
 
-  const porNombre = Object.fromEntries(cachePerfiles.map(p => [p.id, p.nombre]))
+  const maxCupos = Math.max(...cacheBloques.map(b => b.personas_necesarias))
+  const tabla = document.createElement('table'); tabla.className = 'crono'
+
+  // ---------- cabecera ----------
+  const thead = document.createElement('thead')
+  const trh = document.createElement('tr')
+  const th0 = document.createElement('th'); th0.className = 'col-cupo'; th0.textContent = 'Cupo'
+  trh.appendChild(th0)
 
   cacheBloques.forEach(b => {
-    const disp = cacheDisp.filter(d => d.bloque_id === b.id && d.estado !== 'no')
-    const asig = cacheAsig.filter(a => a.bloque_id === b.id)
-
-    const caja = document.createElement('div'); caja.className = 'turno'
-    if (esDk(b)) caja.style.borderLeft = '3px solid var(--dk)'
-    const falta = b.personas_necesarias - asig.length
-    const cab = document.createElement('div'); cab.className = 'turno__cab'
-    const h = document.createElement('span'); h.className = 'turno__h'
-    h.textContent = `${fecha(b.fecha)} · ${hhmm(b.hora_inicio)}–${hhmm(b.hora_fin)}`
-    cab.appendChild(h)
-    pintarSellos(cab, b)
-    const cupo = document.createElement('span')
-    cupo.className = 'turno__cupo ' + (falta > 0 ? 'falta' : 'lleno')
-    cupo.textContent = `${asig.length}/${b.personas_necesarias} asignados` + (falta > 0 ? ` · faltan ${falta}` : '')
-    cab.appendChild(cupo)
-    caja.appendChild(cab)
-
-    const lista = document.createElement('div'); lista.className = 'candidatos'
-
-    const candidatos = cachePerfiles.filter(p =>
-      disp.some(d => d.perfil_id === p.id) || asig.some(a => a.perfil_id === p.id))
-
-    if (!candidatos.length) {
-      lista.innerHTML = `<div class="vacio">Nadie marcó disponibilidad en este bloque.</div>`
-    }
-
-    candidatos.forEach(p => {
-      const puesto = asig.find(a => a.perfil_id === p.id)
-      const marca  = disp.find(d => d.perfil_id === p.id)
-      const fila = document.createElement('div')
-      fila.className = 'cand' + (puesto ? ' puesto' : '')
-
-      const nom = document.createElement('span')
-      nom.className = 'cand__n'
-      nom.textContent = porNombre[p.id] || '—'
-      fila.appendChild(nom)
-
-      if (marca) {
-        const m = document.createElement('span')
-        m.className = 'marca ' + marca.estado
-        m.textContent = marca.estado === 'si' ? 'Sí puede' : 'Quizás'
-        fila.appendChild(m)
-      }
-
-      const sel = document.createElement('select')
-      ROLES.forEach(r => {
-        const o = document.createElement('option')
-        o.value = r; o.textContent = r[0].toUpperCase() + r.slice(1)
-        if (puesto && puesto.rol === r) o.selected = true
-        sel.appendChild(o)
-      })
-      fila.appendChild(sel)
-
-      const btn = document.createElement('button')
-      btn.className = 'btn btn--mini ' + (puesto ? 'btn--linea' : 'btn--fuego')
-      btn.textContent = puesto ? 'Quitar' : 'Asignar'
-      btn.onclick = async () => {
-        btn.disabled = true
-        if (puesto) {
-          await sb.from('asignaciones').delete().eq('id', puesto.id)
-        } else {
-          await sb.from('asignaciones').insert({ bloque_id: b.id, perfil_id: p.id, rol: sel.value })
-        }
-        const { data } = await sb.from('asignaciones').select('*')
-        const ids = new Set(cacheBloques.map(x => x.id))
-        cacheAsig = (data || []).filter(x => ids.has(x.bloque_id))
-        pintarTurnos()
-      }
-      fila.appendChild(btn)
-
-      if (puesto) {
-        sel.onchange = async () => {
-          await sb.from('asignaciones').update({ rol: sel.value }).eq('id', puesto.id)
-          puesto.rol = sel.value
-        }
-      }
-
-      lista.appendChild(fila)
-    })
-
-    caja.appendChild(lista)
-    cont.appendChild(caja)
+    const th = document.createElement('th')
+    if (esDk(b)) th.className = 'col-dk'
+    const titulo = b.tipo === 'dk_prep'     ? 'DK · Prep'
+                 : b.tipo === 'dk_despacho' ? 'DK · Desp'
+                 : `${diaCorto(b.fecha)} ${fechaCorta(b.fecha)}`
+    const pie = b.tipo === 'dk_prep'     ? `${fechaCorta(b.fecha)} · día previo`
+              : b.tipo === 'dk_despacho' ? `${fechaCorta(b.fecha)} AM · condicional`
+              : `${b.etiqueta ? b.etiqueta + ' · ' : ''}${hhmm(b.hora_inicio)}–${hhmm(b.hora_fin)}`
+    th.innerHTML = `<b>${titulo}</b><small>${pie}</small>`
+    trh.appendChild(th)
   })
+  thead.appendChild(trh); tabla.appendChild(thead)
+
+  // ---------- filas de cupo ----------
+  const tbody = document.createElement('tbody')
+  for (let i = 0; i < maxCupos; i++) {
+    const tr = document.createElement('tr')
+    const td0 = document.createElement('td'); td0.className = 'col-cupo'; td0.textContent = 'Cupo ' + (i + 1)
+    tr.appendChild(td0)
+    cacheBloques.forEach(b => tr.appendChild(celdaCupo(b, i)))
+    tbody.appendChild(tr)
+  }
+  tabla.appendChild(tbody)
+
+  const marco = document.createElement('div'); marco.className = 'scroll-x'
+  marco.appendChild(tabla)
+  cont.appendChild(marco)
+
+  // ---------- leyenda ----------
+  const ley = document.createElement('div'); ley.className = 'leyenda'
+  ley.innerHTML = `
+    <span><i style="background:var(--dk)"></i> Dark Kitchen · prep el día previo, despacho condicional</span>
+    <span><i style="background:var(--brasa)"></i> Cupo ocupado</span>
+    <span><i class="sin-cupo" style="border:1px solid var(--linea)"></i> El bloque no tiene ese cupo</span>`
+  cont.appendChild(ley)
+
+  // ---------- reglas de la operación ----------
+  const alertas = document.createElement('div'); alertas.className = 'alertas'
+  const problemas = revisarReglas()
+  if (!problemas.length) {
+    alertas.innerHTML = `<div class="alerta ok"><b>Sin conflictos.</b> Nadie encadena Dark Kitchen con turno de feria el mismo día.</div>`
+  } else {
+    problemas.forEach(t => {
+      const d = document.createElement('div'); d.className = 'alerta'
+      d.innerHTML = t
+      alertas.appendChild(d)
+    })
+  }
+  cont.appendChild(alertas)
+}
+
+function celdaCupo(b, i){
+  const td = document.createElement('td')
+
+  // Este bloque no llega a tener este cupo: se raya y no se puede asignar.
+  if (i >= b.personas_necesarias) { td.className = 'sin-cupo'; return td }
+
+  const asigs = cacheAsig.filter(a => a.bloque_id === b.id)
+  const actual = asigs[i] || null
+
+  const caja = document.createElement('div')
+  caja.className = 'celda' + (esDk(b) ? ' dk' : '') + (actual ? ' puesta' : '')
+
+  // Candidatos: quien dijo que sí o quizás, más quien ya esté puesto aquí.
+  const marcados = cacheDisp.filter(d => d.bloque_id === b.id && d.estado !== 'no')
+  const ocupados = asigs.filter(a => a !== actual).map(a => a.perfil_id)
+  const candidatos = cachePerfiles.filter(p =>
+    !ocupados.includes(p.id) &&
+    (marcados.some(m => m.perfil_id === p.id) || (actual && actual.perfil_id === p.id)))
+
+  const sel = document.createElement('select')
+  const vacio = document.createElement('option')
+  vacio.value = ''; vacio.textContent = '—'
+  sel.appendChild(vacio)
+
+  candidatos.forEach(p => {
+    const m = marcados.find(x => x.perfil_id === p.id)
+    const o = document.createElement('option')
+    o.value = p.id
+    o.textContent = p.nombre + (m && m.estado === 'quizas' ? ' (quizás)' : '')
+    if (actual && actual.perfil_id === p.id) o.selected = true
+    sel.appendChild(o)
+  })
+
+  if (candidatos.length === 0) {
+    vacio.textContent = 'nadie disponible'
+    sel.disabled = true
+  }
+
+  sel.onchange = async () => {
+    sel.disabled = true
+    if (actual) await sb.from('asignaciones').delete().eq('id', actual.id)
+    if (sel.value) {
+      await sb.from('asignaciones').insert({
+        bloque_id: b.id, perfil_id: sel.value,
+        rol: esDk(b) ? 'cocina' : 'caja'
+      })
+    }
+    await recargarAsignaciones()
+    pintarTurnos()
+  }
+  caja.appendChild(sel)
+
+  // El rol solo tiene sentido en los bloques de atención al público.
+  if (actual && !esDk(b)) {
+    const rol = document.createElement('select')
+    rol.className = 'rol'
+    ROLES.forEach(r => {
+      const o = document.createElement('option')
+      o.value = r; o.textContent = r[0].toUpperCase() + r.slice(1)
+      if (actual.rol === r) o.selected = true
+      rol.appendChild(o)
+    })
+    rol.onchange = async () => {
+      await sb.from('asignaciones').update({ rol: rol.value }).eq('id', actual.id)
+      actual.rol = rol.value
+    }
+    caja.appendChild(rol)
+  }
+
+  td.appendChild(caja)
+  return td
+}
+
+async function recargarAsignaciones(){
+  const { data } = await sb.from('asignaciones').select('*')
+  const ids = new Set(cacheBloques.map(x => x.id))
+  cacheAsig = (data || []).filter(x => ids.has(x.bloque_id))
+}
+
+/* Las dos reglas del manual, comprobadas en vivo:
+   · quien hace la preparación del día previo no abre la feria al día siguiente
+   · el despacho lo cubre quien NO trabaja en feria ese mismo día            */
+function revisarReglas(){
+  const avisos = []
+  const nombre = id => (cachePerfiles.find(p => p.id === id) || {}).nombre || 'Alguien'
+
+  const prep = cacheBloques.find(b => b.tipo === 'dk_prep')
+  const deFeria = cacheBloques.filter(b => b.tipo === 'feria')
+
+  if (prep && deFeria.length) {
+    const primerDia = deFeria.map(b => b.fecha).sort()[0]
+    const apertura = deFeria
+      .filter(b => b.fecha === primerDia)
+      .sort((x, y) => x.hora_inicio.localeCompare(y.hora_inicio))[0]
+    if (apertura) {
+      const enPrep = cacheAsig.filter(a => a.bloque_id === prep.id).map(a => a.perfil_id)
+      cacheAsig
+        .filter(a => a.bloque_id === apertura.id && enPrep.includes(a.perfil_id))
+        .forEach(a => avisos.push(
+          `<span><b>${nombre(a.perfil_id)}</b> hace la preparación del día previo y además abre la feria
+           el ${fecha(primerDia)}. El manual pide que quien prepara no abra.</span>`))
+    }
+  }
+
+  cacheBloques.filter(b => b.tipo === 'dk_despacho').forEach(b => {
+    const mismoDia = deFeria.filter(x => x.fecha === b.fecha).map(x => x.id)
+    cacheAsig.filter(a => a.bloque_id === b.id).forEach(a => {
+      if (cacheAsig.some(o => mismoDia.includes(o.bloque_id) && o.perfil_id === a.perfil_id)) {
+        avisos.push(
+          `<span><b>${nombre(a.perfil_id)}</b> cubre el despacho del ${fecha(b.fecha)} y además
+           trabaja en feria ese día. El despacho debería cubrirlo quien descansa.</span>`)
+      }
+    })
+  })
+
+  return avisos
 }
 </script>
 </body>
