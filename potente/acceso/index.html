@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acceso restringido — CUANTICS</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0C1218">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wdth,wght@125,600;125,700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0C1218; --panel:#131D25; --panel-2:#18242E; --line:#263945;
+  --text:#D8E3EA; --muted:#7F94A2; --cyan:#22C7D6; --amber:#F2A93B;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; background:var(--ink); color:var(--text);
+  font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  display:flex; align-items:center; justify-content:center; padding:32px 20px;
+  background-image:radial-gradient(120% 90% at 50% 0%,#101A22 0%,var(--ink) 62%);
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+
+.gate{width:100%;max-width:430px}
+.brand-row{display:flex;align-items:center;gap:11px;margin-bottom:26px}
+.dfly{display:block;color:var(--cyan)}
+.brand{display:flex;flex-direction:column;line-height:1}
+.wordmark{font-family:"Open Sans",system-ui,sans-serif;font-weight:700;font-stretch:125%;
+  font-variation-settings:"wdth" 125;font-size:20px;letter-spacing:.12em}
+.wordmark span{color:var(--cyan)}
+.brand small{font-family:"IBM Plex Mono",monospace;font-size:8.5px;letter-spacing:.12em;
+  color:var(--muted);text-transform:uppercase;margin-top:5px}
+
+.box{border:1px solid var(--line);background:linear-gradient(160deg,var(--panel-2),var(--panel));
+  padding:clamp(24px,5vw,34px)}
+.sechead{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.sechead .lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.sechead .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--cyan) 0%,var(--line) 40%,transparent 100%)}
+.sechead .dot{width:5px;height:5px;background:var(--amber);transform:rotate(45deg);flex:0 0 auto}
+
+h1{font-family:"Open Sans",system-ui,sans-serif;font-weight:700;font-stretch:125%;
+  font-variation-settings:"wdth" 125;font-size:26px;line-height:1.1;margin:0 0 10px}
+.lede{font-size:14px;color:var(--muted);margin:0 0 26px}
+
+.campo{display:block;margin-bottom:16px}
+.campo span{display:block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.campo input{width:100%;background:var(--ink);border:1px solid var(--line);color:var(--text);
+  font-family:"IBM Plex Sans",sans-serif;font-size:15px;padding:12px 14px;
+  transition:border-color .2s ease}
+.campo input:focus{outline:none;border-color:var(--cyan)}
+
+button{width:100%;margin-top:8px;font-family:"IBM Plex Mono",monospace;font-size:12px;
+  letter-spacing:.1em;text-transform:uppercase;padding:14px 22px;border:1px solid var(--cyan);
+  background:var(--cyan);color:var(--ink);cursor:pointer;transition:background .2s ease}
+button:hover:not(:disabled){background:#3FE0EE}
+button:disabled{opacity:.55;cursor:progress}
+
+.aviso{min-height:20px;margin:14px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+  letter-spacing:.06em;color:var(--amber)}
+.aviso:empty{margin-top:0}
+
+.volver{display:block;margin-top:22px;text-align:center;font-family:"IBM Plex Mono",monospace;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+  text-decoration:none;transition:color .2s ease}
+.volver:hover{color:var(--cyan)}
+
+@keyframes sacudir{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}
+  40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.error{animation:sacudir .4s ease}
+@media(prefers-reduced-motion:reduce){.error{animation:none}}
+</style>
+</head>
+<body>
+
+<main class="gate">
+
+  <div class="brand-row">
+    <svg class="dfly" width="30" height="30" viewBox="0 0 120 120" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <g transform="rotate(-18 60 30)"><ellipse cx="34" cy="30" rx="26" ry="7"/><path d="M9 30h50"/><path d="M18 24.5v11M28 23.5v13M38 24v12M48 25.5v9"/></g>
+        <g transform="rotate(16 60 43)"><ellipse cx="36" cy="43" rx="24" ry="6"/><path d="M13 43h46"/><path d="M21 38.5v9M30 37.8v10.4M39 38.3v9.4M48 39.5v7"/></g>
+        <g transform="translate(120,0) scale(-1,1)">
+          <g transform="rotate(-18 60 30)"><ellipse cx="34" cy="30" rx="26" ry="7"/><path d="M9 30h50"/><path d="M18 24.5v11M28 23.5v13M38 24v12M48 25.5v9"/></g>
+          <g transform="rotate(16 60 43)"><ellipse cx="36" cy="43" rx="24" ry="6"/><path d="M13 43h46"/><path d="M21 38.5v9M30 37.8v10.4M39 38.3v9.4M48 39.5v7"/></g>
+        </g>
+        <circle cx="60" cy="15" r="5.5"/><path d="M56.5 11.5 53 8M63.5 11.5 67 8"/>
+        <ellipse cx="60" cy="30" rx="5" ry="9.5"/><path d="M60 40.5V107"/>
+        <path d="M55.8 53h8.4M56.3 64h7.4M56.8 75h6.4M57.3 86h5.4M57.8 97h4.4"/>
+      </g>
+      <g fill="currentColor" stroke="none">
+        <circle cx="14" cy="21" r="2"/><circle cx="106" cy="21" r="2"/>
+        <circle cx="19" cy="53" r="1.8"/><circle cx="101" cy="53" r="1.8"/>
+        <circle cx="60" cy="108" r="2.2"/>
+      </g>
+    </svg>
+    <div class="brand">
+      <div class="wordmark">C<span>U</span>ANTICS</div>
+      <small>Industrial Automation, Analytics &amp; Digital Transformation</small>
+    </div>
+  </div>
+
+  <form class="box" id="form" autocomplete="off">
+    <div class="sechead"><span class="lbl">Acceso restringido</span><span class="rule"></span><span class="dot"></span></div>
+    <h1>Solo para invitados.</h1>
+    <p class="lede">Ingresa las credenciales que te compartimos para continuar.</p>
+
+    <label class="campo">
+      <span>Usuario</span>
+      <input type="text" id="usuario" name="usuario" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+    </label>
+
+    <label class="campo">
+      <span>Contraseña</span>
+      <input type="password" id="clave" name="clave" required>
+    </label>
+
+    <button type="submit" id="entrar">Entrar</button>
+    <p class="aviso mono" id="aviso" role="status" aria-live="polite"></p>
+  </form>
+
+  <a class="volver" href="../">Volver a cuantics.pe</a>
+
+</main>
+
+<script>
+(function () {
+  /* ====== CONFIGURACIÓN ======
+     DESTINO: a dónde va el visitante cuando las credenciales son correctas.
+     Para cambiar la clave hay que regenerar HUELLA (SHA-256 de "usuario:contraseña",
+     con el usuario en minúsculas) y RESPALDO (el mismo texto en base64).      */
+  var DESTINO  = '../potente/';
+  var HUELLA   = '1394677c2fce7e41eb314e6b1800675bd21116a71121a116dc95921ea27854ef';
+  var RESPALDO = 'cG90ZW50ZTpQMHQzbnQzMjQwNw==';
+  /* =========================== */
+
+  var form = document.getElementById('form'),
+      usuario = document.getElementById('usuario'),
+      clave = document.getElementById('clave'),
+      boton = document.getElementById('entrar'),
+      aviso = document.getElementById('aviso');
+
+  function sha256(texto) {
+    if (window.crypto && window.crypto.subtle && window.isSecureContext) {
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto)).then(function (buf) {
+        return [].map.call(new Uint8Array(buf), function (b) {
+          return b.toString(16).padStart(2, '0');
+        }).join('');
+      });
+    }
+    return Promise.resolve(null); // contexto no seguro: se usa el respaldo
+  }
+
+  function fallar(mensaje) {
+    aviso.textContent = mensaje;
+    form.classList.remove('error');
+    void form.offsetWidth;
+    form.classList.add('error');
+    clave.value = '';
+    clave.focus();
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var credencial = usuario.value.trim().toLowerCase() + ':' + clave.value;
+    aviso.textContent = '';
+    boton.disabled = true;
+
+    sha256(credencial).then(function (huella) {
+      var ok = huella ? (huella === HUELLA) : (btoa(credencial) === RESPALDO);
+      setTimeout(function () {
+        boton.disabled = false;
+        if (ok) {
+          aviso.style.color = 'var(--cyan)';
+          aviso.textContent = 'Acceso concedido. Redirigiendo…';
+          try { sessionStorage.setItem('acceso_potente', '1'); } catch (err) {}
+          location.href = DESTINO;
+        } else {
+          aviso.style.color = 'var(--amber)';
+          fallar('Usuario o contraseña incorrectos.');
+        }
+      }, 320);
+    });
+  });
+
+  usuario.focus();
+})();
+</script>
+</body>
+</html>
