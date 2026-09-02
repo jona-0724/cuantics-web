@@ -878,10 +878,10 @@ function filaPlantilla(ini = '10:00', fin = '16:00', et = '', cupos = 3){
   return d
 }
 $('#btnAgregarBloque').onclick = () => {
-  $('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde', 3)); resumirDk()
+  $('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde', 2)); resumirDk()
 }
-$('#plantillas').appendChild(filaPlantilla('10:00','16:00','Mañana', 3))
-$('#plantillas').appendChild(filaPlantilla('16:00','21:00','Tarde', 3))
+$('#plantillas').appendChild(filaPlantilla('10:00','16:00','Mañana', 2))
+$('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde', 2))
 
 /* El día previo se calcula, no se escribe: es siempre el anterior al primero. */
 function diaAnterior(iso){
