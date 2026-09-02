@@ -278,6 +278,14 @@
   .pie{ display:flex; flex-wrap:wrap; gap:14px 28px; justify-content:space-between; align-items:center; }
   .pie p{ margin:0; color:var(--humo); font-size:.86rem; }
   .pie strong{ color:var(--crema); font-weight:600; }
+  .pie__fin{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px; }
+  .pie__acceso{
+    font-family:var(--f-util); text-transform:uppercase; letter-spacing:.16em;
+    font-weight:600; font-size:.76rem; color:var(--humo); text-decoration:none;
+    padding-left:18px; border-left:1px solid var(--linea);
+    opacity:.7; transition:opacity .25s ease, color .25s ease;
+  }
+  .pie__acceso:hover{ opacity:1; color:var(--chispa); }
 
   /* ---------- responsive ---------- */
   @media (max-width:960px){
@@ -620,7 +628,10 @@
 <footer>
   <div class="env pie">
     <p><strong>Potente</strong> — una marca de Happy Foods Group · Lima, Perú</p>
-    <p>Sabroso como te gusta</p>
+    <div class="pie__fin">
+      <p>Sabroso como te gusta</p>
+      <a class="pie__acceso" href="equipo/">Acceso equipo</a>
+    </div>
   </div>
 </footer>
 
