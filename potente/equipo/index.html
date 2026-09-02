@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Potente · Equipo</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#120805">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+  :root{
+    --carbon:#120805; --carbon-hondo:#0a0403; --plancha:#1b0d07; --plancha-alta:#24130a;
+    --linea:#3d2214; --linea-suave:rgba(61,34,20,.55);
+    --brasa:#f2811d; --brasa-honda:#d63317; --chispa:#ffc63c;
+    --crema:#f7ead9; --crema-media:#e0cab3; --humo:#ab917c;
+    --si:#2fbf6b; --quizas:#e0a32e; --no:#c2452f;
+    --f-display:"Anton","Arial Narrow",Impact,sans-serif;
+    --f-body:"Barlow","Helvetica Neue",Arial,sans-serif;
+    --f-util:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; background:var(--carbon); color:var(--crema);
+    font-family:var(--f-body); font-size:16px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;display:block}
+  a{color:var(--chispa)}
+  h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;line-height:1.05;text-transform:uppercase}
+  :focus-visible{outline:2px solid var(--chispa);outline-offset:2px}
+  [hidden]{display:none !important}
+
+  .env{max-width:1080px;margin-inline:auto;padding-inline:18px}
+  .eyebrow{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.2em;
+    font-weight:700;font-size:.74rem;color:var(--brasa);margin:0 0 8px}
+
+  /* ---------- controles ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font-family:var(--f-util);text-transform:uppercase;letter-spacing:.1em;font-weight:700;
+    font-size:.95rem;padding:12px 20px;border:1px solid transparent;border-radius:3px;
+    cursor:pointer;text-decoration:none;transition:transform .15s,filter .15s,border-color .15s,color .15s;
+  }
+  .btn:disabled{opacity:.5;cursor:progress}
+  .btn--fuego{background:linear-gradient(140deg,var(--chispa),var(--brasa) 55%,var(--brasa-honda));color:#2a0d03}
+  .btn--fuego:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+  .btn--linea{background:transparent;border-color:var(--linea);color:var(--crema-media)}
+  .btn--linea:hover{border-color:var(--brasa);color:var(--chispa)}
+  .btn--mini{padding:7px 12px;font-size:.8rem;letter-spacing:.08em}
+
+  input,select{
+    width:100%;background:var(--carbon-hondo);border:1px solid var(--linea);color:var(--crema);
+    font-family:var(--f-body);font-size:15px;padding:11px 12px;border-radius:3px;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--brasa)}
+  label.campo{display:block;margin-bottom:14px}
+  label.campo span{display:block;font-family:var(--f-util);text-transform:uppercase;
+    letter-spacing:.16em;font-weight:600;font-size:.72rem;color:var(--humo);margin-bottom:6px}
+
+  .aviso{min-height:20px;margin:10px 0 0;font-family:var(--f-util);text-transform:uppercase;
+    letter-spacing:.08em;font-size:.8rem;color:var(--chispa)}
+  .aviso.malo{color:#ff9b7a}
+
+  /* ---------- acceso ---------- */
+  .acceso{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 18px;
+    background-image:radial-gradient(110% 70% at 50% 0%,rgba(242,129,29,.22),rgba(18,8,5,0) 70%)}
+  .acceso__caja{width:100%;max-width:400px}
+  .acceso__logo{width:min(240px,68%);margin:0 auto 26px}
+  .tarjeta{border:1px solid var(--linea);background:linear-gradient(165deg,var(--plancha-alta),var(--plancha));
+    padding:26px;border-radius:4px}
+  .tarjeta h1{font-size:1.7rem;margin-bottom:6px}
+  .tarjeta p.sub{margin:0 0 22px;font-size:.92rem;color:var(--humo)}
+  .enlace-suave{display:block;margin-top:16px;text-align:center;font-family:var(--f-util);
+    text-transform:uppercase;letter-spacing:.14em;font-size:.76rem;color:var(--humo);
+    background:none;border:0;cursor:pointer;width:100%}
+  .enlace-suave:hover{color:var(--chispa)}
+
+  /* ---------- cabecera ---------- */
+  header.barra{position:sticky;top:0;z-index:20;background:rgba(10,4,3,.92);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--linea)}
+  .barra__in{display:flex;align-items:center;gap:14px;min-height:62px}
+  .barra__logo{height:30px;width:auto}
+  .barra__quien{margin-left:auto;text-align:right;line-height:1.2}
+  .barra__quien b{display:block;font-size:.9rem;color:var(--crema)}
+  .barra__quien small{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.14em;
+    font-size:.68rem;color:var(--brasa)}
+
+  main{padding-block:26px 60px}
+  .seccion{margin-bottom:34px}
+  .seccion__tit{font-size:1.5rem;margin-bottom:4px}
+  .seccion__sub{margin:0 0 18px;color:var(--humo);font-size:.92rem}
+
+  .vacio{border:1px dashed var(--linea);border-radius:4px;padding:26px;text-align:center;
+    color:var(--humo);font-size:.92rem}
+
+  /* ---------- ferias ---------- */
+  .ferias{display:grid;gap:12px}
+  .feria{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;width:100%;text-align:left;
+    border:1px solid var(--linea);background:var(--plancha);border-radius:4px;padding:16px 18px;
+    color:inherit;font:inherit;cursor:pointer}
+  .feria:hover{border-color:var(--brasa)}
+  .feria.activa{border-color:var(--brasa);background:var(--plancha-alta)}
+  .feria__nom{font-family:var(--f-display);font-size:1.2rem;text-transform:uppercase;line-height:1.1}
+  .feria__meta{font-size:.86rem;color:var(--humo)}
+  .estado{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.14em;font-weight:700;
+    font-size:.68rem;padding:4px 9px;border-radius:2px;border:1px solid currentColor;margin-left:auto}
+  .estado.borrador{color:var(--humo)}
+  .estado.abierta{color:var(--si)}
+  .estado.cerrada{color:var(--quizas)}
+  .estado.publicada{color:var(--brasa)}
+
+  /* ---------- disponibilidad ---------- */
+  .dia{margin-bottom:22px;border:1px solid var(--linea);border-radius:4px;overflow:hidden}
+  .dia__cab{background:var(--plancha-alta);padding:11px 16px;font-family:var(--f-util);
+    text-transform:uppercase;letter-spacing:.14em;font-weight:700;font-size:.82rem;color:var(--chispa)}
+  .bloque{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px 16px;
+    border-top:1px solid var(--linea-suave)}
+  .bloque:first-of-type{border-top:0}
+  .bloque__h{font-variant-numeric:tabular-nums;font-weight:600;font-size:1rem}
+  .bloque__et{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-size:.72rem;color:var(--humo)}
+  .opciones{display:flex;gap:6px;margin-left:auto}
+  .op{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.1em;font-weight:700;
+    font-size:.78rem;padding:8px 13px;border-radius:3px;cursor:pointer;
+    border:1px solid var(--linea);background:transparent;color:var(--humo);transition:all .15s}
+  .op:hover{border-color:var(--crema-media);color:var(--crema)}
+  .op[aria-pressed="true"][data-v="si"]{background:var(--si);border-color:var(--si);color:#04220f}
+  .op[aria-pressed="true"][data-v="quizas"]{background:var(--quizas);border-color:var(--quizas);color:#2b1c00}
+  .op[aria-pressed="true"][data-v="no"]{background:var(--no);border-color:var(--no);color:#2b0700}
+
+  /* ---------- tablas admin ---------- */
+  .scroll-x{overflow-x:auto;border:1px solid var(--linea);border-radius:4px}
+  table{border-collapse:collapse;width:100%;min-width:520px}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--linea-suave);font-size:.88rem}
+  thead th{background:var(--plancha-alta);font-family:var(--f-util);text-transform:uppercase;
+    letter-spacing:.12em;font-size:.72rem;color:var(--humo);white-space:nowrap;position:sticky;top:0}
+  tbody tr:last-child td{border-bottom:0}
+  td.persona{white-space:nowrap;font-weight:600;color:var(--crema)}
+  .marca{display:inline-block;min-width:26px;text-align:center;font-weight:700;
+    font-family:var(--f-util);letter-spacing:.06em;font-size:.8rem;padding:3px 8px;border-radius:2px}
+  .marca.si{background:rgba(47,191,107,.16);color:var(--si)}
+  .marca.quizas{background:rgba(224,163,46,.16);color:var(--quizas)}
+  .marca.no{background:rgba(194,69,47,.16);color:var(--no)}
+  .marca.sin{color:var(--humo);opacity:.5}
+  .conteo{font-variant-numeric:tabular-nums;font-weight:700;color:var(--chispa)}
+
+  /* ---------- turnos ---------- */
+  .turno{border:1px solid var(--linea);border-radius:4px;padding:16px;margin-bottom:12px;background:var(--plancha)}
+  .turno__cab{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin-bottom:12px}
+  .turno__h{font-family:var(--f-display);font-size:1.1rem;text-transform:uppercase}
+  .turno__cupo{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-size:.74rem;margin-left:auto}
+  .turno__cupo.falta{color:var(--quizas)}
+  .turno__cupo.lleno{color:var(--si)}
+  .candidatos{display:grid;gap:8px}
+  .cand{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:9px 11px;
+    border:1px solid var(--linea-suave);border-radius:3px}
+  .cand.puesto{border-color:var(--brasa);background:rgba(242,129,29,.07)}
+  .cand__n{font-weight:600}
+  .cand select{width:auto;padding:6px 9px;font-size:.85rem}
+  .cand .btn{margin-left:auto}
+
+  .fila-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .form-rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0 16px}
+  fieldset{border:1px solid var(--linea);border-radius:4px;padding:16px;margin:0 0 18px}
+  legend{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.16em;
+    font-weight:700;font-size:.74rem;color:var(--brasa);padding-inline:8px}
+  .plantilla{display:grid;grid-template-columns:1fr 1fr 1.3fr auto;gap:10px;align-items:end;margin-bottom:10px}
+  .plantilla label.campo{margin-bottom:0}
+  @media(max-width:600px){
+    .plantilla{grid-template-columns:1fr 1fr;}
+    .plantilla .btn{grid-column:span 2}
+  }
+
+  .pestanas{display:flex;gap:4px;border-bottom:1px solid var(--linea);margin-bottom:22px;overflow-x:auto}
+  .pestana{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;font-weight:700;
+    font-size:.84rem;padding:11px 16px;background:none;border:0;border-bottom:2px solid transparent;
+    color:var(--humo);cursor:pointer;white-space:nowrap}
+  .pestana[aria-selected="true"]{color:var(--chispa);border-bottom-color:var(--brasa)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ PANTALLA DE ACCESO ============ -->
+<div class="acceso" id="pantallaAcceso" hidden>
+  <div class="acceso__caja">
+    <img class="acceso__logo" src="../img/logo.png" alt="Potente">
+
+    <!-- entrar -->
+    <form class="tarjeta" id="formEntrar" hidden autocomplete="on">
+      <p class="eyebrow">Acceso del equipo</p>
+      <h1>Entra a tu cuenta</h1>
+      <p class="sub">Usa el correo con el que te invitaron.</p>
+      <label class="campo"><span>Correo</span>
+        <input type="email" id="correo" autocomplete="username" required></label>
+      <label class="campo"><span>Contraseña</span>
+        <input type="password" id="clave" autocomplete="current-password" required></label>
+      <button class="btn btn--fuego" style="width:100%" type="submit" id="btnEntrar">Entrar</button>
+      <p class="aviso" id="avisoEntrar" role="status" aria-live="polite"></p>
+      <button type="button" class="enlace-suave" id="irOlvide">Olvidé mi contraseña</button>
+    </form>
+
+    <!-- recuperar -->
+    <form class="tarjeta" id="formOlvide" hidden>
+      <p class="eyebrow">Recuperar acceso</p>
+      <h1>Te mandamos un correo</h1>
+      <p class="sub">Escribe tu correo y te llega un enlace para poner una contraseña nueva.</p>
+      <label class="campo"><span>Correo</span>
+        <input type="email" id="correoOlvide" required></label>
+      <button class="btn btn--fuego" style="width:100%" type="submit" id="btnOlvide">Enviar enlace</button>
+      <p class="aviso" id="avisoOlvide" role="status" aria-live="polite"></p>
+      <button type="button" class="enlace-suave" id="volverEntrar">Volver a entrar</button>
+    </form>
+
+    <!-- definir contraseña -->
+    <form class="tarjeta" id="formClave" hidden>
+      <p class="eyebrow">Bienvenido</p>
+      <h1>Define tu contraseña</h1>
+      <p class="sub">Mínimo 8 caracteres. Guárdala donde no se te pierda.</p>
+      <label class="campo"><span>Nueva contraseña</span>
+        <input type="password" id="claveNueva" autocomplete="new-password" minlength="8" required></label>
+      <label class="campo"><span>Repítela</span>
+        <input type="password" id="claveRepite" autocomplete="new-password" minlength="8" required></label>
+      <button class="btn btn--fuego" style="width:100%" type="submit" id="btnClave">Guardar y entrar</button>
+      <p class="aviso" id="avisoClave" role="status" aria-live="polite"></p>
+    </form>
+
+    <p class="aviso" id="avisoCarga" style="text-align:center">Cargando…</p>
+  </div>
+</div>
+
+<!-- ============ APLICACIÓN ============ -->
+<div id="pantallaApp" hidden>
+  <header class="barra">
+    <div class="env barra__in">
+      <img class="barra__logo" src="../img/logo.png" alt="Potente">
+      <div class="barra__quien">
+        <b id="miNombre">—</b>
+        <small id="miRol">—</small>
+      </div>
+      <button class="btn btn--linea btn--mini" id="btnSalir">Salir</button>
+    </div>
+  </header>
+
+  <main class="env">
+    <!-- ---------- vista feriante ---------- -->
+    <div id="vistaFeriante" hidden>
+      <div class="seccion">
+        <h2 class="seccion__tit">Tus ferias</h2>
+        <p class="seccion__sub">Elige una feria y marca en qué bloques puedes trabajar.</p>
+        <div class="ferias" id="listaFeriasFeriante"></div>
+      </div>
+      <div class="seccion" id="bloqueDisponibilidad" hidden>
+        <h2 class="seccion__tit" id="tituloFeriaSel">—</h2>
+        <p class="seccion__sub" id="subFeriaSel">—</p>
+        <div id="diasFeriante"></div>
+        <p class="aviso" id="avisoGuardado" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <!-- ---------- vista administrador ---------- -->
+    <div id="vistaAdmin" hidden>
+      <div class="seccion">
+        <h2 class="seccion__tit">Ferias</h2>
+        <p class="seccion__sub">Crea una feria, ábrela para que el equipo marque, y arma los turnos.</p>
+        <div class="ferias" id="listaFeriasAdmin"></div>
+        <div class="fila-btns">
+          <button class="btn btn--linea" id="btnNuevaFeria">+ Nueva feria</button>
+        </div>
+      </div>
+
+      <!-- crear feria -->
+      <form class="seccion" id="formFeria" hidden>
+        <fieldset>
+          <legend>Nueva feria</legend>
+          <div class="form-rejilla">
+            <label class="campo"><span>Nombre</span><input type="text" id="fNombre" required placeholder="Feria de Barranco"></label>
+            <label class="campo"><span>Lugar</span><input type="text" id="fLugar" placeholder="Parque Municipal"></label>
+            <label class="campo"><span>Primer día</span><input type="date" id="fInicio" required></label>
+            <label class="campo"><span>Último día</span><input type="date" id="fFin" required></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Bloques de cada día</legend>
+          <p class="seccion__sub">Estos horarios se crean para todos los días de la feria.</p>
+          <div id="plantillas"></div>
+          <button type="button" class="btn btn--linea btn--mini" id="btnAgregarBloque">+ Agregar bloque</button>
+        </fieldset>
+        <div class="fila-btns">
+          <button class="btn btn--fuego" type="submit" id="btnCrearFeria">Crear feria</button>
+          <button class="btn btn--linea" type="button" id="btnCancelarFeria">Cancelar</button>
+        </div>
+        <p class="aviso" id="avisoFeria" role="status" aria-live="polite"></p>
+      </form>
+
+      <!-- detalle feria -->
+      <div class="seccion" id="detalleFeria" hidden>
+        <h2 class="seccion__tit" id="tituloAdminFeria">—</h2>
+        <p class="seccion__sub" id="subAdminFeria">—</p>
+
+        <div class="fila-btns" style="margin-bottom:20px">
+          <button class="btn btn--linea btn--mini" data-estado="borrador">Volver a borrador</button>
+          <button class="btn btn--linea btn--mini" data-estado="abierta">Abrir para el equipo</button>
+          <button class="btn btn--linea btn--mini" data-estado="cerrada">Cerrar disponibilidad</button>
+          <button class="btn btn--fuego btn--mini" data-estado="publicada">Publicar turnos</button>
+        </div>
+        <p class="aviso" id="avisoEstado" role="status" aria-live="polite"></p>
+
+        <div class="pestanas" role="tablist">
+          <button class="pestana" role="tab" aria-selected="true" data-tab="disp">Disponibilidad</button>
+          <button class="pestana" role="tab" aria-selected="false" data-tab="turnos">Turnos</button>
+        </div>
+
+        <div id="tabDisp">
+          <div class="scroll-x" id="tablaDisp"></div>
+        </div>
+
+        <div id="tabTurnos" hidden>
+          <div id="listaTurnos"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- La librería de Supabase va dentro del repo, no en una CDN externa:
+     así la aplicación no depende de que un tercero esté disponible. -->
+<script src="lib/supabase-js-2.113.0.js"></script>
+<script type="module">
+/* ==========================================================================
+   CONFIGURACIÓN
+   La clave publishable es pública a propósito: lo que protege los datos son
+   las políticas RLS de la base, no el secreto de esta cadena.
+   ========================================================================== */
+const SUPABASE_URL = 'https://iuvovrupvficgwwyszoy.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_J9q-R_siYfRvDWz7b1P_ZQ_g_IPMtLX'
+
+if (!window.supabase || !window.supabase.createClient) {
+  document.getElementById('avisoCarga').textContent =
+    'No se pudo cargar la librería de la base de datos. Recarga la página.'
+  throw new Error('supabase-js no disponible')
+}
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+const $  = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+
+const ROLES = ['caja', 'cocina', 'jalador']
+const DIAS  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado']
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
+
+let yo = null            // fila de perfiles del usuario actual
+let feriaSel = null      // feria abierta en pantalla
+let cacheBloques = []
+let cacheDisp = []
+let cacheAsig = []
+let cachePerfiles = []
+
+/* ---------- utilidades ---------- */
+
+// Las fechas vienen como 'YYYY-MM-DD'. Se parten a mano: new Date('2026-09-11')
+// se interpreta en UTC y en Lima retrocede un día.
+function fecha(iso){
+  const [a,m,d] = iso.split('-').map(Number)
+  const f = new Date(a, m-1, d)
+  return `${DIAS[f.getDay()]} ${d} de ${MESES[m-1]}`
+}
+function fechaCorta(iso){
+  const [,m,d] = iso.split('-').map(Number)
+  return `${d}/${String(m).padStart(2,'0')}`
+}
+function rango(ini, fin){
+  return ini === fin ? fecha(ini) : `${fecha(ini)} — ${fecha(fin)}`
+}
+function hhmm(t){ return (t || '').slice(0,5) }
+
+function decir(el, texto, malo = false){
+  el.textContent = texto
+  el.classList.toggle('malo', malo)
+}
+
+function mostrar(el, si){ el.hidden = !si }
+
+/* ==========================================================================
+   ACCESO
+   ========================================================================== */
+const pAcceso = $('#pantallaAcceso'), pApp = $('#pantallaApp')
+const fEntrar = $('#formEntrar'), fOlvide = $('#formOlvide'), fClave = $('#formClave')
+const avisoCarga = $('#avisoCarga')
+
+function verFormulario(cual){
+  mostrar(pAcceso, true); mostrar(pApp, false)
+  mostrar(fEntrar, cual === 'entrar')
+  mostrar(fOlvide, cual === 'olvide')
+  mostrar(fClave,  cual === 'clave')
+  mostrar(avisoCarga, cual === 'cargando')
+}
+
+$('#irOlvide').onclick = () => verFormulario('olvide')
+$('#volverEntrar').onclick = () => verFormulario('entrar')
+
+fEntrar.onsubmit = async (e) => {
+  e.preventDefault()
+  const b = $('#btnEntrar'); b.disabled = true
+  decir($('#avisoEntrar'), 'Comprobando…')
+  const { error } = await sb.auth.signInWithPassword({
+    email: $('#correo').value.trim(),
+    password: $('#clave').value
+  })
+  b.disabled = false
+  if (error) {
+    decir($('#avisoEntrar'),
+      /invalid/i.test(error.message) ? 'Correo o contraseña incorrectos.' : error.message, true)
+  }
+}
+
+fOlvide.onsubmit = async (e) => {
+  e.preventDefault()
+  const b = $('#btnOlvide'); b.disabled = true
+  const { error } = await sb.auth.resetPasswordForEmail(
+    $('#correoOlvide').value.trim(),
+    { redirectTo: window.location.href.split('#')[0] }
+  )
+  b.disabled = false
+  decir($('#avisoOlvide'),
+    error ? error.message : 'Listo. Revisa tu correo, puede tardar un par de minutos.', !!error)
+}
+
+fClave.onsubmit = async (e) => {
+  e.preventDefault()
+  const c1 = $('#claveNueva').value, c2 = $('#claveRepite').value
+  if (c1 !== c2) return decir($('#avisoClave'), 'Las dos contraseñas no coinciden.', true)
+  const b = $('#btnClave'); b.disabled = true
+  const { error } = await sb.auth.updateUser({ password: c1 })
+  b.disabled = false
+  if (error) return decir($('#avisoClave'), error.message, true)
+  decir($('#avisoClave'), 'Contraseña guardada.')
+  history.replaceState(null, '', window.location.pathname)
+  arrancarApp()
+}
+
+$('#btnSalir').onclick = async () => { await sb.auth.signOut(); location.reload() }
+
+/* ==========================================================================
+   ARRANQUE
+   ========================================================================== */
+let recuperando = /type=(recovery|invite)/.test(window.location.hash)
+
+sb.auth.onAuthStateChange((evento, sesion) => {
+  if (evento === 'PASSWORD_RECOVERY') { recuperando = true; return verFormulario('clave') }
+  if (evento === 'SIGNED_IN' && !recuperando) arrancarApp()
+  if (evento === 'SIGNED_OUT') verFormulario('entrar')
+})
+
+;(async function inicio(){
+  verFormulario('cargando')
+  const { data:{ session } } = await sb.auth.getSession()
+  if (recuperando) return verFormulario('clave')
+  if (!session) return verFormulario('entrar')
+  arrancarApp()
+})()
+
+async function arrancarApp(){
+  verFormulario('cargando')
+  const { data:{ user } } = await sb.auth.getUser()
+  if (!user) return verFormulario('entrar')
+
+  const { data, error } = await sb.from('perfiles').select('*').eq('id', user.id).single()
+  if (error || !data) {
+    decir(avisoCarga, 'Tu cuenta existe pero no tiene perfil. Avisa al administrador.', true)
+    return
+  }
+  yo = data
+  if (!yo.activo) {
+    decir(avisoCarga, 'Tu cuenta está desactivada. Habla con el administrador.', true)
+    return
+  }
+
+  $('#miNombre').textContent = yo.nombre || user.email
+  $('#miRol').textContent = yo.rol === 'admin' ? 'Administrador' : 'Feriante'
+  mostrar(pAcceso, false); mostrar(pApp, true)
+
+  const admin = yo.rol === 'admin'
+  mostrar($('#vistaAdmin'), admin)
+  mostrar($('#vistaFeriante'), !admin)
+  admin ? cargarFeriasAdmin() : cargarFeriasFeriante()
+}
+
+/* ==========================================================================
+   VISTA FERIANTE
+   ========================================================================== */
+async function cargarFeriasFeriante(){
+  const { data, error } = await sb.from('ferias')
+    .select('*').in('estado', ['abierta','publicada']).order('fecha_inicio')
+  const cont = $('#listaFeriasFeriante')
+  if (error) { cont.innerHTML = `<div class="vacio">No se pudieron cargar las ferias.</div>`; return }
+  if (!data.length) {
+    cont.innerHTML = `<div class="vacio">Todavía no hay ferias abiertas. Cuando el administrador abra una, aparecerá aquí.</div>`
+    return
+  }
+  cont.innerHTML = ''
+  data.forEach(f => {
+    const b = document.createElement('button')
+    b.className = 'feria'; b.type = 'button'
+    b.innerHTML = `<span>
+        <span class="feria__nom">${f.nombre}</span><br>
+        <span class="feria__meta">${f.lugar ? f.lugar + ' · ' : ''}${rango(f.fecha_inicio, f.fecha_fin)}</span>
+      </span>
+      <span class="estado ${f.estado}">${f.estado === 'abierta' ? 'Marca tu disponibilidad' : 'Turnos publicados'}</span>`
+    b.onclick = () => {
+      $$('.feria', cont).forEach(x => x.classList.remove('activa'))
+      b.classList.add('activa')
+      abrirFeriaFeriante(f)
+    }
+    cont.appendChild(b)
+  })
+}
+
+async function abrirFeriaFeriante(f){
+  feriaSel = f
+  mostrar($('#bloqueDisponibilidad'), true)
+  $('#tituloFeriaSel').textContent = f.nombre
+  $('#subFeriaSel').textContent = f.estado === 'abierta'
+    ? 'Marca cada bloque. Se guarda solo, no hay que confirmar nada.'
+    : 'Turnos ya publicados. Estos son los bloques donde te toca trabajar.'
+
+  const [{ data: bloques }, { data: disp }, { data: asig }] = await Promise.all([
+    sb.from('bloques').select('*').eq('feria_id', f.id).order('fecha').order('hora_inicio'),
+    // Se filtra por perfil aquí además de en las políticas de la base: si algún
+    // día se abre la lectura, la pantalla no debe empezar a mostrar lo ajeno.
+    sb.from('disponibilidad').select('*').eq('perfil_id', yo.id),
+    sb.from('asignaciones').select('*').eq('perfil_id', yo.id)
+  ])
+  cacheBloques = bloques || []
+  const mias = Object.fromEntries((disp || []).map(d => [d.bloque_id, d.estado]))
+  const misTurnos = Object.fromEntries((asig || []).map(a => [a.bloque_id, a.rol]))
+
+  const cont = $('#diasFeriante'); cont.innerHTML = ''
+  const porDia = agrupar(cacheBloques, b => b.fecha)
+
+  for (const [dia, lista] of porDia) {
+    const caja = document.createElement('div'); caja.className = 'dia'
+    caja.innerHTML = `<div class="dia__cab">${fecha(dia)}</div>`
+    lista.forEach(bl => {
+      const fila = document.createElement('div'); fila.className = 'bloque'
+      fila.innerHTML = `<span class="bloque__h">${hhmm(bl.hora_inicio)} – ${hhmm(bl.hora_fin)}</span>
+        ${bl.etiqueta ? `<span class="bloque__et">${bl.etiqueta}</span>` : ''}`
+      if (f.estado === 'abierta') {
+        const ops = document.createElement('div'); ops.className = 'opciones'
+        ;[['si','Sí'],['quizas','Quizás'],['no','No']].forEach(([v, txt]) => {
+          const b = document.createElement('button')
+          b.className = 'op'; b.type = 'button'; b.dataset.v = v; b.textContent = txt
+          b.setAttribute('aria-pressed', String(mias[bl.id] === v))
+          b.onclick = () => marcar(bl.id, v, ops)
+          ops.appendChild(b)
+        })
+        fila.appendChild(ops)
+      } else {
+        const t = misTurnos[bl.id]
+        const et = document.createElement('span')
+        et.className = 'estado ' + (t ? 'publicada' : 'borrador')
+        et.style.marginLeft = 'auto'
+        et.textContent = t ? `Te toca · ${t}` : 'Libre'
+        fila.appendChild(et)
+      }
+      caja.appendChild(fila)
+    })
+    cont.appendChild(caja)
+  }
+}
+
+async function marcar(bloque_id, estado, ops){
+  $$('.op', ops).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === estado)))
+  decir($('#avisoGuardado'), 'Guardando…')
+  const { error } = await sb.from('disponibilidad')
+    .upsert({ bloque_id, perfil_id: yo.id, estado }, { onConflict: 'bloque_id,perfil_id' })
+  decir($('#avisoGuardado'), error ? 'No se pudo guardar: ' + error.message : 'Guardado ✓', !!error)
+  if (!error) setTimeout(() => decir($('#avisoGuardado'), ''), 2000)
+}
+
+function agrupar(lista, clave){
+  const m = new Map()
+  lista.forEach(x => { const k = clave(x); if (!m.has(k)) m.set(k, []); m.get(k).push(x) })
+  return m
+}
+
+/* ==========================================================================
+   VISTA ADMINISTRADOR
+   ========================================================================== */
+async function cargarFeriasAdmin(){
+  const { data, error } = await sb.from('ferias').select('*').order('fecha_inicio', { ascending:false })
+  const cont = $('#listaFeriasAdmin')
+  if (error) { cont.innerHTML = `<div class="vacio">${error.message}</div>`; return }
+  if (!data.length) { cont.innerHTML = `<div class="vacio">Aún no hay ferias. Crea la primera.</div>`; return }
+  cont.innerHTML = ''
+  data.forEach(f => {
+    const b = document.createElement('button')
+    b.className = 'feria'; b.type = 'button'
+    b.innerHTML = `<span>
+        <span class="feria__nom">${f.nombre}</span><br>
+        <span class="feria__meta">${f.lugar ? f.lugar + ' · ' : ''}${rango(f.fecha_inicio, f.fecha_fin)}</span>
+      </span><span class="estado ${f.estado}">${f.estado}</span>`
+    b.onclick = () => {
+      $$('.feria', cont).forEach(x => x.classList.remove('activa'))
+      b.classList.add('activa')
+      abrirFeriaAdmin(f)
+    }
+    cont.appendChild(b)
+  })
+}
+
+/* ---------- crear feria ---------- */
+const formFeria = $('#formFeria')
+$('#btnNuevaFeria').onclick = () => { mostrar(formFeria, true); mostrar($('#detalleFeria'), false) }
+$('#btnCancelarFeria').onclick = () => mostrar(formFeria, false)
+
+function filaPlantilla(ini = '10:00', fin = '16:00', et = '', personas = 3){
+  const d = document.createElement('div'); d.className = 'plantilla'
+  d.innerHTML = `
+    <label class="campo"><span>Desde</span><input type="time" value="${ini}" data-k="ini" required></label>
+    <label class="campo"><span>Hasta</span><input type="time" value="${fin}" data-k="fin" required></label>
+    <label class="campo"><span>Etiqueta</span><input type="text" value="${et}" data-k="et" placeholder="Mañana"></label>
+    <button type="button" class="btn btn--linea btn--mini">Quitar</button>`
+  d.querySelector('button').onclick = () => d.remove()
+  return d
+}
+$('#btnAgregarBloque').onclick = () => $('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde'))
+$('#plantillas').appendChild(filaPlantilla('10:00','16:00','Mañana'))
+$('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde'))
+
+formFeria.onsubmit = async (e) => {
+  e.preventDefault()
+  const b = $('#btnCrearFeria'); b.disabled = true
+  decir($('#avisoFeria'), 'Creando…')
+
+  const ini = $('#fInicio').value, fin = $('#fFin').value
+  if (fin < ini) { b.disabled = false; return decir($('#avisoFeria'), 'El último día no puede ser antes del primero.', true) }
+
+  const plantillas = $$('.plantilla').map(p => ({
+    ini: p.querySelector('[data-k="ini"]').value,
+    fin: p.querySelector('[data-k="fin"]').value,
+    et:  p.querySelector('[data-k="et"]').value.trim() || null
+  })).filter(p => p.ini && p.fin && p.fin > p.ini)
+
+  if (!plantillas.length) { b.disabled = false; return decir($('#avisoFeria'), 'Define al menos un bloque válido.', true) }
+
+  const { data: feria, error } = await sb.from('ferias').insert({
+    nombre: $('#fNombre').value.trim(),
+    lugar:  $('#fLugar').value.trim() || null,
+    fecha_inicio: ini, fecha_fin: fin, estado: 'borrador'
+  }).select().single()
+
+  if (error) { b.disabled = false; return decir($('#avisoFeria'), error.message, true) }
+
+  const filas = []
+  for (const d of diasEntre(ini, fin))
+    for (const p of plantillas)
+      filas.push({ feria_id: feria.id, fecha: d, hora_inicio: p.ini, hora_fin: p.fin, etiqueta: p.et })
+
+  const { error: e2 } = await sb.from('bloques').insert(filas)
+  b.disabled = false
+  if (e2) return decir($('#avisoFeria'), 'La feria se creó pero fallaron los bloques: ' + e2.message, true)
+
+  decir($('#avisoFeria'), `Feria creada con ${filas.length} bloques.`)
+  formFeria.reset()
+  mostrar(formFeria, false)
+  cargarFeriasAdmin()
+  abrirFeriaAdmin(feria)
+}
+
+function diasEntre(ini, fin){
+  const out = []
+  const [a1,m1,d1] = ini.split('-').map(Number)
+  const cur = new Date(a1, m1-1, d1)
+  const [a2,m2,d2] = fin.split('-').map(Number)
+  const tope = new Date(a2, m2-1, d2)
+  while (cur <= tope) {
+    out.push(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`)
+    cur.setDate(cur.getDate() + 1)
+  }
+  return out
+}
+
+/* ---------- detalle ---------- */
+async function abrirFeriaAdmin(f){
+  feriaSel = f
+  mostrar(formFeria, false)
+  mostrar($('#detalleFeria'), true)
+  $('#tituloAdminFeria').textContent = f.nombre
+  $('#subAdminFeria').textContent =
+    `${f.lugar ? f.lugar + ' · ' : ''}${rango(f.fecha_inicio, f.fecha_fin)} · estado: ${f.estado}`
+  decir($('#avisoEstado'), '')
+
+  const [b, d, a, p] = await Promise.all([
+    sb.from('bloques').select('*').eq('feria_id', f.id).order('fecha').order('hora_inicio'),
+    sb.from('disponibilidad').select('*'),
+    sb.from('asignaciones').select('*'),
+    sb.from('perfiles').select('*').eq('activo', true).order('nombre')
+  ])
+  cacheBloques = b.data || []
+  const ids = new Set(cacheBloques.map(x => x.id))
+  cacheDisp = (d.data || []).filter(x => ids.has(x.bloque_id))
+  cacheAsig = (a.data || []).filter(x => ids.has(x.bloque_id))
+  cachePerfiles = p.data || []
+
+  pintarDisponibilidad()
+  pintarTurnos()
+}
+
+$$('[data-estado]').forEach(btn => btn.onclick = async () => {
+  if (!feriaSel) return
+  const estado = btn.dataset.estado
+  const { error } = await sb.from('ferias').update({ estado }).eq('id', feriaSel.id)
+  if (error) return decir($('#avisoEstado'), error.message, true)
+  feriaSel.estado = estado
+  decir($('#avisoEstado'), `Feria en estado "${estado}".`)
+  $('#subAdminFeria').textContent =
+    `${feriaSel.lugar ? feriaSel.lugar + ' · ' : ''}${rango(feriaSel.fecha_inicio, feriaSel.fecha_fin)} · estado: ${estado}`
+  cargarFeriasAdmin()
+})
+
+$$('.pestana').forEach(t => t.onclick = () => {
+  $$('.pestana').forEach(x => x.setAttribute('aria-selected', String(x === t)))
+  mostrar($('#tabDisp'),   t.dataset.tab === 'disp')
+  mostrar($('#tabTurnos'), t.dataset.tab === 'turnos')
+})
+
+function pintarDisponibilidad(){
+  const cont = $('#tablaDisp')
+  if (!cacheBloques.length) { cont.innerHTML = `<div class="vacio">Esta feria no tiene bloques.</div>`; return }
+
+  const mapa = {}
+  cacheDisp.forEach(d => { mapa[d.perfil_id + '|' + d.bloque_id] = d.estado })
+
+  const t = document.createElement('table')
+  let cab = '<thead><tr><th>Persona</th>'
+  cacheBloques.forEach(b => {
+    cab += `<th>${fechaCorta(b.fecha)}<br><span style="opacity:.7">${hhmm(b.hora_inicio)}</span></th>`
+  })
+  cab += '</tr></thead>'
+
+  let cuerpo = '<tbody>'
+  cachePerfiles.forEach(p => {
+    cuerpo += `<tr><td class="persona">${p.nombre}</td>`
+    cacheBloques.forEach(b => {
+      const v = mapa[p.id + '|' + b.id]
+      const txt = v === 'si' ? 'Sí' : v === 'quizas' ? '?' : v === 'no' ? 'No' : '–'
+      cuerpo += `<td><span class="marca ${v || 'sin'}">${txt}</span></td>`
+    })
+    cuerpo += '</tr>'
+  })
+  cuerpo += `<tr><td class="persona">Disponibles</td>`
+  cacheBloques.forEach(b => {
+    const n = cacheDisp.filter(d => d.bloque_id === b.id && d.estado === 'si').length
+    cuerpo += `<td><span class="conteo">${n}</span></td>`
+  })
+  cuerpo += '</tr></tbody>'
+
+  t.innerHTML = cab + cuerpo
+  cont.innerHTML = ''
+  cont.appendChild(t)
+}
+
+function pintarTurnos(){
+  const cont = $('#listaTurnos'); cont.innerHTML = ''
+  if (!cacheBloques.length) { cont.innerHTML = `<div class="vacio">Esta feria no tiene bloques.</div>`; return }
+
+  const porNombre = Object.fromEntries(cachePerfiles.map(p => [p.id, p.nombre]))
+
+  cacheBloques.forEach(b => {
+    const disp = cacheDisp.filter(d => d.bloque_id === b.id && d.estado !== 'no')
+    const asig = cacheAsig.filter(a => a.bloque_id === b.id)
+
+    const caja = document.createElement('div'); caja.className = 'turno'
+    const falta = b.personas_necesarias - asig.length
+    caja.innerHTML = `<div class="turno__cab">
+        <span class="turno__h">${fecha(b.fecha)} · ${hhmm(b.hora_inicio)}–${hhmm(b.hora_fin)}</span>
+        <span class="turno__cupo ${falta > 0 ? 'falta' : 'lleno'}">
+          ${asig.length}/${b.personas_necesarias} asignados${falta > 0 ? ` · faltan ${falta}` : ''}
+        </span>
+      </div>`
+
+    const lista = document.createElement('div'); lista.className = 'candidatos'
+
+    const candidatos = cachePerfiles.filter(p =>
+      disp.some(d => d.perfil_id === p.id) || asig.some(a => a.perfil_id === p.id))
+
+    if (!candidatos.length) {
+      lista.innerHTML = `<div class="vacio">Nadie marcó disponibilidad en este bloque.</div>`
+    }
+
+    candidatos.forEach(p => {
+      const puesto = asig.find(a => a.perfil_id === p.id)
+      const marca  = disp.find(d => d.perfil_id === p.id)
+      const fila = document.createElement('div')
+      fila.className = 'cand' + (puesto ? ' puesto' : '')
+
+      const nom = document.createElement('span')
+      nom.className = 'cand__n'
+      nom.textContent = porNombre[p.id] || '—'
+      fila.appendChild(nom)
+
+      if (marca) {
+        const m = document.createElement('span')
+        m.className = 'marca ' + marca.estado
+        m.textContent = marca.estado === 'si' ? 'Sí puede' : 'Quizás'
+        fila.appendChild(m)
+      }
+
+      const sel = document.createElement('select')
+      ROLES.forEach(r => {
+        const o = document.createElement('option')
+        o.value = r; o.textContent = r[0].toUpperCase() + r.slice(1)
+        if (puesto && puesto.rol === r) o.selected = true
+        sel.appendChild(o)
+      })
+      fila.appendChild(sel)
+
+      const btn = document.createElement('button')
+      btn.className = 'btn btn--mini ' + (puesto ? 'btn--linea' : 'btn--fuego')
+      btn.textContent = puesto ? 'Quitar' : 'Asignar'
+      btn.onclick = async () => {
+        btn.disabled = true
+        if (puesto) {
+          await sb.from('asignaciones').delete().eq('id', puesto.id)
+        } else {
+          await sb.from('asignaciones').insert({ bloque_id: b.id, perfil_id: p.id, rol: sel.value })
+        }
+        const { data } = await sb.from('asignaciones').select('*')
+        const ids = new Set(cacheBloques.map(x => x.id))
+        cacheAsig = (data || []).filter(x => ids.has(x.bloque_id))
+        pintarTurnos()
+      }
+      fila.appendChild(btn)
+
+      if (puesto) {
+        sel.onchange = async () => {
+          await sb.from('asignaciones').update({ rol: sel.value }).eq('id', puesto.id)
+          puesto.rol = sel.value
+        }
+      }
+
+      lista.appendChild(fila)
+    })
+
+    caja.appendChild(lista)
+    cont.appendChild(caja)
+  })
+}
+</script>
+</body>
+</html>
