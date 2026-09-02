@@ -134,6 +134,19 @@
   .nota-cond{margin:0 0 18px;padding:12px 14px;border-left:3px solid var(--quizas);
     background:rgba(224,163,46,.07);font-size:.88rem;color:var(--crema-media)}
   .nota-cond b{color:var(--chispa)}
+
+  /* Dónde se trabaja cada bloque. Va en su propia línea para que no se pierda. */
+  .donde{flex-basis:100%;display:flex;gap:7px;align-items:baseline;margin-top:2px;
+    font-size:.84rem;color:var(--humo);line-height:1.35}
+  .donde b{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-size:.68rem;font-weight:700;color:var(--crema-media);flex:none}
+  .bloque.es-dk .donde b{color:var(--dk)}
+  .notas-feria{margin:0 0 18px;padding:13px 15px;border-left:3px solid var(--brasa);
+    background:rgba(242,129,29,.07);font-size:.9rem;color:var(--crema-media);white-space:pre-line}
+  .notas-feria b{color:var(--chispa)}
+  textarea{width:100%;background:var(--carbon-hondo);border:1px solid var(--linea);color:var(--crema);
+    font-family:var(--f-body);font-size:15px;padding:11px 12px;border-radius:3px;resize:vertical;min-height:80px}
+  textarea:focus{outline:none;border-color:var(--brasa)}
   .opciones{display:flex;gap:6px;margin-left:auto}
   .op{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.1em;font-weight:700;
     font-size:.78rem;padding:8px 13px;border-radius:3px;cursor:pointer;
@@ -354,8 +367,10 @@
             <label class="campo"><span>Primer día de feria</span><input type="date" id="fInicio" required></label>
             <label class="campo"><span>Último día de feria</span><input type="date" id="fFin" required></label>
           </div>
-          <label class="campo"><span>Dirección del Dark Kitchen</span>
+          <label class="campo"><span>Dirección del Dark Kitchen (distinta a la feria)</span>
             <input type="text" id="fDireccionDk" placeholder="Calle Frisancho Melchor 376 — Santiago de Surco"></label>
+          <label class="campo"><span>Notas para el equipo</span>
+            <textarea id="fNotas" placeholder="Lo que quieras que lean antes de marcar: cómo llegar, qué llevar, uniforme, con quién coordinar…"></textarea></label>
         </fieldset>
 
         <fieldset>
@@ -443,7 +458,12 @@
               <label class="campo"><span>Primer día de feria</span><input type="date" id="eInicio"></label>
               <label class="campo"><span>Último día de feria</span><input type="date" id="eFin"></label>
             </div>
-            <label class="campo"><span>Dirección del Dark Kitchen</span><input type="text" id="eDireccionDk"></label>
+            <label class="campo"><span>Dirección del Dark Kitchen (distinta a la feria)</span><input type="text" id="eDireccionDk"></label>
+            <label class="campo"><span>Notas para el equipo</span>
+              <textarea id="eNotas" placeholder="Cómo llegar, qué llevar, uniforme, con quién coordinar…"></textarea></label>
+            <p class="seccion__sub" style="margin:-8px 0 14px">
+              Esto lo lee el equipo arriba del todo, antes de marcar su disponibilidad.
+            </p>
             <div class="fila-btns">
               <button class="btn btn--fuego btn--mini" id="btnGuardarFeria" type="button">Guardar datos</button>
             </div>
@@ -563,6 +583,13 @@ function pintarSellos(contenedor, b){
     e.textContent = s.txt
     contenedor.appendChild(e)
   })
+}
+
+// Dónde se trabaja este bloque: la feria y el Dark Kitchen son sitios distintos
+// y confundirlos es el error más caro que puede cometer alguien del equipo.
+function donde(b, f){
+  if (esDk(b)) return { rotulo:'Dark Kitchen', sitio: f.direccion_dk || 'dirección por confirmar' }
+  return { rotulo:'Feria', sitio: f.lugar || 'lugar por confirmar' }
 }
 
 // Nombre corto para las cabeceras estrechas de la tabla de disponibilidad.
@@ -728,6 +755,13 @@ async function abrirFeriaFeriante(f){
 
   const cont = $('#diasFeriante'); cont.innerHTML = ''
 
+  // Aclaraciones que escribió el administrador para esta feria.
+  if (f.notas && f.notas.trim()) {
+    const n = document.createElement('p'); n.className = 'notas-feria'
+    n.innerHTML = `<b>Ten en cuenta:</b>\n` + f.notas.trim()
+    cont.appendChild(n)
+  }
+
   // Aviso sobre los bloques condicionales, solo si esta feria tiene alguno.
   if (cacheBloques.some(b => b.condicional)) {
     const n = document.createElement('p'); n.className = 'nota-cond'
@@ -736,11 +770,14 @@ async function abrirFeriaFeriante(f){
     cont.appendChild(n)
   }
 
-  if (f.direccion_dk && cacheBloques.some(esDk)) {
+  if (cacheBloques.some(esDk)) {
     const d = document.createElement('p'); d.className = 'nota-cond'
     d.style.borderLeftColor = 'var(--dk)'
     d.style.background = 'var(--dk-suave)'
-    d.innerHTML = `<b style="color:var(--dk)">Dark Kitchen:</b> ${f.direccion_dk}`
+    d.innerHTML = `<b style="color:var(--dk)">Ojo con la dirección.</b>
+      Los bloques de Dark Kitchen <b style="color:var(--dk)">no son en la feria</b>:
+      son en ${f.direccion_dk || 'una dirección que el administrador aún no cargó'}.
+      Cada bloque de abajo dice dónde es.`
     cont.appendChild(d)
   }
 
@@ -756,6 +793,10 @@ async function abrirFeriaFeriante(f){
       fila.innerHTML = `<span class="bloque__h">${hhmm(bl.hora_inicio)} – ${hhmm(bl.hora_fin)}</span>
         ${bl.etiqueta ? `<span class="bloque__et">${bl.etiqueta}</span>` : ''}`
       pintarSellos(fila, bl)
+      const d = donde(bl, f)
+      const ub = document.createElement('span'); ub.className = 'donde'
+      ub.innerHTML = `<b>${d.rotulo}</b><span>${d.sitio}</span>`
+      fila.appendChild(ub)
       if (f.estado === 'abierta') {
         const ops = document.createElement('div'); ops.className = 'opciones'
         ;[['si','Sí'],['quizas','Quizás'],['no','No']].forEach(([v, txt]) => {
@@ -886,6 +927,7 @@ formFeria.onsubmit = async (e) => {
     nombre: $('#fNombre').value.trim(),
     lugar:  $('#fLugar').value.trim() || null,
     direccion_dk: $('#fDireccionDk').value.trim() || null,
+    notas: $('#fNotas').value.trim() || null,
     fecha_inicio: ini, fecha_fin: fin, estado: 'borrador'
   }).select().single()
 
@@ -1193,6 +1235,14 @@ function pintarTurnos(){
     <span><i class="sin-cupo" style="border:1px solid var(--linea)"></i> El bloque no tiene ese cupo</span>`
   cont.appendChild(ley)
 
+  // Las dos direcciones, a la vista mientras armas los turnos.
+  const dirs = document.createElement('div'); dirs.className = 'leyenda'
+  dirs.style.marginTop = '10px'
+  dirs.innerHTML =
+    `<span><b style="color:var(--crema-media)">Feria:</b> ${feriaSel.lugar || 'sin definir'}</span>` +
+    `<span><b style="color:var(--dk)">Dark Kitchen:</b> ${feriaSel.direccion_dk || 'sin definir'}</span>`
+  cont.appendChild(dirs)
+
   // ---------- reglas de la operación ----------
   const alertas = document.createElement('div'); alertas.className = 'alertas'
   const problemas = revisarReglas()
@@ -1339,6 +1389,7 @@ function pintarAjustes(){
   $('#eInicio').value      = feriaSel.fecha_inicio
   $('#eFin').value         = feriaSel.fecha_fin
   $('#eDireccionDk').value = feriaSel.direccion_dk || ''
+  $('#eNotas').value       = feriaSel.notas || ''
   decir($('#avisoEditar'), ''); decir($('#avisoBloques'), ''); decir($('#avisoBorrar'), '')
   reiniciarBorrado()
   pintarEditorBloques()
@@ -1355,6 +1406,7 @@ $('#btnGuardarFeria').onclick = async () => {
     nombre: $('#eNombre').value.trim(),
     lugar: $('#eLugar').value.trim() || null,
     direccion_dk: $('#eDireccionDk').value.trim() || null,
+    notas: $('#eNotas').value.trim() || null,
     fecha_inicio: ini, fecha_fin: fin
   }
   const { error } = await sb.from('ferias').update(cambios).eq('id', feriaSel.id)
