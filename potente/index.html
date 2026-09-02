@@ -1,658 +1,1689 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Potente · Equipo</title>
+<meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#120805">
-<link rel="canonical" href="https://cuantics.pe/potente/">
-<meta name="description" content="Potente lleva su estación de comida rápida a ferias, conciertos, catering corporativo y eventos. Sándwiches a la plancha, combos y refrescos caseros. Una marca de Happy Foods Group.">
-<meta name="robots" content="index, follow, max-image-preview:large">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="es_PE">
-<meta property="og:site_name" content="Potente">
-<meta property="og:url" content="https://cuantics.pe/potente/">
-<meta property="og:title" content="Potente — comida potente para ferias y eventos">
-<meta property="og:description" content="Comida que atrae y retiene al público de tu evento. Ferias, conciertos, catering corporativo y celebraciones.">
-<meta property="og:image" content="https://cuantics.pe/potente/img/og-potente.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Potente — comida potente para ferias y eventos">
-<meta name="twitter:description" content="Comida que atrae y retiene al público de tu evento. Ferias, conciertos, catering corporativo y celebraciones.">
-<meta name="twitter:image" content="https://cuantics.pe/potente/img/og-potente.jpg">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="img/logo.png">
-<title>Potente</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
 <style>
-  /* Un solo mundo visual: noche de feria — carbón, brasa y producto iluminado. */
   :root{
-    --carbon:        #120805;
-    --carbon-hondo:  #0a0403;
-    --plancha:       #1b0d07;
-    --plancha-alta:  #24130a;
-    --linea:         #3d2214;
-    --linea-suave:   rgba(61,34,20,.6);
-    --brasa:         #f2811d;
-    --brasa-honda:   #d63317;
-    --chispa:        #ffc63c;
-    --crema:         #f7ead9;
-    --crema-media:   #e0cab3;
-    --humo:          #ab917c;
-
-    --f-display: "Anton", "Arial Narrow", Impact, sans-serif;
-    --f-body: "Barlow", "Helvetica Neue", Arial, sans-serif;
-    --f-util: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
-
-    --ancho: 1160px;
-    --grano: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    --carbon:#120805; --carbon-hondo:#0a0403; --plancha:#1b0d07; --plancha-alta:#24130a;
+    --linea:#3d2214; --linea-suave:rgba(61,34,20,.55);
+    --brasa:#f2811d; --brasa-honda:#d63317; --chispa:#ffc63c;
+    --crema:#f7ead9; --crema-media:#e0cab3; --humo:#ab917c;
+    --si:#2fbf6b; --quizas:#e0a32e; --no:#c2452f;
+    --dk:#9a7cf2; --dk-suave:rgba(154,124,242,.14);
+    --f-display:"Anton","Arial Narrow",Impact,sans-serif;
+    --f-body:"Barlow","Helvetica Neue",Arial,sans-serif;
+    --f-util:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
   }
-
-  *,*::before,*::after{ box-sizing:border-box; }
-
+  *,*::before,*::after{box-sizing:border-box}
   body{
-    margin:0;
-    background:var(--carbon);
-    color:var(--crema);
-    font-family:var(--f-body);
-    font-size:17px;
-    line-height:1.6;
+    margin:0; min-height:100vh; background:var(--carbon); color:var(--crema);
+    font-family:var(--f-body); font-size:16px; line-height:1.55;
     -webkit-font-smoothing:antialiased;
   }
-  img{ max-width:100%; display:block; }
-  a{ color:inherit; }
-  ::selection{ background:var(--brasa); color:#180a04; }
-  :focus-visible{ outline:2px solid var(--chispa); outline-offset:3px; border-radius:2px; }
+  img{max-width:100%;display:block}
+  a{color:var(--chispa)}
+  h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;line-height:1.05;text-transform:uppercase}
+  :focus-visible{outline:2px solid var(--chispa);outline-offset:2px}
+  [hidden]{display:none !important}
 
-  .env{ max-width:var(--ancho); margin-inline:auto; padding-inline:24px; }
+  .env{max-width:1080px;margin-inline:auto;padding-inline:18px}
+  .eyebrow{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.2em;
+    font-weight:700;font-size:.74rem;color:var(--brasa);margin:0 0 8px}
 
-  h1,h2,h3{ font-family:var(--f-display); font-weight:400; text-wrap:balance; margin:0; line-height:1; }
-
-  .eyebrow{
-    font-family:var(--f-util);
-    text-transform:uppercase; letter-spacing:.2em; font-weight:600;
-    font-size:.8rem; color:var(--brasa); margin:0;
-  }
-
-  .sec{ padding:clamp(56px,7.5vw,92px) 0; }
-  .sec-cab{ margin-bottom:clamp(30px,4vw,46px); max-width:44ch; }
-  .sec-tit{ font-size:clamp(1.9rem,4.4vw,3.05rem); text-transform:uppercase; margin-top:10px; }
-  .sec-cab p{ color:var(--crema-media); margin:14px 0 0; }
-
-  /* ---------- botones ---------- */
+  /* ---------- controles ---------- */
   .btn{
-    display:inline-flex; align-items:center; gap:10px;
-    font-family:var(--f-util);
-    text-transform:uppercase; letter-spacing:.11em; font-weight:700; font-size:1.04rem;
-    padding:15px 28px; text-decoration:none; border-radius:2px;
-    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, color .18s ease;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font-family:var(--f-util);text-transform:uppercase;letter-spacing:.1em;font-weight:700;
+    font-size:.95rem;padding:12px 20px;border:1px solid transparent;border-radius:3px;
+    cursor:pointer;text-decoration:none;transition:transform .15s,filter .15s,border-color .15s,color .15s;
   }
-  .btn--wa{ background:linear-gradient(140deg,#2fdc6e,#12873f); color:#04220f; box-shadow:0 10px 26px rgba(18,135,63,.32); }
-  .btn--wa:hover{ transform:translateY(-2px); box-shadow:0 14px 34px rgba(18,135,63,.46); }
-  .btn--fantasma{ color:var(--crema); border:1px solid var(--linea); background:rgba(255,255,255,.02); }
-  .btn--fantasma:hover{ border-color:var(--brasa); color:var(--chispa); transform:translateY(-2px); }
-  .btn svg{ width:19px; height:19px; flex:none; }
-  .acciones{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+  .btn:disabled{opacity:.5;cursor:progress}
+  .btn--fuego{background:linear-gradient(140deg,var(--chispa),var(--brasa) 55%,var(--brasa-honda));color:#2a0d03}
+  .btn--fuego:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+  .btn--linea{background:transparent;border-color:var(--linea);color:var(--crema-media)}
+  .btn--linea:hover{border-color:var(--brasa);color:var(--chispa)}
+  .btn--mini{padding:7px 12px;font-size:.8rem;letter-spacing:.08em}
 
-  /* ---------- HERO ---------- */
-  .hero{
-    position:relative; overflow:hidden;
-    padding:clamp(34px,5vw,58px) 0 0;
-    background:
-      radial-gradient(120% 88% at 66% 6%, rgba(242,129,29,.32) 0%, rgba(214,51,23,.14) 40%, rgba(18,8,5,0) 74%),
-      linear-gradient(180deg,#1c0d07 0%, var(--carbon) 66%);
+  input,select{
+    width:100%;background:var(--carbon-hondo);border:1px solid var(--linea);color:var(--crema);
+    font-family:var(--f-body);font-size:15px;padding:11px 12px;border-radius:3px;
   }
-  .hero::after{
-    content:""; position:absolute; inset:0;
-    background-image:var(--grano); opacity:.055; pointer-events:none; mix-blend-mode:overlay;
-  }
-  .hero__grid{
-    position:relative; z-index:1;
-    display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
-    gap:24px 40px; align-items:center;
-    padding-bottom:clamp(40px,5vw,64px);
-  }
-  .hero__texto{ display:flex; flex-direction:column; align-items:flex-start; gap:22px; }
-  .hero__logo{
-    width:min(430px,80%);
-    filter:drop-shadow(0 14px 34px rgba(214,51,23,.42));
-    animation:respira 7s ease-in-out infinite;
-  }
-  @keyframes respira{
-    0%,100%{ filter:drop-shadow(0 12px 30px rgba(214,51,23,.36)); }
-    50%    { filter:drop-shadow(0 14px 46px rgba(242,129,29,.56)); }
-  }
-  .hero h1{
-    font-size:clamp(2.35rem,5.3vw,4.05rem);
-    text-transform:uppercase; max-width:17ch;
-    background:linear-gradient(172deg,#fff5e5 4%,var(--chispa) 40%,var(--brasa) 74%,var(--brasa-honda) 100%);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-  }
-  .hero__lede{ max-width:52ch; font-size:1.09rem; color:var(--crema-media); margin:0; }
-  .hero__foto{ position:relative; display:grid; place-items:center; }
-  .hero__foto::before{
-    content:""; position:absolute; width:96%; aspect-ratio:1; border-radius:50%;
-    background:radial-gradient(circle,rgba(255,198,60,.36) 0%,rgba(242,129,29,.20) 34%,rgba(18,8,5,0) 68%);
-    animation:brasa 6s ease-in-out infinite;
-  }
-  @keyframes brasa{ 0%,100%{ transform:scale(1); opacity:.9; } 50%{ transform:scale(1.07); opacity:1; } }
-  .hero__foto img{ position:relative; width:min(500px,100%); filter:drop-shadow(0 26px 40px rgba(0,0,0,.6)); animation:flota 8s ease-in-out infinite; }
-  @keyframes flota{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-12px); } }
+  input:focus,select:focus{outline:none;border-color:var(--brasa)}
+  label.campo{display:block;margin-bottom:14px}
+  label.campo span{display:block;font-family:var(--f-util);text-transform:uppercase;
+    letter-spacing:.16em;font-weight:600;font-size:.72rem;color:var(--humo);margin-bottom:6px}
 
-  .valores{
-    position:relative; z-index:1;
-    border-top:1px solid var(--linea);
-    display:grid; grid-template-columns:repeat(4,1fr);
-  }
-  .valores div{
-    padding:18px 20px 20px 0;
-    font-family:var(--f-util); text-transform:uppercase; letter-spacing:.14em;
-    font-weight:600; font-size:.86rem; color:var(--crema);
-  }
-  .valores div::before{ content:""; display:block; width:26px; height:3px; background:var(--brasa); margin-bottom:12px; }
+  .aviso{min-height:20px;margin:10px 0 0;font-family:var(--f-util);text-transform:uppercase;
+    letter-spacing:.08em;font-size:.8rem;color:var(--chispa)}
+  .aviso.malo{color:#ff9b7a}
 
-  /* ---------- propósito ---------- */
-  .proposito{ background:var(--carbon-hondo); border-block:1px solid var(--linea); }
-  .proposito .env{ padding-block:clamp(38px,5vw,58px); }
-  .proposito p{
-    margin:0; max-width:34ch;
-    font-family:var(--f-display); text-transform:uppercase;
-    font-size:clamp(1.35rem,3vw,2.05rem); line-height:1.12; color:var(--crema);
-  }
-  .proposito span{ color:var(--brasa); }
+  /* ---------- acceso ---------- */
+  .acceso{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 18px;
+    background-image:radial-gradient(110% 70% at 50% 0%,rgba(242,129,29,.22),rgba(18,8,5,0) 70%)}
+  .acceso__caja{width:100%;max-width:400px}
+  .acceso__logo{width:min(240px,68%);margin:0 auto 26px}
+  .tarjeta{border:1px solid var(--linea);background:linear-gradient(165deg,var(--plancha-alta),var(--plancha));
+    padding:26px;border-radius:4px}
+  .tarjeta h1{font-size:1.7rem;margin-bottom:6px}
+  .tarjeta p.sub{margin:0 0 22px;font-size:.92rem;color:var(--humo)}
+  .enlace-suave{display:block;margin-top:16px;text-align:center;font-family:var(--f-util);
+    text-transform:uppercase;letter-spacing:.14em;font-size:.76rem;color:var(--humo);
+    background:none;border:0;cursor:pointer;width:100%}
+  .enlace-suave:hover{color:var(--chispa)}
 
-  /* ---------- carta ---------- */
-  .firmas{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:34px 26px; }
-  .plato{ display:flex; flex-direction:column; gap:12px; }
-  .plato__foto{
-    position:relative; display:flex; align-items:flex-end; justify-content:center;
-    padding:10px 0 6px; min-height:216px; overflow:visible;
-  }
-  .plato__foto::before{
-    content:""; position:absolute; width:92%; aspect-ratio:1; border-radius:50%;
-    background:radial-gradient(circle,rgba(242,129,29,.26) 0%,rgba(214,51,23,.10) 40%,rgba(18,8,5,0) 68%);
-  }
-  .plato__foto img{
-    position:relative; width:auto; height:auto; max-height:200px; max-width:100%;
-    filter:drop-shadow(0 18px 26px rgba(0,0,0,.55)); transition:transform .3s ease;
-  }
-  .plato:hover .plato__foto img{ transform:translateY(-6px) scale(1.03); }
-  .badge{
-    font-family:var(--f-util); text-transform:uppercase; letter-spacing:.16em;
-    font-weight:700; font-size:.72rem; color:var(--chispa);
-  }
-  .plato h3{ font-size:1.5rem; text-transform:uppercase; color:var(--crema); }
-  .plato p{ margin:0; color:var(--humo); font-size:.95rem; line-height:1.5; }
+  /* ---------- cabecera ---------- */
+  header.barra{position:sticky;top:0;z-index:20;background:rgba(10,4,3,.92);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--linea)}
+  .barra__in{display:flex;align-items:center;gap:14px;min-height:62px}
+  .barra__logo{height:30px;width:auto}
+  .barra__quien{margin-left:auto;text-align:right;line-height:1.2}
+  .barra__quien b{display:block;font-size:.9rem;color:var(--crema)}
+  .barra__quien small{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.14em;
+    font-size:.68rem;color:var(--brasa)}
 
-  .extras{
-    margin-top:clamp(44px,5vw,64px); padding-top:34px; border-top:1px solid var(--linea);
-    display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:26px;
-  }
-  .extra{ display:flex; gap:16px; align-items:center; }
-  .extra__foto{ position:relative; flex:none; width:96px; min-height:96px; display:flex; align-items:center; justify-content:center; }
-  .extra__foto::before{
-    content:""; position:absolute; width:110%; aspect-ratio:1; border-radius:50%;
-    background:radial-gradient(circle,rgba(242,129,29,.24),rgba(18,8,5,0) 66%);
-  }
-  .extra__foto img{ position:relative; width:auto; height:auto; max-width:100%; max-height:96px; filter:drop-shadow(0 10px 16px rgba(0,0,0,.5)); }
-  .extra h4{ margin:0 0 4px; font-family:var(--f-display); font-weight:400; font-size:1.1rem; text-transform:uppercase; color:var(--crema); line-height:1.1; }
-  .extra p{ margin:0; font-size:.88rem; color:var(--humo); line-height:1.45; }
+  main{padding-block:26px 60px}
+  .seccion{margin-bottom:34px}
+  .seccion__tit{font-size:1.5rem;margin-bottom:4px}
+  .seccion__sub{margin:0 0 18px;color:var(--humo);font-size:.92rem}
 
-  /* ---------- combo ---------- */
-  .combo{
-    position:relative; border-block:1px solid var(--linea);
-    background:
-      radial-gradient(70% 100% at 50% 0%, rgba(242,129,29,.22), rgba(18,8,5,0) 70%),
-      var(--plancha);
-  }
-  .combo::before{ content:""; position:absolute; inset:0; background-image:var(--grano); opacity:.06; pointer-events:none; }
-  .combo .env{ position:relative; z-index:1; }
-  .combo__cab{ display:flex; flex-wrap:wrap; gap:20px 48px; align-items:flex-end; justify-content:space-between; margin-bottom:44px; }
-  .combo__cab h2{ font-size:clamp(2.1rem,5.2vw,3.6rem); text-transform:uppercase; color:var(--chispa); max-width:12ch; }
-  .combo__cab p{ margin:0; max-width:42ch; color:var(--crema-media); }
-  .combos{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:30px; }
-  .combo__item{ text-align:center; display:flex; flex-direction:column; gap:10px; align-items:center; }
-  .combo__item .plato__foto{ width:100%; min-height:250px; }
-  .combo__item .plato__foto img{ max-height:236px; }
-  .combo__item h3{ font-size:1.32rem; text-transform:uppercase; color:var(--crema); }
-  .combo__nota{ margin:40px 0 0; font-size:.95rem; color:var(--humo); font-style:italic; }
+  .vacio{border:1px dashed var(--linea);border-radius:4px;padding:26px;text-align:center;
+    color:var(--humo);font-size:.92rem}
 
-  /* ---------- experiencias ---------- */
-  .exps{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; border:1px solid var(--linea); }
-  .exp{ padding:28px 26px 30px; border-right:1px solid var(--linea); display:flex; flex-direction:column; gap:10px; }
-  .exp:last-child{ border-right:none; }
-  .exp h3{ font-size:1.36rem; text-transform:uppercase; color:var(--chispa); line-height:1.05; }
-  .exp p{ margin:0; color:var(--humo); font-size:.94rem; }
-  .exp__para{
-    margin-top:auto; padding-top:14px; border-top:1px solid var(--linea-suave);
-    font-family:var(--f-util); text-transform:uppercase; letter-spacing:.14em;
-    font-size:.76rem; color:var(--crema-media);
+  /* ---------- ferias ---------- */
+  .ferias{display:grid;gap:12px}
+  .feria{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;width:100%;text-align:left;
+    border:1px solid var(--linea);background:var(--plancha);border-radius:4px;padding:16px 18px;
+    color:inherit;font:inherit;cursor:pointer}
+  .feria:hover{border-color:var(--brasa)}
+  .feria.activa{border-color:var(--brasa);background:var(--plancha-alta)}
+  .feria__nom{font-family:var(--f-display);font-size:1.2rem;text-transform:uppercase;line-height:1.1}
+  .feria__meta{font-size:.86rem;color:var(--humo)}
+  .estado{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.14em;font-weight:700;
+    font-size:.68rem;padding:4px 9px;border-radius:2px;border:1px solid currentColor;margin-left:auto}
+  .estado.borrador{color:var(--humo)}
+  .estado.abierta{color:var(--si)}
+  .estado.cerrada{color:var(--quizas)}
+  .estado.publicada{color:var(--brasa)}
+
+  /* ---------- disponibilidad ---------- */
+  .dia{margin-bottom:22px;border:1px solid var(--linea);border-radius:4px;overflow:hidden}
+  .dia__cab{background:var(--plancha-alta);padding:11px 16px;font-family:var(--f-util);
+    text-transform:uppercase;letter-spacing:.14em;font-weight:700;font-size:.82rem;color:var(--chispa)}
+  .bloque{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px 16px;
+    border-top:1px solid var(--linea-suave)}
+  .bloque:first-of-type{border-top:0}
+  .bloque__h{font-variant-numeric:tabular-nums;font-weight:600;font-size:1rem}
+  .bloque__et{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-size:.72rem;color:var(--humo)}
+
+  /* Dark Kitchen: otro tipo de trabajo, otro color. */
+  .bloque.es-dk{border-left:3px solid var(--dk);background:var(--dk-suave)}
+  .dia.es-dk .dia__cab{color:var(--dk);border-bottom:1px solid rgba(154,124,242,.3)}
+  .sello{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-weight:700;font-size:.68rem;padding:3px 8px;border-radius:2px;white-space:nowrap}
+  .sello.dk{background:var(--dk-suave);color:var(--dk);border:1px solid rgba(154,124,242,.45)}
+  .sello.cond{background:rgba(224,163,46,.14);color:var(--quizas);border:1px solid rgba(224,163,46,.4)}
+  .nota-cond{margin:0 0 18px;padding:12px 14px;border-left:3px solid var(--quizas);
+    background:rgba(224,163,46,.07);font-size:.88rem;color:var(--crema-media)}
+  .nota-cond b{color:var(--chispa)}
+
+  /* Dónde se trabaja cada bloque. Va en su propia línea para que no se pierda. */
+  .donde{flex-basis:100%;display:flex;gap:7px;align-items:baseline;margin-top:2px;
+    font-size:.84rem;color:var(--humo);line-height:1.35}
+  .donde b{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-size:.68rem;font-weight:700;color:var(--crema-media);flex:none}
+  .bloque.es-dk .donde b{color:var(--dk)}
+  .notas-feria{margin:0 0 18px;padding:13px 15px;border-left:3px solid var(--brasa);
+    background:rgba(242,129,29,.07);font-size:.9rem;color:var(--crema-media);white-space:pre-line}
+  .notas-feria b{color:var(--chispa)}
+  textarea{width:100%;background:var(--carbon-hondo);border:1px solid var(--linea);color:var(--crema);
+    font-family:var(--f-body);font-size:15px;padding:11px 12px;border-radius:3px;resize:vertical;min-height:80px}
+  textarea:focus{outline:none;border-color:var(--brasa)}
+  .opciones{display:flex;gap:6px;margin-left:auto}
+  .op{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.1em;font-weight:700;
+    font-size:.78rem;padding:8px 13px;border-radius:3px;cursor:pointer;
+    border:1px solid var(--linea);background:transparent;color:var(--humo);transition:all .15s}
+  .op:hover{border-color:var(--crema-media);color:var(--crema)}
+  .op[aria-pressed="true"][data-v="si"]{background:var(--si);border-color:var(--si);color:#04220f}
+  .op[aria-pressed="true"][data-v="quizas"]{background:var(--quizas);border-color:var(--quizas);color:#2b1c00}
+  .op[aria-pressed="true"][data-v="no"]{background:var(--no);border-color:var(--no);color:#2b0700}
+
+  /* ---------- avance del feriante ----------
+     Una casilla en blanco es ambigua: no se sabe si dijo "no puedo" o si se
+     quedó a medias. Así que lo que falta se ve, y lo completo se celebra. */
+  .avance{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:0 0 20px;
+    padding:13px 16px;border-radius:4px;border:1px solid var(--brasa);
+    background:rgba(242,129,29,.08)}
+  .avance.listo{border-color:var(--si);background:rgba(47,191,107,.08)}
+  .avance__tit{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.14em;
+    font-weight:700;font-size:.82rem;color:var(--chispa)}
+  .avance.listo .avance__tit{color:var(--si)}
+  .avance__txt{font-size:.9rem;color:var(--crema-media);flex:1 1 240px}
+  .avance__barra{flex-basis:100%;height:5px;border-radius:3px;background:var(--linea);overflow:hidden}
+  .avance__barra i{display:block;height:100%;background:var(--brasa);transition:width .3s ease}
+  .avance.listo .avance__barra i{background:var(--si)}
+
+  /* Bloque todavía sin responder. */
+  .bloque.falta{background:rgba(242,129,29,.06);box-shadow:inset 3px 0 0 var(--brasa)}
+  .bloque.es-dk.falta{background:var(--dk-suave);box-shadow:none}
+  .pendiente{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.14em;
+    font-weight:700;font-size:.66rem;padding:3px 8px;border-radius:2px;white-space:nowrap;
+    background:rgba(242,129,29,.18);color:var(--brasa);border:1px solid rgba(242,129,29,.45)}
+
+  /* ---------- tablas admin ---------- */
+  .scroll-x{overflow-x:auto;border:1px solid var(--linea);border-radius:4px}
+  table{border-collapse:collapse;width:100%;min-width:520px}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--linea-suave);font-size:.88rem}
+  thead th{background:var(--plancha-alta);font-family:var(--f-util);text-transform:uppercase;
+    letter-spacing:.12em;font-size:.72rem;color:var(--humo);white-space:nowrap;position:sticky;top:0;
+    vertical-align:bottom;line-height:1.45}
+  thead th .hh{font-family:var(--f-body);font-size:.72rem;letter-spacing:0;
+    color:var(--crema-media);font-variant-numeric:tabular-nums;text-transform:none}
+  tbody tr:last-child td{border-bottom:0}
+  td.persona{white-space:nowrap;font-weight:600;color:var(--crema)}
+  .marca{display:inline-block;min-width:26px;text-align:center;font-weight:700;
+    font-family:var(--f-util);letter-spacing:.06em;font-size:.8rem;padding:3px 8px;border-radius:2px}
+  .marca.si{background:rgba(47,191,107,.16);color:var(--si)}
+  .marca.quizas{background:rgba(224,163,46,.16);color:var(--quizas)}
+  .marca.no{background:rgba(194,69,47,.16);color:var(--no)}
+  .marca.sin{color:var(--humo);opacity:.5}
+  .conteo{font-variant-numeric:tabular-nums;font-weight:700;color:var(--chispa)}
+
+  /* Celdas que el administrador puede corregir con un clic. */
+  td.editable{cursor:pointer;user-select:none}
+  td.editable:hover .marca{outline:1px solid var(--brasa);outline-offset:1px}
+  td.editable .marca.sin{border:1px dashed var(--linea)}
+  td.avance-p{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700;
+    font-family:var(--f-util);letter-spacing:.06em;font-size:.8rem;color:var(--si)}
+  td.avance-p.incompleto{color:var(--brasa)}
+  tr.fila-incompleta td.persona{color:var(--brasa)}
+  .leyenda{margin:10px 0 0;font-size:.82rem;color:var(--humo)}
+
+  /* ---------- turnos ---------- */
+  .turno{border:1px solid var(--linea);border-radius:4px;padding:16px;margin-bottom:12px;background:var(--plancha)}
+  .turno__cab{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin-bottom:12px}
+  .turno__h{font-family:var(--f-display);font-size:1.1rem;text-transform:uppercase}
+  .turno__cupo{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-size:.74rem;margin-left:auto}
+  .turno__cupo.falta{color:var(--quizas)}
+  .turno__cupo.lleno{color:var(--si)}
+  .candidatos{display:grid;gap:8px}
+  .cand{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:9px 11px;
+    border:1px solid var(--linea-suave);border-radius:3px}
+  .cand.puesto{border-color:var(--brasa);background:rgba(242,129,29,.07)}
+  .cand__n{font-weight:600}
+  .cand select{width:auto;padding:6px 9px;font-size:.85rem}
+  .cand .btn{margin-left:auto}
+
+  /* ---------- cronograma en rejilla ---------- */
+  .crono{border-collapse:collapse;min-width:100%}
+  .crono th,.crono td{border:1px solid var(--linea);padding:0;vertical-align:top}
+  .crono thead th{
+    background:var(--plancha-alta);padding:9px 11px;text-align:left;vertical-align:bottom;
+    font-family:var(--f-util);text-transform:uppercase;white-space:nowrap;
+  }
+  .crono th.col-dk{background:rgba(154,124,242,.13)}
+  .crono th b{display:block;font-size:.82rem;letter-spacing:.1em;color:var(--crema);font-weight:700}
+  .crono th.col-dk b{color:var(--dk)}
+  .crono th small{display:block;font-size:.68rem;letter-spacing:.08em;color:var(--humo);font-weight:500;margin-top:3px}
+  .crono th.col-cupo{background:var(--plancha);position:sticky;left:0;z-index:2;min-width:78px}
+  .crono td.col-cupo{background:var(--plancha);position:sticky;left:0;z-index:1;
+    padding:10px 11px;font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-size:.74rem;color:var(--humo);white-space:nowrap}
+  .celda{padding:7px;display:flex;flex-direction:column;gap:5px;min-width:158px}
+  .celda select{padding:7px 8px;font-size:.84rem}
+  .celda select.rol{font-size:.74rem;padding:5px 8px;color:var(--humo)}
+  .celda.dk{background:rgba(154,124,242,.07)}
+  .celda.puesta select:first-child{border-color:var(--brasa);color:var(--crema)}
+  .sin-cupo{background:repeating-linear-gradient(45deg,transparent,transparent 6px,rgba(61,34,20,.35) 6px,rgba(61,34,20,.35) 12px)}
+
+  .leyenda{display:flex;flex-wrap:wrap;gap:8px 20px;margin:16px 0 0;font-size:.8rem;color:var(--humo)}
+  .leyenda span{display:flex;align-items:center;gap:7px}
+  .leyenda i{width:11px;height:11px;border-radius:2px;display:block}
+
+  .alertas{margin-top:20px;display:grid;gap:8px}
+  .alerta{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:3px;
+    border-left:3px solid var(--quizas);background:rgba(224,163,46,.08);font-size:.88rem;color:var(--crema-media)}
+  .alerta b{color:var(--chispa)}
+  .alerta.ok{border-left-color:var(--si);background:rgba(47,191,107,.08)}
+
+  .fila-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .form-rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0 16px}
+  fieldset{border:1px solid var(--linea);border-radius:4px;padding:16px;margin:0 0 18px}
+  legend{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.16em;
+    font-weight:700;font-size:.74rem;color:var(--brasa);padding-inline:8px}
+  .plantilla{display:grid;grid-template-columns:1fr 1fr 1.3fr auto;gap:10px;align-items:end;margin-bottom:10px}
+  .plantilla label.campo{margin-bottom:0}
+  @media(max-width:600px){
+    .plantilla{grid-template-columns:1fr 1fr;}
+    .plantilla .btn{grid-column:span 2}
   }
 
-  /* ---------- incluye / alianza ---------- */
-  .duo{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(30px,5vw,60px); }
-  .duo h3{
-    font-family:var(--f-util); font-weight:700; text-transform:uppercase; letter-spacing:.2em;
-    font-size:.88rem; color:var(--brasa); padding-bottom:12px; border-bottom:1px solid var(--linea); margin-bottom:6px;
-  }
-  .lista{ list-style:none; margin:0; padding:0; }
-  .lista li{ position:relative; padding:12px 0 12px 26px; border-bottom:1px solid var(--linea-suave); color:var(--crema-media); font-size:1rem; }
-  .lista li:last-child{ border-bottom:none; }
-  .lista li::before{ content:"+"; position:absolute; left:0; top:11px; color:var(--brasa); font-family:var(--f-display); font-size:1.1rem; }
+  .pestanas{display:flex;gap:4px;border-bottom:1px solid var(--linea);margin-bottom:22px;overflow-x:auto}
+  .pestana{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;font-weight:700;
+    font-size:.84rem;padding:11px 16px;background:none;border:0;border-bottom:2px solid transparent;
+    color:var(--humo);cursor:pointer;white-space:nowrap}
+  .pestana[aria-selected="true"]{color:var(--chispa);border-bottom-color:var(--brasa)}
 
-  .incluye{ background:var(--plancha); border-block:1px solid var(--linea); }
-  .incluye__grid{ display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,.85fr); gap:clamp(34px,5vw,60px); align-items:center; }
-  .incluye__foto{ position:relative; display:grid; place-items:center; }
-  .incluye__foto::before{
-    content:""; position:absolute; width:92%; aspect-ratio:1; border-radius:50%;
-    background:radial-gradient(circle,rgba(255,198,60,.24),rgba(18,8,5,0) 66%);
-  }
-  .incluye__foto img{ position:relative; width:min(380px,100%); filter:drop-shadow(0 22px 32px rgba(0,0,0,.55)); }
-
-  /* ---------- pasos ---------- */
-  .pasos{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:30px; }
-  .paso{ padding-top:20px; border-top:1px solid var(--linea); }
-  .paso__n{ font-family:var(--f-display); font-size:2.1rem; color:var(--brasa-honda); line-height:1; font-variant-numeric:tabular-nums; }
-  .paso h3{ font-size:1.14rem; text-transform:uppercase; color:var(--crema); margin:10px 0 8px; }
-  .paso p{ margin:0; color:var(--humo); font-size:.93rem; }
-
-  /* ---------- cierre ---------- */
-  .cierre{
-    position:relative; border-top:1px solid var(--linea);
-    background:
-      radial-gradient(80% 130% at 20% 100%, rgba(242,129,29,.26), rgba(18,8,5,0) 66%),
-      var(--plancha-alta);
-  }
-  .cierre .env{ padding-block:clamp(56px,7vw,88px); display:flex; flex-direction:column; align-items:flex-start; gap:24px; }
-  .cierre h2{ font-size:clamp(2.2rem,6vw,4.1rem); text-transform:uppercase; max-width:15ch; color:var(--crema); }
-  .cierre p{ margin:0; max-width:50ch; color:var(--crema-media); font-size:1.06rem; }
-  .datos{ display:flex; flex-wrap:wrap; gap:10px 34px; margin:0; padding:0; list-style:none; }
-  .datos a{ text-decoration:none; display:inline-flex; align-items:baseline; gap:10px; }
-  .datos span:first-child{ font-family:var(--f-util); text-transform:uppercase; letter-spacing:.16em; font-size:.74rem; color:var(--humo); }
-  .datos span:last-child{ font-weight:600; color:var(--crema); font-variant-numeric:tabular-nums; }
-  .datos a:hover span:last-child{ color:var(--chispa); }
-
-  footer{ padding:34px 0 46px; border-top:1px solid var(--linea); background:var(--carbon-hondo); }
-  .pie{ display:flex; flex-wrap:wrap; gap:14px 28px; justify-content:space-between; align-items:center; }
-  .pie p{ margin:0; color:var(--humo); font-size:.86rem; }
-  .pie strong{ color:var(--crema); font-weight:600; }
-  .pie__fin{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px; }
-  .pie__acceso{
-    font-family:var(--f-util); text-transform:uppercase; letter-spacing:.16em;
-    font-weight:600; font-size:.76rem; color:var(--humo); text-decoration:none;
-    padding-left:18px; border-left:1px solid var(--linea);
-    opacity:.7; transition:opacity .25s ease, color .25s ease;
-  }
-  .pie__acceso:hover{ opacity:1; color:var(--chispa); }
-
-  /* ---------- responsive ---------- */
-  @media (max-width:960px){
-    .firmas{ grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .extras{ grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .exps{ grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .exp:nth-child(2n){ border-right:none; }
-    .exp:nth-child(-n+2){ border-bottom:1px solid var(--linea); }
-    .pasos{ grid-template-columns:repeat(2,minmax(0,1fr)); }
-  }
-  @media (max-width:820px){
-    .hero__grid{ grid-template-columns:1fr; }
-    .hero__foto{ order:-1; }
-    .hero__foto img{ width:min(340px,72%); }
-    .valores{ grid-template-columns:repeat(2,1fr); }
-    .incluye__grid{ grid-template-columns:1fr; }
-    .incluye__foto{ display:none; }
-    .duo{ grid-template-columns:1fr; }
-    .combos{ grid-template-columns:1fr; gap:36px; }
-  }
-  @media (max-width:560px){
-    .firmas{ grid-template-columns:1fr; gap:30px; }
-    .extras{ grid-template-columns:1fr; }
-    .exps{ grid-template-columns:1fr; }
-    .exp{ border-right:none; border-bottom:1px solid var(--linea); }
-    .exp:last-child{ border-bottom:none; }
-    .pasos{ grid-template-columns:1fr; }
-  }
-  @media (prefers-reduced-motion:reduce){
-    *{ animation:none !important; transition:none !important; }
-  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FoodEstablishment",
-  "name": "Potente",
-  "slogan": "Sabroso como te gusta",
-  "description": "Estación de comida rápida para ferias, conciertos, catering corporativo y eventos de alta afluencia.",
-  "url": "https://cuantics.pe/potente/",
-  "image": "https://cuantics.pe/potente/img/og-potente.jpg",
-  "logo": "https://cuantics.pe/potente/img/logo.png",
-  "telephone": "+51992026641",
-  "servesCuisine": ["Comida rápida", "Comida callejera peruana"],
-  "areaServed": { "@type": "Country", "name": "Perú" },
-  "address": { "@type": "PostalAddress", "addressLocality": "Lima", "addressCountry": "PE" },
-  "parentOrganization": { "@type": "Organization", "name": "Happy Foods Group" },
-  "sameAs": ["https://www.instagram.com/potente.pe/"]
-}
-</script>
 </head>
 <body>
-<header class="hero">
-  <div class="env">
-    <div class="hero__grid">
-      <div class="hero__texto">
-        <img class="hero__logo" src="img/logo.png" alt="Potente — sabroso como te gusta">
-        <p class="eyebrow">Ferias · Conciertos · Catering · Eventos</p>
-        <h1>Comida que atrae y retiene al público de tu evento</h1>
-        <p class="hero__lede">Llevamos nuestra estación completa, nuestro equipo y nuestra carta a ferias, conciertos, festivales y eventos corporativos. Sabor callejero peruano, porciones generosas y servicio hecho para el alto tráfico.</p>
-        <div class="acciones">
-          <a class="btn btn--wa" id="waHero" href="#" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.74-.86-2.01-.96-.27-.1-.47-.15-.66.15-.2.3-.76.96-.94 1.16-.17.2-.34.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.9-2.19-.24-.57-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.03 1.01-1.03 2.46 0 1.45 1.06 2.85 1.2 3.05.15.2 2.08 3.18 5.04 4.46.7.3 1.25.48 1.68.62.71.22 1.35.19 1.86.12.57-.09 1.74-.71 1.99-1.4.25-.69.25-1.28.17-1.4-.07-.13-.27-.2-.57-.35M12.05 21.5h-.02a9.4 9.4 0 0 1-4.8-1.32l-.34-.2-3.57.93.95-3.48-.22-.36a9.36 9.36 0 0 1-1.43-5A9.42 9.42 0 0 1 18.72 5.3a9.36 9.36 0 0 1 2.76 6.65 9.42 9.42 0 0 1-9.43 9.55M20.06 3.94A11.75 11.75 0 0 0 11.7.5C5.2.5.02 5.68.02 12.05c0 2.05.54 4.05 1.56 5.82L0 24l6.3-1.65a11.7 11.7 0 0 0 5.6 1.42h.01c6.5 0 11.68-5.18 11.68-11.55a11.5 11.5 0 0 0-3.53-8.28"/></svg>
-            Cotiza tu evento
-          </a>
-          <a class="btn btn--fantasma" href="#carta">Ver la carta</a>
-        </div>
-      </div>
-      <div class="hero__foto">
-        <img src="img/burger.webp" alt="Burger Potente: doble carne, queso cheddar, lechuga y tomate">
-      </div>
-    </div>
 
-    <div class="valores">
-      <div>Sabor consistente</div>
-      <div>Velocidad</div>
-      <div>Higiene y orden</div>
-      <div>Marca que atrae</div>
-    </div>
+<!-- ============ PANTALLA DE ACCESO ============ -->
+<div class="acceso" id="pantallaAcceso" hidden>
+  <div class="acceso__caja">
+    <img class="acceso__logo" src="../img/logo.png" alt="Potente">
+
+    <!-- entrar -->
+    <form class="tarjeta" id="formEntrar" hidden autocomplete="on">
+      <p class="eyebrow">Acceso del equipo</p>
+      <h1>Entra a tu cuenta</h1>
+      <p class="sub">Usa el correo con el que te invitaron.</p>
+      <label class="campo"><span>Correo</span>
+        <input type="email" id="correo" autocomplete="username" required></label>
+      <label class="campo"><span>Contraseña</span>
+        <input type="password" id="clave" autocomplete="current-password" required></label>
+      <button class="btn btn--fuego" style="width:100%" type="submit" id="btnEntrar">Entrar</button>
+      <p class="aviso" id="avisoEntrar" role="status" aria-live="polite"></p>
+      <button type="button" class="enlace-suave" id="irOlvide">Olvidé mi contraseña</button>
+    </form>
+
+    <!-- recuperar -->
+    <form class="tarjeta" id="formOlvide" hidden>
+      <p class="eyebrow">Recuperar acceso</p>
+      <h1>Te mandamos un correo</h1>
+      <p class="sub">Escribe tu correo y te llega un enlace para poner una contraseña nueva.</p>
+      <label class="campo"><span>Correo</span>
+        <input type="email" id="correoOlvide" required></label>
+      <button class="btn btn--fuego" style="width:100%" type="submit" id="btnOlvide">Enviar enlace</button>
+      <p class="aviso" id="avisoOlvide" role="status" aria-live="polite"></p>
+      <button type="button" class="enlace-suave" id="volverEntrar">Volver a entrar</button>
+    </form>
+
+    <!-- definir contraseña -->
+    <form class="tarjeta" id="formClave" hidden>
+      <p class="eyebrow">Bienvenido</p>
+      <h1>Define tu contraseña</h1>
+      <p class="sub">Mínimo 8 caracteres. Guárdala donde no se te pierda.</p>
+      <label class="campo"><span>Nueva contraseña</span>
+        <input type="password" id="claveNueva" autocomplete="new-password" minlength="8" required></label>
+      <label class="campo"><span>Repítela</span>
+        <input type="password" id="claveRepite" autocomplete="new-password" minlength="8" required></label>
+      <button class="btn btn--fuego" style="width:100%" type="submit" id="btnClave">Guardar y entrar</button>
+      <p class="aviso" id="avisoClave" role="status" aria-live="polite"></p>
+    </form>
+
+    <p class="aviso" id="avisoCarga" style="text-align:center">Cargando…</p>
   </div>
-</header>
+</div>
 
-<main>
-
-  <section class="proposito">
-    <div class="env">
-      <p>Que la comida callejera peruana se viva como <span>una experiencia</span>: en cada feria, cada concierto y cada evento.</p>
+<!-- ============ APLICACIÓN ============ -->
+<div id="pantallaApp" hidden>
+  <header class="barra">
+    <div class="env barra__in">
+      <img class="barra__logo" src="../img/logo.png" alt="Potente">
+      <div class="barra__quien">
+        <b id="miNombre">—</b>
+        <small id="miRol">—</small>
+      </div>
+      <button class="btn btn--linea btn--mini" id="btnSalir">Salir</button>
     </div>
-  </section>
+  </header>
 
-  <section class="sec" id="carta">
-    <div class="env">
-      <div class="sec-cab">
-        <p class="eyebrow">Nuestra carta</p>
-        <h2 class="sec-tit">Sándwiches que son nuestra firma</h2>
-        <p>Hechos al instante en la plancha, con porciones que se sienten en la mano.</p>
+  <main class="env">
+    <!-- ---------- vista feriante ---------- -->
+    <div id="vistaFeriante" hidden>
+      <div class="seccion">
+        <h2 class="seccion__tit">Tus ferias</h2>
+        <p class="seccion__sub">Elige una feria y marca en qué bloques puedes trabajar.</p>
+        <div class="ferias" id="listaFeriasFeriante"></div>
+      </div>
+      <div class="seccion" id="bloqueDisponibilidad" hidden>
+        <h2 class="seccion__tit" id="tituloFeriaSel">—</h2>
+        <p class="seccion__sub" id="subFeriaSel">—</p>
+        <div class="avance" id="avanceFeriante" hidden>
+          <span class="avance__tit" id="avanceTit">—</span>
+          <span class="avance__txt" id="avanceTxt">—</span>
+          <span class="avance__barra"><i id="avanceBarra" style="width:0%"></i></span>
+        </div>
+        <div id="diasFeriante"></div>
+        <p class="aviso" id="avisoGuardado" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <!-- ---------- vista administrador ---------- -->
+    <div id="vistaAdmin" hidden>
+      <div class="pestanas" role="tablist" style="margin-bottom:26px">
+        <button class="pestana" role="tab" aria-selected="true"  data-panel="ferias">Ferias</button>
+        <button class="pestana" role="tab" aria-selected="false" data-panel="equipo">Equipo</button>
       </div>
 
-      <div class="firmas">
-        <article class="plato">
-          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/burger.webp" alt="Burger Potente"></div>
-          <p class="badge">Producto insignia</p>
-          <h3>Burger Potente</h3>
-          <p>Hamburguesón de carne con lechuga, tomate y queso cheddar.</p>
-        </article>
-        <article class="plato">
-          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/choripan.webp" alt="Choripán Criollo"></div>
-          <p class="badge">El favorito</p>
-          <h3>Choripán Criollo</h3>
-          <p>Chorizo a la plancha con papas al hilo y salsas de la casa.</p>
-        </article>
-        <article class="plato">
-          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/hotdog.webp" alt="Hotdog Callejero"></div>
-          <p class="badge">Clásico de feria</p>
-          <h3>Hotdog Callejero</h3>
-          <p>Salchicha, papas al hilo y salsas de la casa.</p>
-        </article>
-        <article class="plato">
-          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/salchipapa.webp" alt="Salchipapa Potente"></div>
-          <p class="badge">Para compartir</p>
-          <h3>Salchipapas</h3>
-          <p>De salchicha o de chorizo, con papas crujientes y salsas.</p>
-        </article>
-      </div>
-
-      <div class="extras">
-        <div class="extra">
-          <div class="extra__foto"><img loading="lazy" decoding="async" src="img/papas.webp" alt="Papas crujientes"></div>
-          <div>
-            <h4>Papas Crujientes</h4>
-            <p>Porción generosa, siempre calientes.</p>
-          </div>
-        </div>
-        <div class="extra">
-          <div class="extra__foto"><img loading="lazy" decoding="async" src="img/pancho.webp" alt="Pancho en palo"></div>
-          <div>
-            <h4>Panchos</h4>
-            <p>Chorizo o hot-dog en palo. Se come caminando.</p>
-          </div>
-        </div>
-        <div class="extra">
-          <div class="extra__foto"><img loading="lazy" decoding="async" src="img/chicha.webp" alt="Vaso de chicha morada"></div>
-          <div>
-            <h4>Chicha Morada</h4>
-            <p>Refresco casero en 12 y 9 oz.</p>
-          </div>
-        </div>
-        <div class="extra">
-          <div class="extra__foto"><img loading="lazy" decoding="async" src="img/maracuya.webp" alt="Vaso de maracuyá"></div>
-          <div>
-            <h4>Maracuyá</h4>
-            <p>Refresco casero en 12 y 9 oz.</p>
+      <!-- ===== panel Equipo ===== -->
+      <div id="panelEquipo" hidden>
+        <div class="seccion">
+          <h2 class="seccion__tit">Tu equipo</h2>
+          <p class="seccion__sub">Corrige los nombres, decide quién administra y desactiva a quien ya no trabaja contigo.</p>
+          <div id="listaEquipo"></div>
+          <p class="aviso" id="avisoEquipo" role="status" aria-live="polite"></p>
+          <div class="vacio" style="margin-top:20px;text-align:left">
+            <b style="color:var(--crema)">¿Falta alguien?</b><br>
+            Invítalo desde Supabase → Authentication → Users → Add user → Send invitation.
+            Entra como feriante y desde aquí lo puedes hacer administrador.
+            Crear cuentas necesita una clave de servidor, y esa no puede vivir dentro de una página web.
           </div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <section class="sec combo">
-    <div class="env">
-      <div class="combo__cab">
-        <div>
-          <p class="eyebrow">La promoción estrella</p>
-          <h2 class="sec-tit">El Combo Potente</h2>
+      <!-- ===== panel Ferias ===== -->
+      <div id="panelFerias">
+      <div class="seccion">
+        <h2 class="seccion__tit">Ferias</h2>
+        <p class="seccion__sub">Crea una feria, ábrela para que el equipo marque, y arma los turnos.</p>
+        <div class="ferias" id="listaFeriasAdmin"></div>
+        <div class="fila-btns">
+          <button class="btn btn--linea" id="btnNuevaFeria">+ Nueva feria</button>
         </div>
-        <p>Cualquier sándwich + porción de papas + refresco de 12 oz. Un solo pedido, una sola cola, cliente satisfecho.</p>
       </div>
 
-      <div class="combos">
-        <article class="combo__item">
-          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/combo-burger.webp" alt="Combo Burger Potente"></div>
-          <p class="badge">El más pedido</p>
-          <h3>Combo Burger</h3>
-        </article>
-        <article class="combo__item">
-          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/combo-choripan.webp" alt="Combo Choripán"></div>
-          <p class="badge">Sabor criollo</p>
-          <h3>Combo Choripán</h3>
-        </article>
-        <article class="combo__item">
-          <div class="plato__foto"><img loading="lazy" decoding="async" src="img/combo-hotdog.webp" alt="Combo Hotdog"></div>
-          <p class="badge">Rinde en volumen</p>
-          <h3>Combo Hotdog</h3>
-        </article>
-      </div>
-
-      <p class="combo__nota">Precios a consultar.</p>
-    </div>
-  </section>
-
-  <section class="sec">
-    <div class="env">
-      <div class="sec-cab">
-        <p class="eyebrow">Experiencias Potente</p>
-        <h2 class="sec-tit">Nos adaptamos a tu evento</h2>
-        <p>Vamos con la estación completa y nuestro equipo, para atender al público como se merece.</p>
-      </div>
-
-      <div class="exps">
-        <article class="exp">
-          <h3>Ferias gastronómicas</h3>
-          <p>Módulo con la carta completa y atención de alto volumen durante todo el día.</p>
-          <p class="exp__para">Ferias de comida y festivales</p>
-        </article>
-        <article class="exp">
-          <h3>Conciertos y festivales</h3>
-          <p>Carta express y combos, armada para mover colas largas sin demora.</p>
-          <p class="exp__para">Eventos masivos</p>
-        </article>
-        <article class="exp">
-          <h3>Catering corporativo</h3>
-          <p>Combos servidos por invitado, con cantidad y horario acordados de antemano.</p>
-          <p class="exp__para">Empresas y lanzamientos</p>
-        </article>
-        <article class="exp">
-          <h3>Celebraciones a medida</h3>
-          <p>Carta y espacio para el branding del anfitrión en el módulo.</p>
-          <p class="exp__para">Cumpleaños y activaciones</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="sec incluye">
-    <div class="env incluye__grid">
-      <div>
-        <div class="sec-cab">
-          <p class="eyebrow">Qué incluye</p>
-          <h2 class="sec-tit">Llegamos listos para operar</h2>
-          <p>Solo necesitamos el espacio y el punto de energía. Del resto nos encargamos nosotros.</p>
-        </div>
-        <div class="duo">
-          <div>
-            <h3>Incluye</h3>
-            <ul class="lista">
-              <li>Módulo o estación con branding Potente</li>
-              <li>Equipo uniformado de 2 a 3 personas</li>
-              <li>Plancha, freidora y equipo de frío</li>
-              <li>Insumos, empaques y servilletas</li>
-              <li>Menú visible con precios y combos</li>
-            </ul>
+      <!-- crear feria -->
+      <form class="seccion" id="formFeria" hidden>
+        <fieldset>
+          <legend>Nueva feria</legend>
+          <div class="form-rejilla">
+            <label class="campo"><span>Nombre</span><input type="text" id="fNombre" required placeholder="Feria Marciana"></label>
+            <label class="campo"><span>Lugar</span><input type="text" id="fLugar" placeholder="Coliseo Dibos"></label>
+            <label class="campo"><span>Primer día de feria</span><input type="date" id="fInicio" required></label>
+            <label class="campo"><span>Último día de feria</span><input type="date" id="fFin" required></label>
           </div>
-          <div>
-            <h3>Complementos</h3>
-            <ul class="lista">
-              <li>Carta adaptada al público del evento</li>
-              <li>Branding co-marca en módulo y empaques</li>
-              <li>Preventa de tickets o combos por invitado</li>
-              <li>Refrescos de chicha morada o maracuyá</li>
-            </ul>
+          <label class="campo"><span>Dirección del Dark Kitchen (distinta a la feria)</span>
+            <input type="text" id="fDireccionDk" placeholder="Calle Frisancho Melchor 376 — Santiago de Surco"></label>
+          <label class="campo"><span>Notas para el equipo</span>
+            <textarea id="fNotas" placeholder="Lo que quieras que lean antes de marcar: cómo llegar, qué llevar, uniforme, con quién coordinar…"></textarea></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Bloques de feria</legend>
+          <p class="seccion__sub">Atención al público. Se crean para cada día de la feria.</p>
+          <div id="plantillas"></div>
+          <button type="button" class="btn btn--linea btn--mini" id="btnAgregarBloque">+ Agregar bloque</button>
+        </fieldset>
+
+        <fieldset>
+          <legend>Dark Kitchen</legend>
+
+          <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;cursor:pointer">
+            <input type="checkbox" id="dkPrepOn" checked style="width:auto;margin-top:4px">
+            <span style="font-size:.94rem;color:var(--crema-media)">
+              <b style="color:var(--crema)">Preparación el día anterior.</b>
+              Se crea un bloque el día previo al primer día de feria.
+            </span>
+          </label>
+          <div class="plantilla" id="dkPrepCampos">
+            <label class="campo"><span>Desde</span><input type="time" id="dkPrepIni" value="08:00"></label>
+            <label class="campo"><span>Hasta</span><input type="time" id="dkPrepFin" value="14:00"></label>
+            <label class="campo"><span>Cupos</span><input type="number" id="dkPrepCupos" value="2" min="1" max="20"></label>
+            <span></span>
           </div>
+
+          <label style="display:flex;gap:10px;align-items:flex-start;margin:20px 0 12px;cursor:pointer">
+            <input type="checkbox" id="dkDespOn" checked style="width:auto;margin-top:4px">
+            <span style="font-size:.94rem;color:var(--crema-media)">
+              <b style="color:var(--crema)">Despacho condicional.</b>
+              Un bloque de madrugada en cada día de feria <b style="color:var(--crema)">menos el primero</b>,
+              que ya queda cubierto por la preparación. Se confirma el día antes.
+            </span>
+          </label>
+          <div class="plantilla" id="dkDespCampos">
+            <label class="campo"><span>Desde</span><input type="time" id="dkDespIni" value="07:00"></label>
+            <label class="campo"><span>Hasta</span><input type="time" id="dkDespFin" value="10:00"></label>
+            <label class="campo"><span>Cupos</span><input type="number" id="dkDespCupos" value="1" min="1" max="20"></label>
+            <span></span>
+          </div>
+
+          <p class="seccion__sub" id="resumenDk" style="margin-top:14px">Elige las fechas para ver qué se va a crear.</p>
+        </fieldset>
+        <div class="fila-btns">
+          <button class="btn btn--fuego" type="submit" id="btnCrearFeria">Crear feria</button>
+          <button class="btn btn--linea" type="button" id="btnCancelarFeria">Cancelar</button>
+        </div>
+        <p class="aviso" id="avisoFeria" role="status" aria-live="polite"></p>
+      </form>
+
+      <!-- detalle feria -->
+      <div class="seccion" id="detalleFeria" hidden>
+        <h2 class="seccion__tit" id="tituloAdminFeria">—</h2>
+        <p class="seccion__sub" id="subAdminFeria">—</p>
+
+        <div class="fila-btns" style="margin-bottom:20px">
+          <button class="btn btn--linea btn--mini" data-estado="borrador">Volver a borrador</button>
+          <button class="btn btn--linea btn--mini" data-estado="abierta">Abrir para el equipo</button>
+          <button class="btn btn--linea btn--mini" data-estado="cerrada">Cerrar disponibilidad</button>
+          <button class="btn btn--fuego btn--mini" data-estado="publicada">Publicar turnos</button>
+        </div>
+        <p class="aviso" id="avisoEstado" role="status" aria-live="polite"></p>
+        <div class="alerta" id="avisoBorrador" hidden style="margin-bottom:20px"></div>
+
+        <div class="pestanas" role="tablist">
+          <button class="pestana" role="tab" aria-selected="true"  data-tab="disp">Disponibilidad</button>
+          <button class="pestana" role="tab" aria-selected="false" data-tab="turnos">Turnos</button>
+          <button class="pestana" role="tab" aria-selected="false" data-tab="ajustes">Editar feria</button>
+        </div>
+
+        <div id="tabDisp">
+          <div class="scroll-x" id="tablaDisp"></div>
+          <p class="leyenda">Haz clic en cualquier casilla para corregirla: pasa de
+            <b style="color:var(--si)">Sí</b> a <b style="color:var(--quizas)">Quizás</b>,
+            a <b style="color:var(--no)">No</b> y a vacío. Úsalo cuando alguien te avise por
+            fuera de la página.</p>
+          <p class="aviso" id="avisoDisp" role="status" aria-live="polite"></p>
+        </div>
+
+        <div id="tabTurnos" hidden>
+          <div id="listaTurnos"></div>
+        </div>
+
+        <div id="tabAjustes" hidden>
+          <fieldset>
+            <legend>Datos de la feria</legend>
+            <div class="form-rejilla">
+              <label class="campo"><span>Nombre</span><input type="text" id="eNombre"></label>
+              <label class="campo"><span>Lugar</span><input type="text" id="eLugar"></label>
+              <label class="campo"><span>Primer día de feria</span><input type="date" id="eInicio"></label>
+              <label class="campo"><span>Último día de feria</span><input type="date" id="eFin"></label>
+            </div>
+            <label class="campo"><span>Dirección del Dark Kitchen (distinta a la feria)</span><input type="text" id="eDireccionDk"></label>
+            <label class="campo"><span>Notas para el equipo</span>
+              <textarea id="eNotas" placeholder="Cómo llegar, qué llevar, uniforme, con quién coordinar…"></textarea></label>
+            <p class="seccion__sub" style="margin:-8px 0 14px">
+              Esto lo lee el equipo arriba del todo, antes de marcar su disponibilidad.
+            </p>
+            <div class="fila-btns">
+              <button class="btn btn--fuego btn--mini" id="btnGuardarFeria" type="button">Guardar datos</button>
+            </div>
+            <p class="aviso" id="avisoEditar" role="status" aria-live="polite"></p>
+            <p class="seccion__sub" style="margin-top:6px">
+              Cambiar las fechas <b>no mueve los bloques</b>: eso se hace abajo, uno por uno,
+              para no borrar por accidente lo que el equipo ya marcó.
+            </p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Bloques</legend>
+            <p class="seccion__sub">Corrige horarios y cupos, borra los que sobren o agrega los que falten.</p>
+            <div id="editorBloques"></div>
+            <div class="fila-btns">
+              <button class="btn btn--linea btn--mini" id="btnNuevoBloque" type="button">+ Agregar bloque</button>
+            </div>
+            <p class="aviso" id="avisoBloques" role="status" aria-live="polite"></p>
+          </fieldset>
+
+          <fieldset style="border-color:var(--no)">
+            <legend style="color:var(--no)">Eliminar</legend>
+            <p class="seccion__sub">
+              Borra la feria con todos sus bloques, la disponibilidad que marcó el equipo y los turnos asignados.
+              No se puede deshacer.
+            </p>
+            <div class="fila-btns">
+              <button class="btn btn--linea btn--mini" id="btnBorrarFeria" type="button"
+                      style="border-color:var(--no);color:var(--no)">Eliminar esta feria</button>
+            </div>
+            <p class="aviso" id="avisoBorrar" role="status" aria-live="polite"></p>
+          </fieldset>
         </div>
       </div>
-      <div class="incluye__foto">
-        <img loading="lazy" decoding="async" src="img/choripapa.webp" alt="Choripapa Potente en empaque con branding">
-      </div>
+      </div><!-- /panelFerias -->
     </div>
-  </section>
+  </main>
+</div>
 
-  <section class="sec">
-    <div class="env">
-      <div class="sec-cab">
-        <p class="eyebrow">Alianza de marca</p>
-        <h2 class="sec-tit">Sumemos fuerzas</h2>
-        <p>Tu evento con una marca de comida que atrae público, lo retiene y lo hace volver.</p>
-      </div>
-      <div class="duo">
-        <div>
-          <h3>Lo que aportamos</h3>
-          <ul class="lista">
-            <li>Estación operativa completa y equipo propio</li>
-            <li>Carta y combos adaptados a tu público</li>
-            <li>Branding co-marca en módulo y empaques</li>
-            <li>Difusión de tu evento en nuestras redes</li>
-            <li>Coordinación previa y comprobantes de pago</li>
-          </ul>
-        </div>
-        <div>
-          <h3>Lo que necesitamos</h3>
-          <ul class="lista">
-            <li>Espacio con punto de energía</li>
-            <li>Fecha, horario y aforo estimado</li>
-            <li>Condiciones comerciales claras y por escrito</li>
-            <li>Acceso para el montaje</li>
-            <li>Un contacto único para coordinar</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
+<!-- La librería de Supabase va dentro del repo, no en una CDN externa:
+     así la aplicación no depende de que un tercero esté disponible. -->
+<script src="lib/supabase-js-2.113.0.js"></script>
+<script type="module">
+/* ==========================================================================
+   CONFIGURACIÓN
+   La clave publishable es pública a propósito: lo que protege los datos son
+   las políticas RLS de la base, no el secreto de esta cadena.
+   ========================================================================== */
+const SUPABASE_URL = 'https://iuvovrupvficgwwyszoy.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_J9q-R_siYfRvDWz7b1P_ZQ_g_IPMtLX'
 
-  <section class="sec">
-    <div class="env">
-      <div class="sec-cab">
-        <p class="eyebrow">Cómo trabajamos contigo</p>
-        <h2 class="sec-tit">De tu mensaje al primer pedido</h2>
-      </div>
-      <div class="pasos">
-        <article class="paso">
-          <div class="paso__n">01</div>
-          <h3>Nos escribes</h3>
-          <p>Cuéntanos fecha, tipo de evento y aforo estimado por WhatsApp.</p>
-        </article>
-        <article class="paso">
-          <div class="paso__n">02</div>
-          <h3>Armamos la propuesta</h3>
-          <p>Carta y combos a la medida de tu público, con precio cerrado.</p>
-        </article>
-        <article class="paso">
-          <div class="paso__n">03</div>
-          <h3>Coordinamos</h3>
-          <p>Montaje, horarios y branding co-marca, todo por escrito antes del día.</p>
-        </article>
-        <article class="paso">
-          <div class="paso__n">04</div>
-          <h3>Servimos</h3>
-          <p>Llegamos, montamos y atendemos. Tú te concentras en tu evento.</p>
-        </article>
-      </div>
-    </div>
-  </section>
+if (!window.supabase || !window.supabase.createClient) {
+  document.getElementById('avisoCarga').textContent =
+    'No se pudo cargar la librería de la base de datos. Recarga la página.'
+  throw new Error('supabase-js no disponible')
+}
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-  <section class="cierre" id="contacto">
-    <div class="env">
-      <p class="eyebrow">Hablemos</p>
-      <h2>Hagamos que tu evento sea potente</h2>
-      <p>Escríbenos por WhatsApp con la fecha y el tipo de evento. Respondemos normalmente el mismo día.</p>
-      <a class="btn btn--wa" id="waCierre" href="#" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.74-.86-2.01-.96-.27-.1-.47-.15-.66.15-.2.3-.76.96-.94 1.16-.17.2-.34.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.9-2.19-.24-.57-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.03 1.01-1.03 2.46 0 1.45 1.06 2.85 1.2 3.05.15.2 2.08 3.18 5.04 4.46.7.3 1.25.48 1.68.62.71.22 1.35.19 1.86.12.57-.09 1.74-.71 1.99-1.4.25-.69.25-1.28.17-1.4-.07-.13-.27-.2-.57-.35M12.05 21.5h-.02a9.4 9.4 0 0 1-4.8-1.32l-.34-.2-3.57.93.95-3.48-.22-.36a9.36 9.36 0 0 1-1.43-5A9.42 9.42 0 0 1 18.72 5.3a9.36 9.36 0 0 1 2.76 6.65 9.42 9.42 0 0 1-9.43 9.55M20.06 3.94A11.75 11.75 0 0 0 11.7.5C5.2.5.02 5.68.02 12.05c0 2.05.54 4.05 1.56 5.82L0 24l6.3-1.65a11.7 11.7 0 0 0 5.6 1.42h.01c6.5 0 11.68-5.18 11.68-11.55a11.5 11.5 0 0 0-3.53-8.28"/></svg>
-        Cotiza tu evento
-      </a>
-      <ul class="datos">
-        <li><a id="waDato" href="#" target="_blank" rel="noopener"><span>WhatsApp</span><span>+51 992 026 641</span></a></li>
-        <li><a id="igDato" href="#" target="_blank" rel="noopener"><span>Instagram</span><span>@potente.pe</span></a></li>
-      </ul>
-    </div>
-  </section>
-</main>
+const $  = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
 
-<footer>
-  <div class="env pie">
-    <p><strong>Potente</strong> — una marca de Happy Foods Group · Lima, Perú</p>
-    <div class="pie__fin">
-      <p>Sabroso como te gusta</p>
-      <a class="pie__acceso" href="equipo/">Acceso equipo</a>
-    </div>
-  </div>
-</footer>
+const ROLES = ['caja', 'cocina', 'jalador']
+const DIAS  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado']
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
 
-<script>
-  /* ====== CONFIGURACIÓN — edita solo estas líneas ====== */
-  var CONFIG = {
-    whatsapp: "51992026641",
-    mensaje: "Hola Potente! Vi su web y quiero cotizar su propuesta gastronomica para un evento.",
-    instagram: "https://www.instagram.com/potente.pe/"
-  };
-  /* ==================================================== */
+let yo = null            // fila de perfiles del usuario actual
+let feriaSel = null      // feria abierta en pantalla
+let cacheBloques = []
+let cacheDisp = []
+let cacheAsig = []
+let cachePerfiles = []
+let misMarcas = {}       // bloque_id → estado, solo del usuario actual
 
-  (function () {
-    var wa = "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(CONFIG.mensaje);
-    ["waHero", "waCierre", "waDato"].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) { el.href = wa; }
-    });
-    var ig = document.getElementById("igDato");
-    if (ig) { ig.href = CONFIG.instagram; }
-  })();
+/* ---------- utilidades ---------- */
+
+// Las fechas vienen como 'YYYY-MM-DD'. Se parten a mano: new Date('2026-09-11')
+// se interpreta en UTC y en Lima retrocede un día.
+function fecha(iso){
+  const [a,m,d] = iso.split('-').map(Number)
+  const f = new Date(a, m-1, d)
+  return `${DIAS[f.getDay()]} ${d} de ${MESES[m-1]}`
+}
+function diaCorto(iso){
+  const [a,m,d] = iso.split('-').map(Number)
+  return DIAS[new Date(a, m-1, d).getDay()].slice(0,3)
+}
+function fechaCorta(iso){
+  const [,m,d] = iso.split('-').map(Number)
+  return `${d}/${String(m).padStart(2,'0')}`
+}
+function rango(ini, fin){
+  return ini === fin ? fecha(ini) : `${fecha(ini)} — ${fecha(fin)}`
+}
+function hhmm(t){ return (t || '').slice(0,5) }
+
+function decir(el, texto, malo = false){
+  el.textContent = texto
+  el.classList.toggle('malo', malo)
+}
+
+function mostrar(el, si){ el.hidden = !si }
+
+/* ---------- tipos de bloque ---------- */
+const esDk = b => b.tipo === 'dk_prep' || b.tipo === 'dk_despacho'
+
+function sellos(b){
+  const s = []
+  if (b.tipo === 'dk_prep')     s.push({ txt:'Dark Kitchen · Preparación', c:'dk' })
+  if (b.tipo === 'dk_despacho') s.push({ txt:'Dark Kitchen · Despacho',    c:'dk' })
+  if (b.condicional)            s.push({ txt:'Condicional',                c:'cond' })
+  return s
+}
+
+function pintarSellos(contenedor, b){
+  sellos(b).forEach(s => {
+    const e = document.createElement('span')
+    e.className = 'sello ' + s.c
+    e.textContent = s.txt
+    contenedor.appendChild(e)
+  })
+}
+
+// Dónde se trabaja este bloque: la feria y el Dark Kitchen son sitios distintos
+// y confundirlos es el error más caro que puede cometer alguien del equipo.
+function donde(b, f){
+  if (esDk(b)) return { rotulo:'Dark Kitchen', sitio: f.direccion_dk || 'dirección por confirmar' }
+  return { rotulo:'Feria', sitio: f.lugar || 'lugar por confirmar' }
+}
+
+// Nombre corto para las cabeceras estrechas de la tabla de disponibilidad.
+function motePlanBloque(b){
+  if (b.tipo === 'dk_prep')     return 'DK Prep'
+  if (b.tipo === 'dk_despacho') return 'DK Desp'
+  return b.etiqueta || hhmm(b.hora_inicio)
+}
+
+/* ==========================================================================
+   ACCESO
+   ========================================================================== */
+const pAcceso = $('#pantallaAcceso'), pApp = $('#pantallaApp')
+const fEntrar = $('#formEntrar'), fOlvide = $('#formOlvide'), fClave = $('#formClave')
+const avisoCarga = $('#avisoCarga')
+
+function verFormulario(cual){
+  mostrar(pAcceso, true); mostrar(pApp, false)
+  mostrar(fEntrar, cual === 'entrar')
+  mostrar(fOlvide, cual === 'olvide')
+  mostrar(fClave,  cual === 'clave')
+  mostrar(avisoCarga, cual === 'cargando')
+}
+
+$('#irOlvide').onclick = () => verFormulario('olvide')
+$('#volverEntrar').onclick = () => verFormulario('entrar')
+
+fEntrar.onsubmit = async (e) => {
+  e.preventDefault()
+  const b = $('#btnEntrar'); b.disabled = true
+  decir($('#avisoEntrar'), 'Comprobando…')
+  const { error } = await sb.auth.signInWithPassword({
+    email: $('#correo').value.trim(),
+    password: $('#clave').value
+  })
+  b.disabled = false
+  if (error) {
+    decir($('#avisoEntrar'),
+      /invalid/i.test(error.message) ? 'Correo o contraseña incorrectos.' : error.message, true)
+  }
+}
+
+fOlvide.onsubmit = async (e) => {
+  e.preventDefault()
+  const b = $('#btnOlvide'); b.disabled = true
+  const { error } = await sb.auth.resetPasswordForEmail(
+    $('#correoOlvide').value.trim(),
+    { redirectTo: window.location.href.split('#')[0] }
+  )
+  b.disabled = false
+  decir($('#avisoOlvide'),
+    error ? error.message : 'Listo. Revisa tu correo, puede tardar un par de minutos.', !!error)
+}
+
+fClave.onsubmit = async (e) => {
+  e.preventDefault()
+  const c1 = $('#claveNueva').value, c2 = $('#claveRepite').value
+  if (c1 !== c2) return decir($('#avisoClave'), 'Las dos contraseñas no coinciden.', true)
+  const b = $('#btnClave'); b.disabled = true
+  const { error } = await sb.auth.updateUser({ password: c1 })
+  b.disabled = false
+  if (error) return decir($('#avisoClave'), error.message, true)
+  decir($('#avisoClave'), 'Contraseña guardada.')
+  history.replaceState(null, '', window.location.pathname)
+  arrancarApp()
+}
+
+$('#btnSalir').onclick = async () => { await sb.auth.signOut(); location.reload() }
+
+/* ==========================================================================
+   ARRANQUE
+   ========================================================================== */
+let recuperando = /type=(recovery|invite)/.test(window.location.hash)
+
+sb.auth.onAuthStateChange((evento, sesion) => {
+  if (evento === 'PASSWORD_RECOVERY') { recuperando = true; return verFormulario('clave') }
+  if (evento === 'SIGNED_IN' && !recuperando) arrancarApp()
+  if (evento === 'SIGNED_OUT') verFormulario('entrar')
+})
+
+;(async function inicio(){
+  verFormulario('cargando')
+  const { data:{ session } } = await sb.auth.getSession()
+  if (recuperando) return verFormulario('clave')
+  if (!session) return verFormulario('entrar')
+  arrancarApp()
+})()
+
+async function arrancarApp(){
+  verFormulario('cargando')
+  const { data:{ user } } = await sb.auth.getUser()
+  if (!user) return verFormulario('entrar')
+
+  const { data, error } = await sb.from('perfiles').select('*').eq('id', user.id).single()
+  if (error || !data) {
+    decir(avisoCarga, 'Tu cuenta existe pero no tiene perfil. Avisa al administrador.', true)
+    return
+  }
+  yo = data
+  if (!yo.activo) {
+    decir(avisoCarga, 'Tu cuenta está desactivada. Habla con el administrador.', true)
+    return
+  }
+
+  $('#miNombre').textContent = yo.nombre || user.email
+  $('#miRol').textContent = yo.rol === 'admin' ? 'Administrador' : 'Feriante'
+  mostrar(pAcceso, false); mostrar(pApp, true)
+
+  const admin = yo.rol === 'admin'
+  mostrar($('#vistaAdmin'), admin)
+  mostrar($('#vistaFeriante'), !admin)
+  admin ? cargarFeriasAdmin() : cargarFeriasFeriante()
+}
+
+/* ==========================================================================
+   VISTA FERIANTE
+   ========================================================================== */
+async function cargarFeriasFeriante(){
+  const { data, error } = await sb.from('ferias')
+    .select('*').in('estado', ['abierta','publicada']).order('fecha_inicio')
+  const cont = $('#listaFeriasFeriante')
+  if (error) { cont.innerHTML = `<div class="vacio">No se pudieron cargar las ferias.</div>`; return }
+  if (!data.length) {
+    cont.innerHTML = `<div class="vacio">Todavía no hay ferias abiertas. Cuando el administrador abra una, aparecerá aquí.</div>`
+    return
+  }
+  cont.innerHTML = ''
+  data.forEach(f => {
+    const b = document.createElement('button')
+    b.className = 'feria'; b.type = 'button'
+    b.innerHTML = `<span>
+        <span class="feria__nom">${f.nombre}</span><br>
+        <span class="feria__meta">${f.lugar ? f.lugar + ' · ' : ''}${rango(f.fecha_inicio, f.fecha_fin)}</span>
+      </span>
+      <span class="estado ${f.estado}">${f.estado === 'abierta' ? 'Marca tu disponibilidad' : 'Turnos publicados'}</span>`
+    b.onclick = () => {
+      $$('.feria', cont).forEach(x => x.classList.remove('activa'))
+      b.classList.add('activa')
+      abrirFeriaFeriante(f)
+    }
+    cont.appendChild(b)
+  })
+}
+
+async function abrirFeriaFeriante(f){
+  feriaSel = f
+  mostrar($('#bloqueDisponibilidad'), true)
+  $('#tituloFeriaSel').textContent = f.nombre
+  $('#subFeriaSel').textContent = f.estado === 'abierta'
+    ? 'Marca cada bloque. Se guarda solo, no hay que confirmar nada.'
+    : 'Turnos ya publicados. Estos son los bloques donde te toca trabajar.'
+
+  const [{ data: bloques }, { data: disp }, { data: asig }] = await Promise.all([
+    sb.from('bloques').select('*').eq('feria_id', f.id).order('fecha').order('hora_inicio'),
+    // Se filtra por perfil aquí además de en las políticas de la base: si algún
+    // día se abre la lectura, la pantalla no debe empezar a mostrar lo ajeno.
+    sb.from('disponibilidad').select('*').eq('perfil_id', yo.id),
+    sb.from('asignaciones').select('*').eq('perfil_id', yo.id)
+  ])
+  cacheBloques = bloques || []
+  misMarcas = Object.fromEntries((disp || []).map(d => [d.bloque_id, d.estado]))
+  const mias = misMarcas
+  const misTurnos = Object.fromEntries((asig || []).map(a => [a.bloque_id, a.rol]))
+
+  const cont = $('#diasFeriante'); cont.innerHTML = ''
+
+  // Aclaraciones que escribió el administrador para esta feria.
+  if (f.notas && f.notas.trim()) {
+    const n = document.createElement('p'); n.className = 'notas-feria'
+    n.innerHTML = `<b>Ten en cuenta:</b>\n` + f.notas.trim()
+    cont.appendChild(n)
+  }
+
+  // Aviso sobre los bloques condicionales, solo si esta feria tiene alguno.
+  if (cacheBloques.some(b => b.condicional)) {
+    const n = document.createElement('p'); n.className = 'nota-cond'
+    n.innerHTML = `<b>Los bloques de despacho son condicionales.</b> Se confirman el día anterior,
+      según lo que haya quedado de stock. Marca igual si podrías: si al final no hace falta, te avisamos.`
+    cont.appendChild(n)
+  }
+
+  if (cacheBloques.some(esDk)) {
+    const d = document.createElement('p'); d.className = 'nota-cond'
+    d.style.borderLeftColor = 'var(--dk)'
+    d.style.background = 'var(--dk-suave)'
+    d.innerHTML = `<b style="color:var(--dk)">Ojo con la dirección.</b>
+      Los bloques de Dark Kitchen <b style="color:var(--dk)">no son en la feria</b>:
+      son en ${f.direccion_dk || 'una dirección que el administrador aún no cargó'}.
+      Cada bloque de abajo dice dónde es.`
+    cont.appendChild(d)
+  }
+
+  const porDia = agrupar(cacheBloques, b => b.fecha)
+
+  for (const [dia, lista] of porDia) {
+    const soloDk = lista.every(esDk)
+    const previo = dia < f.fecha_inicio
+    const caja = document.createElement('div'); caja.className = 'dia' + (soloDk ? ' es-dk' : '')
+    caja.innerHTML = `<div class="dia__cab">${fecha(dia)}${previo ? ' · día previo' : ''}</div>`
+    lista.forEach(bl => {
+      const fila = document.createElement('div'); fila.className = 'bloque' + (esDk(bl) ? ' es-dk' : '')
+      fila.dataset.bloque = bl.id
+      fila.innerHTML = `<span class="bloque__h">${hhmm(bl.hora_inicio)} – ${hhmm(bl.hora_fin)}</span>
+        ${bl.etiqueta ? `<span class="bloque__et">${bl.etiqueta}</span>` : ''}`
+      pintarSellos(fila, bl)
+      if (f.estado === 'abierta') {
+        const p = document.createElement('span')
+        p.className = 'pendiente'; p.textContent = 'Falta'
+        fila.appendChild(p)
+      }
+      const d = donde(bl, f)
+      const ub = document.createElement('span'); ub.className = 'donde'
+      ub.innerHTML = `<b>${d.rotulo}</b><span>${d.sitio}</span>`
+      fila.appendChild(ub)
+      if (f.estado === 'abierta') {
+        const ops = document.createElement('div'); ops.className = 'opciones'
+        ;[['si','Sí'],['quizas','Quizás'],['no','No']].forEach(([v, txt]) => {
+          const b = document.createElement('button')
+          b.className = 'op'; b.type = 'button'; b.dataset.v = v; b.textContent = txt
+          b.setAttribute('aria-pressed', String(mias[bl.id] === v))
+          b.onclick = () => marcar(bl.id, v, ops)
+          ops.appendChild(b)
+        })
+        fila.appendChild(ops)
+      } else {
+        const t = misTurnos[bl.id]
+        const et = document.createElement('span')
+        et.className = 'estado ' + (t ? 'publicada' : 'borrador')
+        et.style.marginLeft = 'auto'
+        et.textContent = t ? `Te toca · ${t}` : 'Libre'
+        fila.appendChild(et)
+      }
+      caja.appendChild(fila)
+    })
+    cont.appendChild(caja)
+  }
+
+  mostrar($('#avanceFeriante'), f.estado === 'abierta')
+  refrescarAvance()
+}
+
+/* Cuenta lo marcado y lo pinta. Se llama al abrir la feria y con cada clic,
+   para que el que va a medias lo vea sin tener que buscarlo. */
+function refrescarAvance(){
+  const total = cacheBloques.length
+  if (!total) return
+  const hechos = cacheBloques.filter(b => misMarcas[b.id]).length
+  const faltan = total - hechos
+  const completo = faltan === 0
+
+  $$('.bloque[data-bloque]', $('#diasFeriante')).forEach(fila => {
+    const pendiente = !misMarcas[fila.dataset.bloque]
+    fila.classList.toggle('falta', pendiente)
+    const et = $('.pendiente', fila)
+    if (et) mostrar(et, pendiente)
+  })
+
+  const caja = $('#avanceFeriante')
+  caja.classList.toggle('listo', completo)
+  $('#avanceTit').textContent = completo ? '¡Listo!' : `${hechos} de ${total}`
+  $('#avanceTxt').textContent = completo
+    ? 'Marcaste todos los bloques. Si algo te cambia, puedes corregirlo cuando quieras.'
+    : `Te ${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`} por responder. `
+      + 'Están marcados abajo; contesta también los que no puedes, para que no queden en duda.'
+  $('#avanceBarra').style.width = Math.round(hechos / total * 100) + '%'
+}
+
+async function marcar(bloque_id, estado, ops){
+  $$('.op', ops).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === estado)))
+  const previo = misMarcas[bloque_id]
+  misMarcas[bloque_id] = estado
+  refrescarAvance()
+  decir($('#avisoGuardado'), 'Guardando…')
+  const { error } = await sb.from('disponibilidad')
+    .upsert({ bloque_id, perfil_id: yo.id, estado }, { onConflict: 'bloque_id,perfil_id' })
+  if (error) {
+    // No se guardó: la pantalla no debe decir que sí.
+    if (previo === undefined) delete misMarcas[bloque_id]; else misMarcas[bloque_id] = previo
+    $$('.op', ops).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === previo)))
+    refrescarAvance()
+  }
+  decir($('#avisoGuardado'), error ? 'No se pudo guardar: ' + error.message : 'Guardado ✓', !!error)
+  if (!error) setTimeout(() => decir($('#avisoGuardado'), ''), 2000)
+}
+
+function agrupar(lista, clave){
+  const m = new Map()
+  lista.forEach(x => { const k = clave(x); if (!m.has(k)) m.set(k, []); m.get(k).push(x) })
+  return m
+}
+
+/* ==========================================================================
+   VISTA ADMINISTRADOR
+   ========================================================================== */
+async function cargarFeriasAdmin(){
+  const { data, error } = await sb.from('ferias').select('*').order('fecha_inicio', { ascending:false })
+  const cont = $('#listaFeriasAdmin')
+  if (error) { cont.innerHTML = `<div class="vacio">${error.message}</div>`; return }
+  if (!data.length) { cont.innerHTML = `<div class="vacio">Aún no hay ferias. Crea la primera.</div>`; return }
+  cont.innerHTML = ''
+  data.forEach(f => {
+    const b = document.createElement('button')
+    b.className = 'feria'; b.type = 'button'
+    b.innerHTML = `<span>
+        <span class="feria__nom">${f.nombre}</span><br>
+        <span class="feria__meta">${f.lugar ? f.lugar + ' · ' : ''}${rango(f.fecha_inicio, f.fecha_fin)}</span>
+      </span><span class="estado ${f.estado}">${f.estado}</span>`
+    b.onclick = () => {
+      $$('.feria', cont).forEach(x => x.classList.remove('activa'))
+      b.classList.add('activa')
+      abrirFeriaAdmin(f)
+    }
+    cont.appendChild(b)
+  })
+}
+
+/* ---------- crear feria ---------- */
+const formFeria = $('#formFeria')
+$('#btnNuevaFeria').onclick = () => { mostrar(formFeria, true); mostrar($('#detalleFeria'), false) }
+$('#btnCancelarFeria').onclick = () => mostrar(formFeria, false)
+
+function filaPlantilla(ini = '10:00', fin = '16:00', et = '', cupos = 3){
+  const d = document.createElement('div'); d.className = 'plantilla'
+  d.innerHTML = `
+    <label class="campo"><span>Desde</span><input type="time" value="${ini}" data-k="ini" required></label>
+    <label class="campo"><span>Hasta</span><input type="time" value="${fin}" data-k="fin" required></label>
+    <label class="campo"><span>Etiqueta</span><input type="text" value="${et}" data-k="et" placeholder="Mañana"></label>
+    <label class="campo"><span>Cupos</span><input type="number" value="${cupos}" data-k="cupos" min="1" max="20"></label>
+    <button type="button" class="btn btn--linea btn--mini">Quitar</button>`
+  d.querySelector('button').onclick = () => { d.remove(); resumirDk() }
+  return d
+}
+$('#btnAgregarBloque').onclick = () => {
+  $('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde', 2)); resumirDk()
+}
+$('#plantillas').appendChild(filaPlantilla('10:00','16:00','Mañana', 2))
+$('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde', 2))
+
+/* El día previo se calcula, no se escribe: es siempre el anterior al primero. */
+function diaAnterior(iso){
+  const [a,m,d] = iso.split('-').map(Number)
+  const f = new Date(a, m-1, d); f.setDate(f.getDate() - 1)
+  return `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}-${String(f.getDate()).padStart(2,'0')}`
+}
+
+// Resumen en vivo para que no haya sorpresas al pulsar "crear".
+function resumirDk(){
+  const ini = $('#fInicio').value, fin = $('#fFin').value
+  const el = $('#resumenDk')
+  if (!ini || !fin || fin < ini) { el.textContent = 'Elige las fechas para ver qué se va a crear.'; return }
+  const dias = diasEntre(ini, fin)
+  const nPlantillas = $$('.plantilla [data-k="ini"]').length
+  const partes = []
+  if ($('#dkPrepOn').checked) partes.push(`preparación el ${fecha(diaAnterior(ini))}`)
+  partes.push(`${dias.length} día${dias.length>1?'s':''} de feria × ${nPlantillas} bloque${nPlantillas>1?'s':''}`)
+  if ($('#dkDespOn').checked && dias.length > 1)
+    partes.push(`${dias.length - 1} despacho${dias.length-1>1?'s':''} condicional${dias.length-1>1?'es':''} (${dias.slice(1).map(fechaCorta).join(', ')})`)
+  el.textContent = 'Se va a crear: ' + partes.join(' · ') + '.'
+}
+;['#fInicio','#fFin','#dkPrepOn','#dkDespOn'].forEach(s => $(s).addEventListener('change', resumirDk))
+
+formFeria.onsubmit = async (e) => {
+  e.preventDefault()
+  const b = $('#btnCrearFeria'); b.disabled = true
+  decir($('#avisoFeria'), 'Creando…')
+
+  const ini = $('#fInicio').value, fin = $('#fFin').value
+  if (fin < ini) { b.disabled = false; return decir($('#avisoFeria'), 'El último día no puede ser antes del primero.', true) }
+
+  const plantillas = $$('#plantillas .plantilla').map(p => ({
+    ini: p.querySelector('[data-k="ini"]').value,
+    fin: p.querySelector('[data-k="fin"]').value,
+    et:  p.querySelector('[data-k="et"]').value.trim() || null,
+    cupos: Number(p.querySelector('[data-k="cupos"]').value) || 1
+  })).filter(p => p.ini && p.fin && p.fin > p.ini)
+
+  if (!plantillas.length) { b.disabled = false; return decir($('#avisoFeria'), 'Define al menos un bloque de feria válido.', true) }
+
+  const { data: feria, error } = await sb.from('ferias').insert({
+    nombre: $('#fNombre').value.trim(),
+    lugar:  $('#fLugar').value.trim() || null,
+    direccion_dk: $('#fDireccionDk').value.trim() || null,
+    notas: $('#fNotas').value.trim() || null,
+    fecha_inicio: ini, fecha_fin: fin, estado: 'borrador'
+  }).select().single()
+
+  if (error) { b.disabled = false; return decir($('#avisoFeria'), error.message, true) }
+
+  const dias = diasEntre(ini, fin)
+  const filas = []
+
+  // 1. Preparación: el día ANTES del primer día de feria. No es condicional.
+  if ($('#dkPrepOn').checked) {
+    filas.push({
+      feria_id: feria.id, fecha: diaAnterior(ini),
+      hora_inicio: $('#dkPrepIni').value, hora_fin: $('#dkPrepFin').value,
+      etiqueta: 'Preparación', tipo: 'dk_prep', condicional: false,
+      personas_necesarias: Number($('#dkPrepCupos').value) || 1
+    })
+  }
+
+  for (const d of dias) {
+    // 2. Despacho: madrugada de cada día MENOS el primero, y siempre condicional.
+    if ($('#dkDespOn').checked && d !== ini) {
+      filas.push({
+        feria_id: feria.id, fecha: d,
+        hora_inicio: $('#dkDespIni').value, hora_fin: $('#dkDespFin').value,
+        etiqueta: 'Despacho', tipo: 'dk_despacho', condicional: true,
+        personas_necesarias: Number($('#dkDespCupos').value) || 1
+      })
+    }
+    // 3. Los bloques de atención al público.
+    for (const p of plantillas)
+      filas.push({
+        feria_id: feria.id, fecha: d, hora_inicio: p.ini, hora_fin: p.fin,
+        etiqueta: p.et, tipo: 'feria', condicional: false, personas_necesarias: p.cupos
+      })
+  }
+
+  const { error: e2 } = await sb.from('bloques').insert(filas)
+  b.disabled = false
+  if (e2) return decir($('#avisoFeria'), 'La feria se creó pero fallaron los bloques: ' + e2.message, true)
+
+  decir($('#avisoFeria'), `Feria creada con ${filas.length} bloques.`)
+  formFeria.reset()
+  mostrar(formFeria, false)
+  cargarFeriasAdmin()
+  abrirFeriaAdmin(feria)
+}
+
+function diasEntre(ini, fin){
+  const out = []
+  const [a1,m1,d1] = ini.split('-').map(Number)
+  const cur = new Date(a1, m1-1, d1)
+  const [a2,m2,d2] = fin.split('-').map(Number)
+  const tope = new Date(a2, m2-1, d2)
+  while (cur <= tope) {
+    out.push(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`)
+    cur.setDate(cur.getDate() + 1)
+  }
+  return out
+}
+
+/* ---------- detalle ---------- */
+async function abrirFeriaAdmin(f){
+  feriaSel = f
+  mostrar(formFeria, false)
+  mostrar($('#detalleFeria'), true)
+  refrescarCabeceraFeria()
+  pintarEstado()
+  decir($('#avisoEstado'), '')
+
+  const [b, d, a, p] = await Promise.all([
+    sb.from('bloques').select('*').eq('feria_id', f.id).order('fecha').order('hora_inicio'),
+    sb.from('disponibilidad').select('*'),
+    sb.from('asignaciones').select('*'),
+    sb.from('perfiles').select('*').eq('activo', true).order('nombre')
+  ])
+  cacheBloques = b.data || []
+  const ids = new Set(cacheBloques.map(x => x.id))
+  cacheDisp = (d.data || []).filter(x => ids.has(x.bloque_id))
+  cacheAsig = (a.data || []).filter(x => ids.has(x.bloque_id))
+  cachePerfiles = p.data || []
+
+  pintarDisponibilidad()
+  pintarTurnos()
+}
+
+$$('[data-estado]').forEach(btn => btn.onclick = async () => {
+  if (!feriaSel) return
+  const estado = btn.dataset.estado
+  const { error } = await sb.from('ferias').update({ estado }).eq('id', feriaSel.id)
+  if (error) return decir($('#avisoEstado'), error.message, true)
+  feriaSel.estado = estado
+  decir($('#avisoEstado'), `Feria en estado "${estado}".`)
+  refrescarCabeceraFeria()
+  pintarEstado()
+  cargarFeriasAdmin()
+})
+
+/* El estado decide quién ve qué, así que tiene que saltar a la vista. */
+const TEXTO_ESTADO = {
+  borrador:  ['El equipo todavía no ve esta feria.',
+              'Termina de armar los bloques y dale a <b>Abrir para el equipo</b> cuando esté lista.'],
+  abierta:   ['El equipo ya puede marcar su disponibilidad.',
+              'Cuando tengas suficientes respuestas, ciérrala para armar los turnos con calma.'],
+  cerrada:   ['Nadie puede marcar ya.',
+              'Arma los turnos en la pestaña Turnos y luego publícalos para que el equipo los vea.'],
+  publicada: ['Los turnos están publicados.',
+              'Cada persona ve en qué bloques le toca trabajar y con qué rol.']
+}
+
+function pintarEstado(){
+  const e = feriaSel ? feriaSel.estado : null
+  $$('[data-estado]').forEach(b => {
+    const activo = b.dataset.estado === e
+    b.setAttribute('aria-current', activo ? 'true' : 'false')
+    b.classList.toggle('btn--fuego', activo)
+    b.classList.toggle('btn--linea', !activo)
+  })
+  const caja = $('#avisoBorrador')
+  const t = TEXTO_ESTADO[e]
+  if (!t) return mostrar(caja, false)
+  caja.className = 'alerta' + (e === 'borrador' ? '' : ' ok')
+  caja.innerHTML = `<span><b>${t[0]}</b> ${t[1]}</span>`
+  mostrar(caja, true)
+}
+
+$$('.pestana[data-tab]').forEach(t => t.onclick = () => {
+  $$('.pestana[data-tab]').forEach(x => x.setAttribute('aria-selected', String(x === t)))
+  mostrar($('#tabDisp'),    t.dataset.tab === 'disp')
+  mostrar($('#tabTurnos'),  t.dataset.tab === 'turnos')
+  mostrar($('#tabAjustes'), t.dataset.tab === 'ajustes')
+  if (t.dataset.tab === 'ajustes') pintarAjustes()
+})
+
+/* ---------- pestañas de nivel superior: Ferias / Equipo ---------- */
+$$('.pestana[data-panel]').forEach(t => t.onclick = () => {
+  $$('.pestana[data-panel]').forEach(x => x.setAttribute('aria-selected', String(x === t)))
+  const equipo = t.dataset.panel === 'equipo'
+  mostrar($('#panelFerias'), !equipo)
+  mostrar($('#panelEquipo'), equipo)
+  if (equipo) cargarEquipo()
+})
+
+/* ==========================================================================
+   PANEL DE EQUIPO
+   Solo lo ve un administrador, y la base vuelve a comprobarlo: si alguien
+   forzara esta pantalla sin serlo, las políticas rechazarían cada cambio.
+   ========================================================================== */
+async function cargarEquipo(){
+  const cont = $('#listaEquipo')
+  cont.innerHTML = `<div class="vacio">Cargando…</div>`
+  const { data, error } = await sb.from('perfiles').select('*').order('nombre')
+  if (error) { cont.innerHTML = `<div class="vacio">${error.message}</div>`; return }
+
+  cont.innerHTML = ''
+  const lista = document.createElement('div'); lista.className = 'candidatos'
+
+  data.forEach(p => {
+    const soyYo = p.id === yo.id
+    const fila = document.createElement('div')
+    fila.className = 'cand' + (p.rol === 'admin' ? ' puesto' : '')
+    fila.style.opacity = p.activo ? '1' : '.55'
+
+    // nombre editable: al crearse la cuenta se rellena con la parte del correo,
+    // así que casi siempre hay que corregirlo a mano la primera vez.
+    const nom = document.createElement('input')
+    nom.type = 'text'; nom.value = p.nombre || ''
+    nom.style.maxWidth = '230px'
+    nom.setAttribute('aria-label', 'Nombre')
+    nom.onchange = () => guardarPerfil(p.id, { nombre: nom.value.trim() }, fila)
+    fila.appendChild(nom)
+
+    if (soyYo) {
+      const tu = document.createElement('span')
+      tu.className = 'marca si'; tu.textContent = 'Tú'
+      fila.appendChild(tu)
+    }
+
+    const rol = document.createElement('select')
+    ;[['feriante','Feriante'],['admin','Administrador']].forEach(([v,txt]) => {
+      const o = document.createElement('option'); o.value = v; o.textContent = txt
+      if (p.rol === v) o.selected = true
+      rol.appendChild(o)
+    })
+    rol.disabled = soyYo   // nadie se quita a sí mismo el control y se queda fuera
+    rol.onchange = () => guardarPerfil(p.id, { rol: rol.value }, fila, true)
+    fila.appendChild(rol)
+
+    const act = document.createElement('button')
+    act.className = 'btn btn--mini ' + (p.activo ? 'btn--linea' : 'btn--fuego')
+    act.textContent = p.activo ? 'Desactivar' : 'Reactivar'
+    act.disabled = soyYo
+    act.onclick = () => guardarPerfil(p.id, { activo: !p.activo }, fila, true)
+    fila.appendChild(act)
+
+    lista.appendChild(fila)
+  })
+
+  cont.appendChild(lista)
+}
+
+async function guardarPerfil(id, cambios, fila, recargar = false){
+  decir($('#avisoEquipo'), 'Guardando…')
+  const { error } = await sb.from('perfiles').update(cambios).eq('id', id)
+  if (error) return decir($('#avisoEquipo'), 'No se pudo guardar: ' + error.message, true)
+  decir($('#avisoEquipo'), 'Guardado ✓')
+  setTimeout(() => decir($('#avisoEquipo'), ''), 2000)
+  if (recargar) cargarEquipo()
+}
+
+function pintarDisponibilidad(){
+  const cont = $('#tablaDisp')
+  if (!cacheBloques.length) { cont.innerHTML = `<div class="vacio">Esta feria no tiene bloques.</div>`; return }
+
+  const mapa = {}
+  cacheDisp.forEach(d => { mapa[d.perfil_id + '|' + d.bloque_id] = d.estado })
+
+  const t = document.createElement('table')
+  let cab = '<thead><tr><th>Persona</th>'
+  cacheBloques.forEach(b => {
+    const color = esDk(b) ? ' style="color:var(--dk)"' : ''
+    cab += `<th${color}>` +
+           `${diaCorto(b.fecha)} ${fechaCorta(b.fecha)}` +
+           `<br><span style="opacity:.75">${motePlanBloque(b)}</span>` +
+           `<br><span class="hh">${hhmm(b.hora_inicio)}–${hhmm(b.hora_fin)}</span>` +
+           `${b.condicional ? '<br><span style="color:var(--quizas);font-size:.62rem">cond.</span>' : ''}` +
+           `</th>`
+  })
+  cab += '</tr></thead>'
+
+  const total = cacheBloques.length
+  let cuerpo = '<tbody>'
+  cachePerfiles.forEach(p => {
+    const hechos = cacheBloques.filter(b => mapa[p.id + '|' + b.id]).length
+    const incompleto = hechos < total
+    cuerpo += `<tr${incompleto ? ' class="fila-incompleta"' : ''}>` +
+              `<td class="persona">${p.nombre}</td>` +
+              `<td class="avance-p${incompleto ? ' incompleto' : ''}">${hechos}/${total}</td>`
+    cacheBloques.forEach(b => {
+      const v = mapa[p.id + '|' + b.id]
+      const txt = v === 'si' ? 'Sí' : v === 'quizas' ? '?' : v === 'no' ? 'No' : '–'
+      cuerpo += `<td class="editable" data-p="${p.id}" data-b="${b.id}" title="Clic para cambiar">` +
+                `<span class="marca ${v || 'sin'}">${txt}</span></td>`
+    })
+    cuerpo += '</tr>'
+  })
+  cuerpo += `<tr><td class="persona">Disponibles</td><td></td>`
+  cacheBloques.forEach(b => {
+    const n = cacheDisp.filter(d => d.bloque_id === b.id && d.estado === 'si').length
+    cuerpo += `<td><span class="conteo">${n}</span></td>`
+  })
+  cuerpo += '</tr></tbody>'
+
+  t.innerHTML = cab.replace('<th>Persona</th>', '<th>Persona</th><th>Avance</th>') + cuerpo
+  t.onclick = ev => {
+    const td = ev.target.closest('td.editable')
+    if (td) cambiarMarcaAjena(td.dataset.p, td.dataset.b)
+  }
+  cont.innerHTML = ''
+  cont.appendChild(t)
+}
+
+/* El administrador corrige la marca de cualquiera. Gira Sí → Quizás → No →
+   vacío, que es más rápido que un desplegable cuando hay que arreglar varias.
+   Existe porque los cambios de verdad llegan por WhatsApp, no por la página. */
+const GIRO = { undefined:'si', si:'quizas', quizas:'no', no:null }
+
+async function cambiarMarcaAjena(perfil_id, bloque_id){
+  const fila = cacheDisp.find(d => d.perfil_id === perfil_id && d.bloque_id === bloque_id)
+  const nuevo = GIRO[fila ? fila.estado : undefined]
+
+  decir($('#avisoDisp'), 'Guardando…')
+  if (nuevo === null) {
+    const { error } = await sb.from('disponibilidad').delete()
+      .eq('perfil_id', perfil_id).eq('bloque_id', bloque_id)
+    if (error) return decir($('#avisoDisp'), error.message, true)
+    cacheDisp = cacheDisp.filter(d => d !== fila)
+  } else {
+    const { error } = await sb.from('disponibilidad')
+      .upsert({ bloque_id, perfil_id, estado: nuevo }, { onConflict: 'bloque_id,perfil_id' })
+    if (error) return decir($('#avisoDisp'), error.message, true)
+    if (fila) fila.estado = nuevo
+    else cacheDisp.push({ bloque_id, perfil_id, estado: nuevo })
+  }
+
+  decir($('#avisoDisp'), 'Guardado ✓')
+  setTimeout(() => decir($('#avisoDisp'), ''), 1600)
+  pintarDisponibilidad()
+  pintarTurnos()
+}
+
+/* ==========================================================================
+   CRONOGRAMA EN REJILLA
+   Columnas = slots (DK prep · mañana · tarde · DK despacho), filas = cupos.
+   Es la misma forma que el cuadro que el equipo ya usa en papel, para que
+   nadie tenga que reaprender a leerlo.
+   ========================================================================== */
+function pintarTurnos(){
+  const cont = $('#listaTurnos'); cont.innerHTML = ''
+  if (!cacheBloques.length) { cont.innerHTML = `<div class="vacio">Esta feria no tiene bloques.</div>`; return }
+
+  const maxCupos = Math.max(...cacheBloques.map(b => b.personas_necesarias))
+  const tabla = document.createElement('table'); tabla.className = 'crono'
+
+  // ---------- cabecera ----------
+  const thead = document.createElement('thead')
+  const trh = document.createElement('tr')
+  const th0 = document.createElement('th'); th0.className = 'col-cupo'; th0.textContent = 'Cupo'
+  trh.appendChild(th0)
+
+  cacheBloques.forEach(b => {
+    const th = document.createElement('th')
+    if (esDk(b)) th.className = 'col-dk'
+    const titulo = b.tipo === 'dk_prep'     ? 'DK · Prep'
+                 : b.tipo === 'dk_despacho' ? 'DK · Desp'
+                 : `${diaCorto(b.fecha)} ${fechaCorta(b.fecha)}`
+    const pie = b.tipo === 'dk_prep'     ? `${fechaCorta(b.fecha)} · día previo`
+              : b.tipo === 'dk_despacho' ? `${fechaCorta(b.fecha)} AM · condicional`
+              : `${b.etiqueta ? b.etiqueta + ' · ' : ''}${hhmm(b.hora_inicio)}–${hhmm(b.hora_fin)}`
+    th.innerHTML = `<b>${titulo}</b><small>${pie}</small>`
+    trh.appendChild(th)
+  })
+  thead.appendChild(trh); tabla.appendChild(thead)
+
+  // ---------- filas de cupo ----------
+  const tbody = document.createElement('tbody')
+  for (let i = 0; i < maxCupos; i++) {
+    const tr = document.createElement('tr')
+    const td0 = document.createElement('td'); td0.className = 'col-cupo'; td0.textContent = 'Cupo ' + (i + 1)
+    tr.appendChild(td0)
+    cacheBloques.forEach(b => tr.appendChild(celdaCupo(b, i)))
+    tbody.appendChild(tr)
+  }
+  tabla.appendChild(tbody)
+
+  const marco = document.createElement('div'); marco.className = 'scroll-x'
+  marco.appendChild(tabla)
+  cont.appendChild(marco)
+
+  // ---------- leyenda ----------
+  const ley = document.createElement('div'); ley.className = 'leyenda'
+  ley.innerHTML = `
+    <span><i style="background:var(--dk)"></i> Dark Kitchen · prep el día previo, despacho condicional</span>
+    <span><i style="background:var(--brasa)"></i> Cupo ocupado</span>
+    <span><i class="sin-cupo" style="border:1px solid var(--linea)"></i> El bloque no tiene ese cupo</span>`
+  cont.appendChild(ley)
+
+  // Las dos direcciones, a la vista mientras armas los turnos.
+  const dirs = document.createElement('div'); dirs.className = 'leyenda'
+  dirs.style.marginTop = '10px'
+  dirs.innerHTML =
+    `<span><b style="color:var(--crema-media)">Feria:</b> ${feriaSel.lugar || 'sin definir'}</span>` +
+    `<span><b style="color:var(--dk)">Dark Kitchen:</b> ${feriaSel.direccion_dk || 'sin definir'}</span>`
+  cont.appendChild(dirs)
+
+  // ---------- reglas de la operación ----------
+  const alertas = document.createElement('div'); alertas.className = 'alertas'
+  const problemas = revisarReglas()
+  if (!problemas.length) {
+    alertas.innerHTML = `<div class="alerta ok"><b>Sin conflictos.</b> Nadie encadena Dark Kitchen con turno de feria el mismo día.</div>`
+  } else {
+    problemas.forEach(t => {
+      const d = document.createElement('div'); d.className = 'alerta'
+      d.innerHTML = t
+      alertas.appendChild(d)
+    })
+  }
+  cont.appendChild(alertas)
+}
+
+function celdaCupo(b, i){
+  const td = document.createElement('td')
+
+  // Este bloque no llega a tener este cupo: se raya y no se puede asignar.
+  if (i >= b.personas_necesarias) { td.className = 'sin-cupo'; return td }
+
+  const asigs = cacheAsig.filter(a => a.bloque_id === b.id)
+  const actual = asigs[i] || null
+
+  const caja = document.createElement('div')
+  caja.className = 'celda' + (esDk(b) ? ' dk' : '') + (actual ? ' puesta' : '')
+
+  // Candidatos: quien dijo que sí o quizás, más quien ya esté puesto aquí.
+  const marcados = cacheDisp.filter(d => d.bloque_id === b.id && d.estado !== 'no')
+  const ocupados = asigs.filter(a => a !== actual).map(a => a.perfil_id)
+  const candidatos = cachePerfiles.filter(p =>
+    !ocupados.includes(p.id) &&
+    (marcados.some(m => m.perfil_id === p.id) || (actual && actual.perfil_id === p.id)))
+
+  const sel = document.createElement('select')
+  const vacio = document.createElement('option')
+  vacio.value = ''; vacio.textContent = '—'
+  sel.appendChild(vacio)
+
+  candidatos.forEach(p => {
+    const m = marcados.find(x => x.perfil_id === p.id)
+    const o = document.createElement('option')
+    o.value = p.id
+    o.textContent = p.nombre + (m && m.estado === 'quizas' ? ' (quizás)' : '')
+    if (actual && actual.perfil_id === p.id) o.selected = true
+    sel.appendChild(o)
+  })
+
+  if (candidatos.length === 0) {
+    vacio.textContent = 'nadie disponible'
+    sel.disabled = true
+  }
+
+  sel.onchange = async () => {
+    sel.disabled = true
+    if (actual) await sb.from('asignaciones').delete().eq('id', actual.id)
+    if (sel.value) {
+      await sb.from('asignaciones').insert({
+        bloque_id: b.id, perfil_id: sel.value,
+        rol: esDk(b) ? 'cocina' : 'caja'
+      })
+    }
+    await recargarAsignaciones()
+    pintarTurnos()
+  }
+  caja.appendChild(sel)
+
+  // El rol solo tiene sentido en los bloques de atención al público.
+  if (actual && !esDk(b)) {
+    const rol = document.createElement('select')
+    rol.className = 'rol'
+    ROLES.forEach(r => {
+      const o = document.createElement('option')
+      o.value = r; o.textContent = r[0].toUpperCase() + r.slice(1)
+      if (actual.rol === r) o.selected = true
+      rol.appendChild(o)
+    })
+    rol.onchange = async () => {
+      await sb.from('asignaciones').update({ rol: rol.value }).eq('id', actual.id)
+      actual.rol = rol.value
+    }
+    caja.appendChild(rol)
+  }
+
+  td.appendChild(caja)
+  return td
+}
+
+async function recargarAsignaciones(){
+  const { data } = await sb.from('asignaciones').select('*')
+  const ids = new Set(cacheBloques.map(x => x.id))
+  cacheAsig = (data || []).filter(x => ids.has(x.bloque_id))
+}
+
+/* Las dos reglas del manual, comprobadas en vivo:
+   · quien hace la preparación del día previo no abre la feria al día siguiente
+   · el despacho lo cubre quien NO trabaja en feria ese mismo día            */
+function revisarReglas(){
+  const avisos = []
+  const nombre = id => (cachePerfiles.find(p => p.id === id) || {}).nombre || 'Alguien'
+
+  const prep = cacheBloques.find(b => b.tipo === 'dk_prep')
+  const deFeria = cacheBloques.filter(b => b.tipo === 'feria')
+
+  if (prep && deFeria.length) {
+    const primerDia = deFeria.map(b => b.fecha).sort()[0]
+    const apertura = deFeria
+      .filter(b => b.fecha === primerDia)
+      .sort((x, y) => x.hora_inicio.localeCompare(y.hora_inicio))[0]
+    if (apertura) {
+      const enPrep = cacheAsig.filter(a => a.bloque_id === prep.id).map(a => a.perfil_id)
+      cacheAsig
+        .filter(a => a.bloque_id === apertura.id && enPrep.includes(a.perfil_id))
+        .forEach(a => avisos.push(
+          `<span><b>${nombre(a.perfil_id)}</b> hace la preparación del día previo y además abre la feria
+           el ${fecha(primerDia)}. El manual pide que quien prepara no abra.</span>`))
+    }
+  }
+
+  cacheBloques.filter(b => b.tipo === 'dk_despacho').forEach(b => {
+    const mismoDia = deFeria.filter(x => x.fecha === b.fecha).map(x => x.id)
+    cacheAsig.filter(a => a.bloque_id === b.id).forEach(a => {
+      if (cacheAsig.some(o => mismoDia.includes(o.bloque_id) && o.perfil_id === a.perfil_id)) {
+        avisos.push(
+          `<span><b>${nombre(a.perfil_id)}</b> cubre el despacho del ${fecha(b.fecha)} y además
+           trabaja en feria ese día. El despacho debería cubrirlo quien descansa.</span>`)
+      }
+    })
+  })
+
+  return avisos
+}
+
+/* ==========================================================================
+   EDITAR FERIA
+   Todo lo que se puede corregir después de crearla. Deliberadamente separado
+   en tres bloques: los datos (inofensivo), los bloques (cuidado) y borrar
+   (sin vuelta atrás).
+   ========================================================================== */
+function pintarAjustes(){
+  if (!feriaSel) return
+  $('#eNombre').value      = feriaSel.nombre || ''
+  $('#eLugar').value       = feriaSel.lugar || ''
+  $('#eInicio').value      = feriaSel.fecha_inicio
+  $('#eFin').value         = feriaSel.fecha_fin
+  $('#eDireccionDk').value = feriaSel.direccion_dk || ''
+  $('#eNotas').value       = feriaSel.notas || ''
+  decir($('#avisoEditar'), ''); decir($('#avisoBloques'), ''); decir($('#avisoBorrar'), '')
+  reiniciarBorrado()
+  pintarEditorBloques()
+}
+
+$('#btnGuardarFeria').onclick = async () => {
+  if (!feriaSel) return
+  const ini = $('#eInicio').value, fin = $('#eFin').value
+  if (!$('#eNombre').value.trim()) return decir($('#avisoEditar'), 'El nombre no puede quedar vacío.', true)
+  if (fin < ini) return decir($('#avisoEditar'), 'El último día no puede ser antes del primero.', true)
+
+  decir($('#avisoEditar'), 'Guardando…')
+  const cambios = {
+    nombre: $('#eNombre').value.trim(),
+    lugar: $('#eLugar').value.trim() || null,
+    direccion_dk: $('#eDireccionDk').value.trim() || null,
+    notas: $('#eNotas').value.trim() || null,
+    fecha_inicio: ini, fecha_fin: fin
+  }
+  const { error } = await sb.from('ferias').update(cambios).eq('id', feriaSel.id)
+  if (error) return decir($('#avisoEditar'), error.message, true)
+
+  Object.assign(feriaSel, cambios)
+  decir($('#avisoEditar'), 'Guardado ✓')
+  cargarFeriasAdmin()
+  refrescarCabeceraFeria()
+
+  // Aviso honesto: si movió las fechas, hay bloques que quedaron fuera de rango.
+  const fuera = cacheBloques.filter(b => b.fecha > fin || b.fecha < diaAnterior(ini))
+  if (fuera.length) {
+    decir($('#avisoEditar'),
+      `Guardado, pero ${fuera.length} bloque${fuera.length>1?'s quedaron':' quedó'} fuera de las fechas nuevas. Revísalos abajo.`, true)
+  }
+}
+
+function refrescarCabeceraFeria(){
+  $('#tituloAdminFeria').textContent = feriaSel.nombre
+  $('#subAdminFeria').textContent =
+    `${feriaSel.lugar ? feriaSel.lugar + ' · ' : ''}${rango(feriaSel.fecha_inicio, feriaSel.fecha_fin)} · estado: ${feriaSel.estado}`
+}
+
+/* ---------- editor de bloques ---------- */
+function pintarEditorBloques(){
+  const cont = $('#editorBloques'); cont.innerHTML = ''
+  if (!cacheBloques.length) { cont.innerHTML = `<div class="vacio">Esta feria no tiene bloques.</div>`; return }
+
+  cacheBloques.forEach(b => {
+    const fila = document.createElement('div')
+    fila.className = 'cand' + (esDk(b) ? ' puesto' : '')
+    if (esDk(b)) fila.style.borderColor = 'var(--dk)'
+
+    const campo = (tipo, valor, ancho, attrs = {}) => {
+      const i = document.createElement('input')
+      i.type = tipo; i.value = valor; i.style.maxWidth = ancho
+      Object.entries(attrs).forEach(([k, v]) => i.setAttribute(k, v))
+      return i
+    }
+
+    const fFecha  = campo('date', b.fecha, '150px')
+    const fIni    = campo('time', hhmm(b.hora_inicio), '110px')
+    const fFin    = campo('time', hhmm(b.hora_fin), '110px')
+    const fEt     = campo('text', b.etiqueta || '', '150px', { placeholder: 'Etiqueta' })
+    const fCupos  = campo('number', b.personas_necesarias, '80px', { min: 1, max: 20 })
+
+    const guardar = async () => {
+      if (fFin.value <= fIni.value) return decir($('#avisoBloques'), 'La hora de fin debe ser posterior a la de inicio.', true)
+      decir($('#avisoBloques'), 'Guardando…')
+      const cambios = {
+        fecha: fFecha.value, hora_inicio: fIni.value, hora_fin: fFin.value,
+        etiqueta: fEt.value.trim() || null,
+        personas_necesarias: Number(fCupos.value) || 1
+      }
+      const { error } = await sb.from('bloques').update(cambios).eq('id', b.id)
+      if (error) return decir($('#avisoBloques'), error.message, true)
+      Object.assign(b, cambios)
+      decir($('#avisoBloques'), 'Guardado ✓')
+      setTimeout(() => decir($('#avisoBloques'), ''), 1800)
+    }
+    ;[fFecha, fIni, fFin, fEt, fCupos].forEach(i => { i.onchange = guardar; fila.appendChild(i) })
+
+    if (esDk(b)) {
+      const s = document.createElement('span')
+      s.className = 'sello dk'
+      s.textContent = b.tipo === 'dk_prep' ? 'Preparación' : 'Despacho'
+      fila.appendChild(s)
+    }
+    if (b.condicional) {
+      const s = document.createElement('span'); s.className = 'sello cond'; s.textContent = 'Condicional'
+      fila.appendChild(s)
+    }
+
+    const borrar = document.createElement('button')
+    borrar.className = 'btn btn--linea btn--mini'
+    borrar.style.marginLeft = 'auto'
+    borrar.textContent = 'Borrar'
+    borrar.onclick = async () => {
+      if (borrar.dataset.seguro !== '1') {
+        borrar.dataset.seguro = '1'
+        borrar.textContent = '¿Seguro?'
+        borrar.style.borderColor = 'var(--no)'; borrar.style.color = 'var(--no)'
+        setTimeout(() => {
+          if (borrar.dataset.seguro === '1') {
+            borrar.dataset.seguro = ''; borrar.textContent = 'Borrar'
+            borrar.style.borderColor = ''; borrar.style.color = ''
+          }
+        }, 4000)
+        return
+      }
+      const { error } = await sb.from('bloques').delete().eq('id', b.id)
+      if (error) return decir($('#avisoBloques'), error.message, true)
+      await recargarBloques()
+      decir($('#avisoBloques'), 'Bloque borrado.')
+      pintarEditorBloques(); pintarDisponibilidad(); pintarTurnos()
+    }
+    fila.appendChild(borrar)
+
+    cont.appendChild(fila)
+  })
+}
+
+$('#btnNuevoBloque').onclick = async () => {
+  if (!feriaSel) return
+  decir($('#avisoBloques'), 'Creando…')
+  const { error } = await sb.from('bloques').insert({
+    feria_id: feriaSel.id, fecha: feriaSel.fecha_inicio,
+    hora_inicio: '10:00', hora_fin: '16:00',
+    etiqueta: 'Nuevo bloque', tipo: 'feria', condicional: false, personas_necesarias: 3
+  })
+  if (error) return decir($('#avisoBloques'), error.message, true)
+  await recargarBloques()
+  decir($('#avisoBloques'), 'Bloque creado. Ajústale la fecha y la hora.')
+  pintarEditorBloques(); pintarDisponibilidad(); pintarTurnos()
+}
+
+async function recargarBloques(){
+  const { data } = await sb.from('bloques').select('*').eq('feria_id', feriaSel.id)
+    .order('fecha').order('hora_inicio')
+  cacheBloques = data || []
+  const ids = new Set(cacheBloques.map(x => x.id))
+  cacheDisp = cacheDisp.filter(x => ids.has(x.bloque_id))
+  cacheAsig = cacheAsig.filter(x => ids.has(x.bloque_id))
+}
+
+/* ---------- borrar la feria ---------- */
+function reiniciarBorrado(){
+  const b = $('#btnBorrarFeria')
+  b.dataset.seguro = ''
+  b.textContent = 'Eliminar esta feria'
+}
+
+$('#btnBorrarFeria').onclick = async () => {
+  if (!feriaSel) return
+  const b = $('#btnBorrarFeria')
+  if (b.dataset.seguro !== '1') {
+    b.dataset.seguro = '1'
+    b.textContent = `Sí, eliminar "${feriaSel.nombre}" definitivamente`
+    decir($('#avisoBorrar'), 'Vuelve a pulsar para confirmar. Se pierde todo lo de esta feria.', true)
+    setTimeout(() => { if (b.dataset.seguro === '1') { reiniciarBorrado(); decir($('#avisoBorrar'), '') } }, 6000)
+    return
+  }
+  decir($('#avisoBorrar'), 'Eliminando…')
+  const { error } = await sb.from('ferias').delete().eq('id', feriaSel.id)
+  if (error) return decir($('#avisoBorrar'), error.message, true)
+  feriaSel = null
+  mostrar($('#detalleFeria'), false)
+  cargarFeriasAdmin()
+}
 </script>
 </body>
 </html>
