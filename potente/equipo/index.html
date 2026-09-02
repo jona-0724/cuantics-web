@@ -418,10 +418,12 @@
           <button class="btn btn--fuego btn--mini" data-estado="publicada">Publicar turnos</button>
         </div>
         <p class="aviso" id="avisoEstado" role="status" aria-live="polite"></p>
+        <div class="alerta" id="avisoBorrador" hidden style="margin-bottom:20px"></div>
 
         <div class="pestanas" role="tablist">
-          <button class="pestana" role="tab" aria-selected="true" data-tab="disp">Disponibilidad</button>
+          <button class="pestana" role="tab" aria-selected="true"  data-tab="disp">Disponibilidad</button>
           <button class="pestana" role="tab" aria-selected="false" data-tab="turnos">Turnos</button>
+          <button class="pestana" role="tab" aria-selected="false" data-tab="ajustes">Editar feria</button>
         </div>
 
         <div id="tabDisp">
@@ -430,6 +432,50 @@
 
         <div id="tabTurnos" hidden>
           <div id="listaTurnos"></div>
+        </div>
+
+        <div id="tabAjustes" hidden>
+          <fieldset>
+            <legend>Datos de la feria</legend>
+            <div class="form-rejilla">
+              <label class="campo"><span>Nombre</span><input type="text" id="eNombre"></label>
+              <label class="campo"><span>Lugar</span><input type="text" id="eLugar"></label>
+              <label class="campo"><span>Primer día de feria</span><input type="date" id="eInicio"></label>
+              <label class="campo"><span>Último día de feria</span><input type="date" id="eFin"></label>
+            </div>
+            <label class="campo"><span>Dirección del Dark Kitchen</span><input type="text" id="eDireccionDk"></label>
+            <div class="fila-btns">
+              <button class="btn btn--fuego btn--mini" id="btnGuardarFeria" type="button">Guardar datos</button>
+            </div>
+            <p class="aviso" id="avisoEditar" role="status" aria-live="polite"></p>
+            <p class="seccion__sub" style="margin-top:6px">
+              Cambiar las fechas <b>no mueve los bloques</b>: eso se hace abajo, uno por uno,
+              para no borrar por accidente lo que el equipo ya marcó.
+            </p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Bloques</legend>
+            <p class="seccion__sub">Corrige horarios y cupos, borra los que sobren o agrega los que falten.</p>
+            <div id="editorBloques"></div>
+            <div class="fila-btns">
+              <button class="btn btn--linea btn--mini" id="btnNuevoBloque" type="button">+ Agregar bloque</button>
+            </div>
+            <p class="aviso" id="avisoBloques" role="status" aria-live="polite"></p>
+          </fieldset>
+
+          <fieldset style="border-color:var(--no)">
+            <legend style="color:var(--no)">Eliminar</legend>
+            <p class="seccion__sub">
+              Borra la feria con todos sus bloques, la disponibilidad que marcó el equipo y los turnos asignados.
+              No se puede deshacer.
+            </p>
+            <div class="fila-btns">
+              <button class="btn btn--linea btn--mini" id="btnBorrarFeria" type="button"
+                      style="border-color:var(--no);color:var(--no)">Eliminar esta feria</button>
+            </div>
+            <p class="aviso" id="avisoBorrar" role="status" aria-live="polite"></p>
+          </fieldset>
         </div>
       </div>
       </div><!-- /panelFerias -->
@@ -905,9 +951,8 @@ async function abrirFeriaAdmin(f){
   feriaSel = f
   mostrar(formFeria, false)
   mostrar($('#detalleFeria'), true)
-  $('#tituloAdminFeria').textContent = f.nombre
-  $('#subAdminFeria').textContent =
-    `${f.lugar ? f.lugar + ' · ' : ''}${rango(f.fecha_inicio, f.fecha_fin)} · estado: ${f.estado}`
+  refrescarCabeceraFeria()
+  pintarEstado()
   decir($('#avisoEstado'), '')
 
   const [b, d, a, p] = await Promise.all([
@@ -933,15 +978,45 @@ $$('[data-estado]').forEach(btn => btn.onclick = async () => {
   if (error) return decir($('#avisoEstado'), error.message, true)
   feriaSel.estado = estado
   decir($('#avisoEstado'), `Feria en estado "${estado}".`)
-  $('#subAdminFeria').textContent =
-    `${feriaSel.lugar ? feriaSel.lugar + ' · ' : ''}${rango(feriaSel.fecha_inicio, feriaSel.fecha_fin)} · estado: ${estado}`
+  refrescarCabeceraFeria()
+  pintarEstado()
   cargarFeriasAdmin()
 })
 
+/* El estado decide quién ve qué, así que tiene que saltar a la vista. */
+const TEXTO_ESTADO = {
+  borrador:  ['El equipo todavía no ve esta feria.',
+              'Termina de armar los bloques y dale a <b>Abrir para el equipo</b> cuando esté lista.'],
+  abierta:   ['El equipo ya puede marcar su disponibilidad.',
+              'Cuando tengas suficientes respuestas, ciérrala para armar los turnos con calma.'],
+  cerrada:   ['Nadie puede marcar ya.',
+              'Arma los turnos en la pestaña Turnos y luego publícalos para que el equipo los vea.'],
+  publicada: ['Los turnos están publicados.',
+              'Cada persona ve en qué bloques le toca trabajar y con qué rol.']
+}
+
+function pintarEstado(){
+  const e = feriaSel ? feriaSel.estado : null
+  $$('[data-estado]').forEach(b => {
+    const activo = b.dataset.estado === e
+    b.setAttribute('aria-current', activo ? 'true' : 'false')
+    b.classList.toggle('btn--fuego', activo)
+    b.classList.toggle('btn--linea', !activo)
+  })
+  const caja = $('#avisoBorrador')
+  const t = TEXTO_ESTADO[e]
+  if (!t) return mostrar(caja, false)
+  caja.className = 'alerta' + (e === 'borrador' ? '' : ' ok')
+  caja.innerHTML = `<span><b>${t[0]}</b> ${t[1]}</span>`
+  mostrar(caja, true)
+}
+
 $$('.pestana[data-tab]').forEach(t => t.onclick = () => {
   $$('.pestana[data-tab]').forEach(x => x.setAttribute('aria-selected', String(x === t)))
-  mostrar($('#tabDisp'),   t.dataset.tab === 'disp')
-  mostrar($('#tabTurnos'), t.dataset.tab === 'turnos')
+  mostrar($('#tabDisp'),    t.dataset.tab === 'disp')
+  mostrar($('#tabTurnos'),  t.dataset.tab === 'turnos')
+  mostrar($('#tabAjustes'), t.dataset.tab === 'ajustes')
+  if (t.dataset.tab === 'ajustes') pintarAjustes()
 })
 
 /* ---------- pestañas de nivel superior: Ferias / Equipo ---------- */
@@ -1249,6 +1324,186 @@ function revisarReglas(){
   })
 
   return avisos
+}
+
+/* ==========================================================================
+   EDITAR FERIA
+   Todo lo que se puede corregir después de crearla. Deliberadamente separado
+   en tres bloques: los datos (inofensivo), los bloques (cuidado) y borrar
+   (sin vuelta atrás).
+   ========================================================================== */
+function pintarAjustes(){
+  if (!feriaSel) return
+  $('#eNombre').value      = feriaSel.nombre || ''
+  $('#eLugar').value       = feriaSel.lugar || ''
+  $('#eInicio').value      = feriaSel.fecha_inicio
+  $('#eFin').value         = feriaSel.fecha_fin
+  $('#eDireccionDk').value = feriaSel.direccion_dk || ''
+  decir($('#avisoEditar'), ''); decir($('#avisoBloques'), ''); decir($('#avisoBorrar'), '')
+  reiniciarBorrado()
+  pintarEditorBloques()
+}
+
+$('#btnGuardarFeria').onclick = async () => {
+  if (!feriaSel) return
+  const ini = $('#eInicio').value, fin = $('#eFin').value
+  if (!$('#eNombre').value.trim()) return decir($('#avisoEditar'), 'El nombre no puede quedar vacío.', true)
+  if (fin < ini) return decir($('#avisoEditar'), 'El último día no puede ser antes del primero.', true)
+
+  decir($('#avisoEditar'), 'Guardando…')
+  const cambios = {
+    nombre: $('#eNombre').value.trim(),
+    lugar: $('#eLugar').value.trim() || null,
+    direccion_dk: $('#eDireccionDk').value.trim() || null,
+    fecha_inicio: ini, fecha_fin: fin
+  }
+  const { error } = await sb.from('ferias').update(cambios).eq('id', feriaSel.id)
+  if (error) return decir($('#avisoEditar'), error.message, true)
+
+  Object.assign(feriaSel, cambios)
+  decir($('#avisoEditar'), 'Guardado ✓')
+  cargarFeriasAdmin()
+  refrescarCabeceraFeria()
+
+  // Aviso honesto: si movió las fechas, hay bloques que quedaron fuera de rango.
+  const fuera = cacheBloques.filter(b => b.fecha > fin || b.fecha < diaAnterior(ini))
+  if (fuera.length) {
+    decir($('#avisoEditar'),
+      `Guardado, pero ${fuera.length} bloque${fuera.length>1?'s quedaron':' quedó'} fuera de las fechas nuevas. Revísalos abajo.`, true)
+  }
+}
+
+function refrescarCabeceraFeria(){
+  $('#tituloAdminFeria').textContent = feriaSel.nombre
+  $('#subAdminFeria').textContent =
+    `${feriaSel.lugar ? feriaSel.lugar + ' · ' : ''}${rango(feriaSel.fecha_inicio, feriaSel.fecha_fin)} · estado: ${feriaSel.estado}`
+}
+
+/* ---------- editor de bloques ---------- */
+function pintarEditorBloques(){
+  const cont = $('#editorBloques'); cont.innerHTML = ''
+  if (!cacheBloques.length) { cont.innerHTML = `<div class="vacio">Esta feria no tiene bloques.</div>`; return }
+
+  cacheBloques.forEach(b => {
+    const fila = document.createElement('div')
+    fila.className = 'cand' + (esDk(b) ? ' puesto' : '')
+    if (esDk(b)) fila.style.borderColor = 'var(--dk)'
+
+    const campo = (tipo, valor, ancho, attrs = {}) => {
+      const i = document.createElement('input')
+      i.type = tipo; i.value = valor; i.style.maxWidth = ancho
+      Object.entries(attrs).forEach(([k, v]) => i.setAttribute(k, v))
+      return i
+    }
+
+    const fFecha  = campo('date', b.fecha, '150px')
+    const fIni    = campo('time', hhmm(b.hora_inicio), '110px')
+    const fFin    = campo('time', hhmm(b.hora_fin), '110px')
+    const fEt     = campo('text', b.etiqueta || '', '150px', { placeholder: 'Etiqueta' })
+    const fCupos  = campo('number', b.personas_necesarias, '80px', { min: 1, max: 20 })
+
+    const guardar = async () => {
+      if (fFin.value <= fIni.value) return decir($('#avisoBloques'), 'La hora de fin debe ser posterior a la de inicio.', true)
+      decir($('#avisoBloques'), 'Guardando…')
+      const cambios = {
+        fecha: fFecha.value, hora_inicio: fIni.value, hora_fin: fFin.value,
+        etiqueta: fEt.value.trim() || null,
+        personas_necesarias: Number(fCupos.value) || 1
+      }
+      const { error } = await sb.from('bloques').update(cambios).eq('id', b.id)
+      if (error) return decir($('#avisoBloques'), error.message, true)
+      Object.assign(b, cambios)
+      decir($('#avisoBloques'), 'Guardado ✓')
+      setTimeout(() => decir($('#avisoBloques'), ''), 1800)
+    }
+    ;[fFecha, fIni, fFin, fEt, fCupos].forEach(i => { i.onchange = guardar; fila.appendChild(i) })
+
+    if (esDk(b)) {
+      const s = document.createElement('span')
+      s.className = 'sello dk'
+      s.textContent = b.tipo === 'dk_prep' ? 'Preparación' : 'Despacho'
+      fila.appendChild(s)
+    }
+    if (b.condicional) {
+      const s = document.createElement('span'); s.className = 'sello cond'; s.textContent = 'Condicional'
+      fila.appendChild(s)
+    }
+
+    const borrar = document.createElement('button')
+    borrar.className = 'btn btn--linea btn--mini'
+    borrar.style.marginLeft = 'auto'
+    borrar.textContent = 'Borrar'
+    borrar.onclick = async () => {
+      if (borrar.dataset.seguro !== '1') {
+        borrar.dataset.seguro = '1'
+        borrar.textContent = '¿Seguro?'
+        borrar.style.borderColor = 'var(--no)'; borrar.style.color = 'var(--no)'
+        setTimeout(() => {
+          if (borrar.dataset.seguro === '1') {
+            borrar.dataset.seguro = ''; borrar.textContent = 'Borrar'
+            borrar.style.borderColor = ''; borrar.style.color = ''
+          }
+        }, 4000)
+        return
+      }
+      const { error } = await sb.from('bloques').delete().eq('id', b.id)
+      if (error) return decir($('#avisoBloques'), error.message, true)
+      await recargarBloques()
+      decir($('#avisoBloques'), 'Bloque borrado.')
+      pintarEditorBloques(); pintarDisponibilidad(); pintarTurnos()
+    }
+    fila.appendChild(borrar)
+
+    cont.appendChild(fila)
+  })
+}
+
+$('#btnNuevoBloque').onclick = async () => {
+  if (!feriaSel) return
+  decir($('#avisoBloques'), 'Creando…')
+  const { error } = await sb.from('bloques').insert({
+    feria_id: feriaSel.id, fecha: feriaSel.fecha_inicio,
+    hora_inicio: '10:00', hora_fin: '16:00',
+    etiqueta: 'Nuevo bloque', tipo: 'feria', condicional: false, personas_necesarias: 3
+  })
+  if (error) return decir($('#avisoBloques'), error.message, true)
+  await recargarBloques()
+  decir($('#avisoBloques'), 'Bloque creado. Ajústale la fecha y la hora.')
+  pintarEditorBloques(); pintarDisponibilidad(); pintarTurnos()
+}
+
+async function recargarBloques(){
+  const { data } = await sb.from('bloques').select('*').eq('feria_id', feriaSel.id)
+    .order('fecha').order('hora_inicio')
+  cacheBloques = data || []
+  const ids = new Set(cacheBloques.map(x => x.id))
+  cacheDisp = cacheDisp.filter(x => ids.has(x.bloque_id))
+  cacheAsig = cacheAsig.filter(x => ids.has(x.bloque_id))
+}
+
+/* ---------- borrar la feria ---------- */
+function reiniciarBorrado(){
+  const b = $('#btnBorrarFeria')
+  b.dataset.seguro = ''
+  b.textContent = 'Eliminar esta feria'
+}
+
+$('#btnBorrarFeria').onclick = async () => {
+  if (!feriaSel) return
+  const b = $('#btnBorrarFeria')
+  if (b.dataset.seguro !== '1') {
+    b.dataset.seguro = '1'
+    b.textContent = `Sí, eliminar "${feriaSel.nombre}" definitivamente`
+    decir($('#avisoBorrar'), 'Vuelve a pulsar para confirmar. Se pierde todo lo de esta feria.', true)
+    setTimeout(() => { if (b.dataset.seguro === '1') { reiniciarBorrado(); decir($('#avisoBorrar'), '') } }, 6000)
+    return
+  }
+  decir($('#avisoBorrar'), 'Eliminando…')
+  const { error } = await sb.from('ferias').delete().eq('id', feriaSel.id)
+  if (error) return decir($('#avisoBorrar'), error.message, true)
+  feriaSel = null
+  mostrar($('#detalleFeria'), false)
+  cargarFeriasAdmin()
 }
 </script>
 </body>
