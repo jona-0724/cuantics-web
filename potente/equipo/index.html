@@ -17,6 +17,7 @@
     --brasa:#f2811d; --brasa-honda:#d63317; --chispa:#ffc63c;
     --crema:#f7ead9; --crema-media:#e0cab3; --humo:#ab917c;
     --si:#2fbf6b; --quizas:#e0a32e; --no:#c2452f;
+    --dk:#9a7cf2; --dk-suave:rgba(154,124,242,.14);
     --f-display:"Anton","Arial Narrow",Impact,sans-serif;
     --f-body:"Barlow","Helvetica Neue",Arial,sans-serif;
     --f-util:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
@@ -122,6 +123,17 @@
   .bloque__h{font-variant-numeric:tabular-nums;font-weight:600;font-size:1rem}
   .bloque__et{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
     font-size:.72rem;color:var(--humo)}
+
+  /* Dark Kitchen: otro tipo de trabajo, otro color. */
+  .bloque.es-dk{border-left:3px solid var(--dk);background:var(--dk-suave)}
+  .dia.es-dk .dia__cab{color:var(--dk);border-bottom:1px solid rgba(154,124,242,.3)}
+  .sello{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-weight:700;font-size:.68rem;padding:3px 8px;border-radius:2px;white-space:nowrap}
+  .sello.dk{background:var(--dk-suave);color:var(--dk);border:1px solid rgba(154,124,242,.45)}
+  .sello.cond{background:rgba(224,163,46,.14);color:var(--quizas);border:1px solid rgba(224,163,46,.4)}
+  .nota-cond{margin:0 0 18px;padding:12px 14px;border-left:3px solid var(--quizas);
+    background:rgba(224,163,46,.07);font-size:.88rem;color:var(--crema-media)}
+  .nota-cond b{color:var(--chispa)}
   .opciones{display:flex;gap:6px;margin-left:auto}
   .op{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.1em;font-weight:700;
     font-size:.78rem;padding:8px 13px;border-radius:3px;cursor:pointer;
@@ -302,17 +314,55 @@
         <fieldset>
           <legend>Nueva feria</legend>
           <div class="form-rejilla">
-            <label class="campo"><span>Nombre</span><input type="text" id="fNombre" required placeholder="Feria de Barranco"></label>
-            <label class="campo"><span>Lugar</span><input type="text" id="fLugar" placeholder="Parque Municipal"></label>
-            <label class="campo"><span>Primer día</span><input type="date" id="fInicio" required></label>
-            <label class="campo"><span>Último día</span><input type="date" id="fFin" required></label>
+            <label class="campo"><span>Nombre</span><input type="text" id="fNombre" required placeholder="Feria Marciana"></label>
+            <label class="campo"><span>Lugar</span><input type="text" id="fLugar" placeholder="Coliseo Dibos"></label>
+            <label class="campo"><span>Primer día de feria</span><input type="date" id="fInicio" required></label>
+            <label class="campo"><span>Último día de feria</span><input type="date" id="fFin" required></label>
           </div>
+          <label class="campo"><span>Dirección del Dark Kitchen</span>
+            <input type="text" id="fDireccionDk" placeholder="Calle Frisancho Melchor 376 — Santiago de Surco"></label>
         </fieldset>
+
         <fieldset>
-          <legend>Bloques de cada día</legend>
-          <p class="seccion__sub">Estos horarios se crean para todos los días de la feria.</p>
+          <legend>Bloques de feria</legend>
+          <p class="seccion__sub">Atención al público. Se crean para cada día de la feria.</p>
           <div id="plantillas"></div>
           <button type="button" class="btn btn--linea btn--mini" id="btnAgregarBloque">+ Agregar bloque</button>
+        </fieldset>
+
+        <fieldset>
+          <legend>Dark Kitchen</legend>
+
+          <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;cursor:pointer">
+            <input type="checkbox" id="dkPrepOn" checked style="width:auto;margin-top:4px">
+            <span style="font-size:.94rem;color:var(--crema-media)">
+              <b style="color:var(--crema)">Preparación el día anterior.</b>
+              Se crea un bloque el día previo al primer día de feria.
+            </span>
+          </label>
+          <div class="plantilla" id="dkPrepCampos">
+            <label class="campo"><span>Desde</span><input type="time" id="dkPrepIni" value="08:00"></label>
+            <label class="campo"><span>Hasta</span><input type="time" id="dkPrepFin" value="14:00"></label>
+            <label class="campo"><span>Cupos</span><input type="number" id="dkPrepCupos" value="2" min="1" max="20"></label>
+            <span></span>
+          </div>
+
+          <label style="display:flex;gap:10px;align-items:flex-start;margin:20px 0 12px;cursor:pointer">
+            <input type="checkbox" id="dkDespOn" checked style="width:auto;margin-top:4px">
+            <span style="font-size:.94rem;color:var(--crema-media)">
+              <b style="color:var(--crema)">Despacho condicional.</b>
+              Un bloque de madrugada en cada día de feria <b style="color:var(--crema)">menos el primero</b>,
+              que ya queda cubierto por la preparación. Se confirma el día antes.
+            </span>
+          </label>
+          <div class="plantilla" id="dkDespCampos">
+            <label class="campo"><span>Desde</span><input type="time" id="dkDespIni" value="07:00"></label>
+            <label class="campo"><span>Hasta</span><input type="time" id="dkDespFin" value="10:00"></label>
+            <label class="campo"><span>Cupos</span><input type="number" id="dkDespCupos" value="1" min="1" max="20"></label>
+            <span></span>
+          </div>
+
+          <p class="seccion__sub" id="resumenDk" style="margin-top:14px">Elige las fechas para ver qué se va a crear.</p>
         </fieldset>
         <div class="fila-btns">
           <button class="btn btn--fuego" type="submit" id="btnCrearFeria">Crear feria</button>
@@ -409,6 +459,33 @@ function decir(el, texto, malo = false){
 }
 
 function mostrar(el, si){ el.hidden = !si }
+
+/* ---------- tipos de bloque ---------- */
+const esDk = b => b.tipo === 'dk_prep' || b.tipo === 'dk_despacho'
+
+function sellos(b){
+  const s = []
+  if (b.tipo === 'dk_prep')     s.push({ txt:'Dark Kitchen · Preparación', c:'dk' })
+  if (b.tipo === 'dk_despacho') s.push({ txt:'Dark Kitchen · Despacho',    c:'dk' })
+  if (b.condicional)            s.push({ txt:'Condicional',                c:'cond' })
+  return s
+}
+
+function pintarSellos(contenedor, b){
+  sellos(b).forEach(s => {
+    const e = document.createElement('span')
+    e.className = 'sello ' + s.c
+    e.textContent = s.txt
+    contenedor.appendChild(e)
+  })
+}
+
+// Nombre corto para las cabeceras estrechas de la tabla de disponibilidad.
+function motePlanBloque(b){
+  if (b.tipo === 'dk_prep')     return 'DK Prep'
+  if (b.tipo === 'dk_despacho') return 'DK Desp'
+  return b.etiqueta || hhmm(b.hora_inicio)
+}
 
 /* ==========================================================================
    ACCESO
@@ -565,15 +642,35 @@ async function abrirFeriaFeriante(f){
   const misTurnos = Object.fromEntries((asig || []).map(a => [a.bloque_id, a.rol]))
 
   const cont = $('#diasFeriante'); cont.innerHTML = ''
+
+  // Aviso sobre los bloques condicionales, solo si esta feria tiene alguno.
+  if (cacheBloques.some(b => b.condicional)) {
+    const n = document.createElement('p'); n.className = 'nota-cond'
+    n.innerHTML = `<b>Los bloques de despacho son condicionales.</b> Se confirman el día anterior,
+      según lo que haya quedado de stock. Marca igual si podrías: si al final no hace falta, te avisamos.`
+    cont.appendChild(n)
+  }
+
+  if (f.direccion_dk && cacheBloques.some(esDk)) {
+    const d = document.createElement('p'); d.className = 'nota-cond'
+    d.style.borderLeftColor = 'var(--dk)'
+    d.style.background = 'var(--dk-suave)'
+    d.innerHTML = `<b style="color:var(--dk)">Dark Kitchen:</b> ${f.direccion_dk}`
+    cont.appendChild(d)
+  }
+
   const porDia = agrupar(cacheBloques, b => b.fecha)
 
   for (const [dia, lista] of porDia) {
-    const caja = document.createElement('div'); caja.className = 'dia'
-    caja.innerHTML = `<div class="dia__cab">${fecha(dia)}</div>`
+    const soloDk = lista.every(esDk)
+    const previo = dia < f.fecha_inicio
+    const caja = document.createElement('div'); caja.className = 'dia' + (soloDk ? ' es-dk' : '')
+    caja.innerHTML = `<div class="dia__cab">${fecha(dia)}${previo ? ' · día previo' : ''}</div>`
     lista.forEach(bl => {
-      const fila = document.createElement('div'); fila.className = 'bloque'
+      const fila = document.createElement('div'); fila.className = 'bloque' + (esDk(bl) ? ' es-dk' : '')
       fila.innerHTML = `<span class="bloque__h">${hhmm(bl.hora_inicio)} – ${hhmm(bl.hora_fin)}</span>
         ${bl.etiqueta ? `<span class="bloque__et">${bl.etiqueta}</span>` : ''}`
+      pintarSellos(fila, bl)
       if (f.estado === 'abierta') {
         const ops = document.createElement('div'); ops.className = 'opciones'
         ;[['si','Sí'],['quizas','Quizás'],['no','No']].forEach(([v, txt]) => {
@@ -643,19 +740,45 @@ const formFeria = $('#formFeria')
 $('#btnNuevaFeria').onclick = () => { mostrar(formFeria, true); mostrar($('#detalleFeria'), false) }
 $('#btnCancelarFeria').onclick = () => mostrar(formFeria, false)
 
-function filaPlantilla(ini = '10:00', fin = '16:00', et = '', personas = 3){
+function filaPlantilla(ini = '10:00', fin = '16:00', et = '', cupos = 3){
   const d = document.createElement('div'); d.className = 'plantilla'
   d.innerHTML = `
     <label class="campo"><span>Desde</span><input type="time" value="${ini}" data-k="ini" required></label>
     <label class="campo"><span>Hasta</span><input type="time" value="${fin}" data-k="fin" required></label>
     <label class="campo"><span>Etiqueta</span><input type="text" value="${et}" data-k="et" placeholder="Mañana"></label>
+    <label class="campo"><span>Cupos</span><input type="number" value="${cupos}" data-k="cupos" min="1" max="20"></label>
     <button type="button" class="btn btn--linea btn--mini">Quitar</button>`
-  d.querySelector('button').onclick = () => d.remove()
+  d.querySelector('button').onclick = () => { d.remove(); resumirDk() }
   return d
 }
-$('#btnAgregarBloque').onclick = () => $('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde'))
-$('#plantillas').appendChild(filaPlantilla('10:00','16:00','Mañana'))
-$('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde'))
+$('#btnAgregarBloque').onclick = () => {
+  $('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde', 3)); resumirDk()
+}
+$('#plantillas').appendChild(filaPlantilla('10:00','16:00','Mañana', 2))
+$('#plantillas').appendChild(filaPlantilla('16:00','22:00','Tarde-noche', 3))
+
+/* El día previo se calcula, no se escribe: es siempre el anterior al primero. */
+function diaAnterior(iso){
+  const [a,m,d] = iso.split('-').map(Number)
+  const f = new Date(a, m-1, d); f.setDate(f.getDate() - 1)
+  return `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}-${String(f.getDate()).padStart(2,'0')}`
+}
+
+// Resumen en vivo para que no haya sorpresas al pulsar "crear".
+function resumirDk(){
+  const ini = $('#fInicio').value, fin = $('#fFin').value
+  const el = $('#resumenDk')
+  if (!ini || !fin || fin < ini) { el.textContent = 'Elige las fechas para ver qué se va a crear.'; return }
+  const dias = diasEntre(ini, fin)
+  const nPlantillas = $$('.plantilla [data-k="ini"]').length
+  const partes = []
+  if ($('#dkPrepOn').checked) partes.push(`preparación el ${fecha(diaAnterior(ini))}`)
+  partes.push(`${dias.length} día${dias.length>1?'s':''} de feria × ${nPlantillas} bloque${nPlantillas>1?'s':''}`)
+  if ($('#dkDespOn').checked && dias.length > 1)
+    partes.push(`${dias.length - 1} despacho${dias.length-1>1?'s':''} condicional${dias.length-1>1?'es':''} (${dias.slice(1).map(fechaCorta).join(', ')})`)
+  el.textContent = 'Se va a crear: ' + partes.join(' · ') + '.'
+}
+;['#fInicio','#fFin','#dkPrepOn','#dkDespOn'].forEach(s => $(s).addEventListener('change', resumirDk))
 
 formFeria.onsubmit = async (e) => {
   e.preventDefault()
@@ -665,26 +788,54 @@ formFeria.onsubmit = async (e) => {
   const ini = $('#fInicio').value, fin = $('#fFin').value
   if (fin < ini) { b.disabled = false; return decir($('#avisoFeria'), 'El último día no puede ser antes del primero.', true) }
 
-  const plantillas = $$('.plantilla').map(p => ({
+  const plantillas = $$('#plantillas .plantilla').map(p => ({
     ini: p.querySelector('[data-k="ini"]').value,
     fin: p.querySelector('[data-k="fin"]').value,
-    et:  p.querySelector('[data-k="et"]').value.trim() || null
+    et:  p.querySelector('[data-k="et"]').value.trim() || null,
+    cupos: Number(p.querySelector('[data-k="cupos"]').value) || 1
   })).filter(p => p.ini && p.fin && p.fin > p.ini)
 
-  if (!plantillas.length) { b.disabled = false; return decir($('#avisoFeria'), 'Define al menos un bloque válido.', true) }
+  if (!plantillas.length) { b.disabled = false; return decir($('#avisoFeria'), 'Define al menos un bloque de feria válido.', true) }
 
   const { data: feria, error } = await sb.from('ferias').insert({
     nombre: $('#fNombre').value.trim(),
     lugar:  $('#fLugar').value.trim() || null,
+    direccion_dk: $('#fDireccionDk').value.trim() || null,
     fecha_inicio: ini, fecha_fin: fin, estado: 'borrador'
   }).select().single()
 
   if (error) { b.disabled = false; return decir($('#avisoFeria'), error.message, true) }
 
+  const dias = diasEntre(ini, fin)
   const filas = []
-  for (const d of diasEntre(ini, fin))
+
+  // 1. Preparación: el día ANTES del primer día de feria. No es condicional.
+  if ($('#dkPrepOn').checked) {
+    filas.push({
+      feria_id: feria.id, fecha: diaAnterior(ini),
+      hora_inicio: $('#dkPrepIni').value, hora_fin: $('#dkPrepFin').value,
+      etiqueta: 'Preparación', tipo: 'dk_prep', condicional: false,
+      personas_necesarias: Number($('#dkPrepCupos').value) || 1
+    })
+  }
+
+  for (const d of dias) {
+    // 2. Despacho: madrugada de cada día MENOS el primero, y siempre condicional.
+    if ($('#dkDespOn').checked && d !== ini) {
+      filas.push({
+        feria_id: feria.id, fecha: d,
+        hora_inicio: $('#dkDespIni').value, hora_fin: $('#dkDespFin').value,
+        etiqueta: 'Despacho', tipo: 'dk_despacho', condicional: true,
+        personas_necesarias: Number($('#dkDespCupos').value) || 1
+      })
+    }
+    // 3. Los bloques de atención al público.
     for (const p of plantillas)
-      filas.push({ feria_id: feria.id, fecha: d, hora_inicio: p.ini, hora_fin: p.fin, etiqueta: p.et })
+      filas.push({
+        feria_id: feria.id, fecha: d, hora_inicio: p.ini, hora_fin: p.fin,
+        etiqueta: p.et, tipo: 'feria', condicional: false, personas_necesarias: p.cupos
+      })
+  }
 
   const { error: e2 } = await sb.from('bloques').insert(filas)
   b.disabled = false
@@ -840,7 +991,9 @@ function pintarDisponibilidad(){
   const t = document.createElement('table')
   let cab = '<thead><tr><th>Persona</th>'
   cacheBloques.forEach(b => {
-    cab += `<th>${fechaCorta(b.fecha)}<br><span style="opacity:.7">${hhmm(b.hora_inicio)}</span></th>`
+    const color = esDk(b) ? 'style="color:var(--dk)"' : ''
+    cab += `<th ${color}>${fechaCorta(b.fecha)}<br><span style="opacity:.7">${motePlanBloque(b)}</span>` +
+           `${b.condicional ? '<br><span style="color:var(--quizas);font-size:.62rem">cond.</span>' : ''}</th>`
   })
   cab += '</tr></thead>'
 
@@ -877,13 +1030,18 @@ function pintarTurnos(){
     const asig = cacheAsig.filter(a => a.bloque_id === b.id)
 
     const caja = document.createElement('div'); caja.className = 'turno'
+    if (esDk(b)) caja.style.borderLeft = '3px solid var(--dk)'
     const falta = b.personas_necesarias - asig.length
-    caja.innerHTML = `<div class="turno__cab">
-        <span class="turno__h">${fecha(b.fecha)} · ${hhmm(b.hora_inicio)}–${hhmm(b.hora_fin)}</span>
-        <span class="turno__cupo ${falta > 0 ? 'falta' : 'lleno'}">
-          ${asig.length}/${b.personas_necesarias} asignados${falta > 0 ? ` · faltan ${falta}` : ''}
-        </span>
-      </div>`
+    const cab = document.createElement('div'); cab.className = 'turno__cab'
+    const h = document.createElement('span'); h.className = 'turno__h'
+    h.textContent = `${fecha(b.fecha)} · ${hhmm(b.hora_inicio)}–${hhmm(b.hora_fin)}`
+    cab.appendChild(h)
+    pintarSellos(cab, b)
+    const cupo = document.createElement('span')
+    cupo.className = 'turno__cupo ' + (falta > 0 ? 'falta' : 'lleno')
+    cupo.textContent = `${asig.length}/${b.personas_necesarias} asignados` + (falta > 0 ? ` · faltan ${falta}` : '')
+    cab.appendChild(cupo)
+    caja.appendChild(cab)
 
     const lista = document.createElement('div'); lista.className = 'candidatos'
 
