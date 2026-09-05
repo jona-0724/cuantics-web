@@ -610,7 +610,12 @@ let cacheAsig = []
 let cachePerfiles = []
 let misMarcas = {}       // bloque_id → estado, solo del usuario actual
 let miEnvio = false      // ¿ya subió su disponibilidad de la feria abierta?
+let hayCambios = false   // cambió algo después de subirla
 let cacheEnvios = []     // vista admin: quién ya la subió
+// La tabla de envíos llega en una migración aparte. Si todavía no está
+// aplicada, la página funciona igual: se marca y se guarda, solo que sin el
+// paso de subir. Nadie del equipo debería ver un error técnico por esto.
+let soportaEnvios = true
 
 /* ---------- utilidades ---------- */
 
@@ -634,9 +639,23 @@ function rango(ini, fin){
 }
 function hhmm(t){ return (t || '').slice(0,5) }
 
+/* Los avisos se limpian solos con un temporizador. Si llega uno nuevo antes
+   de que el anterior se apague, hay que cancelar ese temporizador: si no, el
+   mensaje recién puesto desaparece a los pocos milisegundos y la persona no
+   alcanza a leerlo. */
+const temporizadores = new WeakMap()
+
 function decir(el, texto, malo = false){
+  clearTimeout(temporizadores.get(el))
+  temporizadores.delete(el)
   el.textContent = texto
   el.classList.toggle('malo', malo)
+}
+
+/* Muestra un aviso y lo borra solo pasados unos segundos. */
+function decirYborrar(el, texto, ms = 2000, malo = false){
+  decir(el, texto, malo)
+  temporizadores.set(el, setTimeout(() => decir(el, ''), ms))
 }
 
 function mostrar(el, si){ el.hidden = !si }
@@ -815,10 +834,10 @@ async function abrirFeriaFeriante(f){
   mostrar($('#bloqueDisponibilidad'), true)
   $('#tituloFeriaSel').textContent = f.nombre
   $('#subFeriaSel').textContent = f.estado === 'abierta'
-    ? 'Responde los bloques y súbela al final. Lo que marques se va guardando solo.'
+    ? 'Responde los bloques y súbela al final. Puedes cambiarla las veces que quieras mientras la feria siga abierta.'
     : 'Turnos ya publicados. Estos son los bloques donde te toca trabajar.'
 
-  const [{ data: bloques }, { data: disp }, { data: asig }, { data: env }] = await Promise.all([
+  const [{ data: bloques }, { data: disp }, { data: asig }, envRes] = await Promise.all([
     sb.from('bloques').select('*').eq('feria_id', f.id).order('fecha').order('hora_inicio'),
     // Se filtra por perfil aquí además de en las políticas de la base: si algún
     // día se abre la lectura, la pantalla no debe empezar a mostrar lo ajeno.
@@ -826,7 +845,9 @@ async function abrirFeriaFeriante(f){
     sb.from('asignaciones').select('*').eq('perfil_id', yo.id),
     sb.from('envios').select('*').eq('perfil_id', yo.id).eq('feria_id', f.id)
   ])
-  miEnvio = !!(env && env.length)
+  if (envRes.error && faltaLaTabla(envRes.error)) soportaEnvios = false
+  miEnvio = soportaEnvios && !!(envRes.data && envRes.data.length)
+  hayCambios = false
   cacheBloques = bloques || []
   misMarcas = Object.fromEntries((disp || []).map(d => [d.bloque_id, d.estado]))
   const mias = misMarcas
@@ -907,9 +928,17 @@ async function abrirFeriaFeriante(f){
 
   const abierta = f.estado === 'abierta'
   mostrar($('#avanceFeriante'), abierta)
-  mostrar($('#barraEnvio'), abierta)
-  $('#vistaFeriante').classList.toggle('con-envio', abierta)
+  mostrar($('#barraEnvio'), abierta && soportaEnvios)
+  $('#vistaFeriante').classList.toggle('con-envio', abierta && soportaEnvios)
   refrescarAvance()
+}
+
+/* ¿El error es "esa tabla no existe"? Pasa mientras una migración nueva
+   todavía no llegó a producción. No es culpa de quien está usando la página,
+   así que no se le muestra: simplemente se apaga esa parte. */
+function faltaLaTabla(error){
+  const t = ((error && (error.message || error.hint || '')) + ' ' + (error && error.code || '')).toLowerCase()
+  return t.includes('schema cache') || t.includes('does not exist') || t.includes('pgrst205') || t.includes('42p01')
 }
 
 /* Cuenta lo marcado y lo pinta. Se llama al abrir la feria y con cada clic,
@@ -939,20 +968,21 @@ function refrescarAvance(){
 
   // ---- barra de abajo ----
   const barra = $('#barraEnvio')
-  const mandada = completo && miEnvio
-  barra.classList.toggle('listo', completo && !mandada)
-  barra.classList.toggle('mandada', mandada)
+  const mandada = completo && miEnvio          // ya la subió y sigue completa
+  const alDia  = mandada && !hayCambios        // …y no tocó nada desde entonces
+  barra.classList.toggle('listo', completo && !alDia)
+  barra.classList.toggle('mandada', alDia)
   mostrar($('#btnSiguiente'), !completo)
   const subir = $('#btnSubir')
-  subir.disabled = !completo || mandada
-  subir.textContent = mandada ? 'Enviada ✓' : 'Subir mi disponibilidad'
+  subir.disabled = !completo || alDia
+  subir.textContent = alDia ? 'Enviada ✓' : mandada ? 'Actualizar mi envío' : 'Subir mi disponibilidad'
 
-  $('#envioTxt').innerHTML = mandada
-    ? '<b>Disponibilidad enviada.</b> Si algo te cambia, corrígelo y vuelve a subirla.'
-    : completo
-      ? '<b>Todo respondido.</b> Súbela para que quede registrada.'
-      : `Te <b>${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`}</b>. `
-        + 'Hasta que respondas todos no se puede subir.'
+  $('#envioTxt').innerHTML =
+    alDia   ? '<b>Disponibilidad enviada.</b> Puedes cambiarla cuando quieras, mientras la feria siga abierta.'
+  : mandada ? '<b>Cambiaste una respuesta.</b> Actualiza tu envío para que quede registrado.'
+  : completo ? '<b>Todo respondido.</b> Súbela para que quede registrada.'
+  : `Te <b>${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`}</b>. `
+    + 'Hasta que respondas todos no se puede subir.'
 }
 
 /* Lleva al primer bloque sin responder. En el celular la lista es larga y
@@ -980,18 +1010,30 @@ $('#btnSubir').onclick = async () => {
     .upsert({ feria_id: feriaSel.id, perfil_id: yo.id, enviado_en: new Date().toISOString() },
             { onConflict: 'feria_id,perfil_id' })
   if (error) {
+    if (faltaLaTabla(error)) {
+      // Migración aún no aplicada: se apaga el paso de subir y se le dice a la
+      // persona lo único que le importa, que sus respuestas ya están guardadas.
+      soportaEnvios = false
+      mostrar($('#barraEnvio'), false)
+      $('#vistaFeriante').classList.remove('con-envio')
+      return decir($('#avisoGuardado'), 'Tus respuestas quedaron guardadas ✓')
+    }
     $('#btnSubir').disabled = false
     return decir($('#avisoGuardado'), 'No se pudo subir: ' + error.message, true)
   }
+  const eraActualizacion = miEnvio
   miEnvio = true
+  hayCambios = false
   refrescarAvance()
-  decir($('#avisoGuardado'), '¡Gracias! Tu disponibilidad quedó registrada.')
-  setTimeout(() => decir($('#avisoGuardado'), ''), 3500)
+  decirYborrar($('#avisoGuardado'), eraActualizacion
+    ? 'Actualizada ✓ Tu cambio quedó registrado.'
+    : '¡Gracias! Tu disponibilidad quedó registrada.', 3500)
 }
 
 async function marcar(bloque_id, estado, ops){
   $$('.op', ops).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === estado)))
   const previo = misMarcas[bloque_id]
+  if (previo !== estado && miEnvio) hayCambios = true
   misMarcas[bloque_id] = estado
   refrescarAvance()
   decir($('#avisoGuardado'), 'Guardando…')
@@ -1003,8 +1045,8 @@ async function marcar(bloque_id, estado, ops){
     $$('.op', ops).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === previo)))
     refrescarAvance()
   }
-  decir($('#avisoGuardado'), error ? 'No se pudo guardar: ' + error.message : 'Guardado ✓', !!error)
-  if (!error) setTimeout(() => decir($('#avisoGuardado'), ''), 2000)
+  if (error) decir($('#avisoGuardado'), 'No se pudo guardar: ' + error.message, true)
+  else decirYborrar($('#avisoGuardado'), 'Guardado ✓', 2000)
 }
 
 function agrupar(lista, clave){
@@ -1186,6 +1228,7 @@ async function abrirFeriaAdmin(f){
   cacheDisp = (d.data || []).filter(x => ids.has(x.bloque_id))
   cacheAsig = (a.data || []).filter(x => ids.has(x.bloque_id))
   cachePerfiles = p.data || []
+  if (e.error && faltaLaTabla(e.error)) soportaEnvios = false
   cacheEnvios = e.data || []
 
   pintarDisponibilidad()
@@ -1311,8 +1354,7 @@ async function guardarPerfil(id, cambios, fila, recargar = false){
   decir($('#avisoEquipo'), 'Guardando…')
   const { error } = await sb.from('perfiles').update(cambios).eq('id', id)
   if (error) return decir($('#avisoEquipo'), 'No se pudo guardar: ' + error.message, true)
-  decir($('#avisoEquipo'), 'Guardado ✓')
-  setTimeout(() => decir($('#avisoEquipo'), ''), 2000)
+  decirYborrar($('#avisoEquipo'), 'Guardado ✓', 2000)
   if (recargar) cargarEquipo()
 }
 
@@ -1343,12 +1385,13 @@ function pintarDisponibilidad(){
     const hechos = cacheBloques.filter(b => mapa[p.id + '|' + b.id]).length
     // Vale como enviada solo si además respondió todo lo que hoy tiene la feria:
     // si el admin agregó un bloque después, vuelve a quedar pendiente.
-    const enviada = hechos === total && subieron.has(p.id)
+    // Sin la tabla de envíos aún, "completa" es lo mejor que se puede afirmar.
+    const enviada = hechos === total && (soportaEnvios ? subieron.has(p.id) : true)
     const incompleto = !enviada
     cuerpo += `<tr${incompleto ? ' class="fila-incompleta"' : ''}>` +
               `<td class="persona">${p.nombre}</td>` +
               `<td class="avance-p${incompleto ? ' incompleto' : ''}">` +
-              `${enviada ? 'Enviada' : `${hechos}/${total}`}</td>`
+              `${enviada ? (soportaEnvios ? 'Enviada' : 'Completa') : `${hechos}/${total}`}</td>`
     cacheBloques.forEach(b => {
       const v = mapa[p.id + '|' + b.id]
       const txt = v === 'si' ? 'Sí' : v === 'quizas' ? '?' : v === 'no' ? 'No' : '–'
@@ -1396,8 +1439,7 @@ async function cambiarMarcaAjena(perfil_id, bloque_id){
     else cacheDisp.push({ bloque_id, perfil_id, estado: nuevo })
   }
 
-  decir($('#avisoDisp'), 'Guardado ✓')
-  setTimeout(() => decir($('#avisoDisp'), ''), 1600)
+  decirYborrar($('#avisoDisp'), 'Guardado ✓', 1600)
   pintarDisponibilidad()
   pintarTurnos()
 }
@@ -1688,8 +1730,7 @@ function pintarEditorBloques(){
       const { error } = await sb.from('bloques').update(cambios).eq('id', b.id)
       if (error) return decir($('#avisoBloques'), error.message, true)
       Object.assign(b, cambios)
-      decir($('#avisoBloques'), 'Guardado ✓')
-      setTimeout(() => decir($('#avisoBloques'), ''), 1800)
+      decirYborrar($('#avisoBloques'), 'Guardado ✓', 1800)
     }
     ;[fFecha, fIni, fFin, fEt, fCupos].forEach(i => { i.onchange = guardar; fila.appendChild(i) })
 
