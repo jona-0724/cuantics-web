@@ -102,8 +102,10 @@
   .feria{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;width:100%;text-align:left;
     border:1px solid var(--linea);background:var(--plancha);border-radius:4px;padding:16px 18px;
     color:inherit;font:inherit;cursor:pointer}
-  .feria:hover{border-color:var(--brasa)}
-  .feria.activa{border-color:var(--brasa);background:var(--plancha-alta)}
+  .feria:hover{border-color:var(--humo)}
+  .feria.activa{border-color:var(--brasa);background:var(--plancha-alta);
+    box-shadow:0 0 0 1px var(--brasa)}
+  .feria.activa .feria__nom{color:var(--brasa)}
   .feria__nom{font-family:var(--f-display);font-size:1.2rem;text-transform:uppercase;line-height:1.1}
   .feria__meta{font-size:.86rem;color:var(--humo)}
   .estado{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.14em;font-weight:700;
@@ -128,8 +130,12 @@
   .feria__cuando.lejos{background:transparent;color:var(--humo);border-color:var(--linea)}
   .feria__cuando.pasada{background:transparent;color:var(--humo);border-color:var(--linea);opacity:.8}
 
-  /* La siguiente en ocurrir: es la que casi siempre se viene a buscar. */
-  .feria.siguiente{border-color:var(--brasa);box-shadow:inset 3px 0 0 var(--brasa)}
+  /* Dos señales distintas que antes se confundían:
+       · "siguiente"  = la más próxima en el calendario  → barrita al costado
+       · "activa"     = la que estás viendo ahora        → borde naranja entero
+     Si se pintan igual, parece que hay dos seleccionadas. */
+  .feria.siguiente{box-shadow:inset 4px 0 0 var(--brasa)}
+  .feria.siguiente .feria__nom{color:var(--chispa)}
   .feria.pasada{opacity:.62}
   .feria.pasada:hover{opacity:1}
 
