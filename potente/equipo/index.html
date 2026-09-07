@@ -113,6 +113,31 @@
   .estado.cerrada{color:var(--quizas)}
   .estado.publicada{color:var(--brasa)}
 
+  /* ---------- orden y cercanía de las ferias ----------
+     La lista se lee de arriba abajo como se vive el calendario: primero lo
+     que viene, al final lo que ya pasó. El "cuándo" evita tener que restar
+     fechas de cabeza. */
+  .feria__txt{flex:1 1 240px;min-width:0}
+  .feria__cuando{font-family:var(--f-util);text-transform:uppercase;letter-spacing:.12em;
+    font-weight:700;font-size:.68rem;padding:4px 9px;border-radius:2px;white-space:nowrap;
+    margin-left:auto;background:rgba(242,129,29,.14);color:var(--brasa);
+    border:1px solid rgba(242,129,29,.4)}
+  .feria__cuando + .estado{margin-left:0}
+  .feria__cuando.encurso{background:rgba(47,191,107,.16);color:var(--si);
+    border-color:rgba(47,191,107,.45)}
+  .feria__cuando.lejos{background:transparent;color:var(--humo);border-color:var(--linea)}
+  .feria__cuando.pasada{background:transparent;color:var(--humo);border-color:var(--linea);opacity:.8}
+
+  /* La siguiente en ocurrir: es la que casi siempre se viene a buscar. */
+  .feria.siguiente{border-color:var(--brasa);box-shadow:inset 3px 0 0 var(--brasa)}
+  .feria.pasada{opacity:.62}
+  .feria.pasada:hover{opacity:1}
+
+  .separador{display:flex;align-items:center;gap:12px;margin:22px 0 12px;
+    font-family:var(--f-util);text-transform:uppercase;letter-spacing:.16em;
+    font-weight:700;font-size:.7rem;color:var(--humo)}
+  .separador::after{content:"";flex:1;height:1px;background:var(--linea)}
+
   /* ---------- disponibilidad ---------- */
   .dia{margin-bottom:22px;border:1px solid var(--linea);border-radius:4px;overflow:hidden}
   .dia__cab{background:var(--plancha-alta);padding:11px 16px;font-family:var(--f-util);
@@ -639,6 +664,64 @@ function rango(ini, fin){
 }
 function hhmm(t){ return (t || '').slice(0,5) }
 
+/* Hoy en 'YYYY-MM-DD' con la hora local del equipo, no en UTC: en Lima son
+   cinco horas menos y de noche el UTC ya está en el día siguiente. */
+function hoyISO(){
+  const f = new Date()
+  return `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}-${String(f.getDate()).padStart(2,'0')}`
+}
+
+/* Días entre dos fechas 'YYYY-MM-DD', contando días de calendario. */
+function diasEntreFechas(desde, hasta){
+  const [a1,m1,d1] = desde.split('-').map(Number)
+  const [a2,m2,d2] = hasta.split('-').map(Number)
+  return Math.round((new Date(a2,m2-1,d2) - new Date(a1,m1-1,d1)) / 86400000)
+}
+
+/* Cómo de cerca está una feria, en palabras. */
+function cuandoEs(f){
+  const hoy = hoyISO()
+  if (f.fecha_fin < hoy)    return { texto:'Ya pasó',  clase:'pasada',  pasada:true }
+  if (f.fecha_inicio <= hoy) return { texto:'En curso', clase:'encurso', pasada:false }
+  const d = diasEntreFechas(hoy, f.fecha_inicio)
+  if (d === 1) return { texto:'Mañana', clase:'', pasada:false }
+  if (d <= 14) return { texto:`En ${d} días`, clase:'', pasada:false }
+  return { texto:`En ${d} días`, clase:'lejos', pasada:false }
+}
+
+/* Orden del calendario: lo que viene primero, ordenado de más cerca a más
+   lejos; lo que ya pasó al final, de lo más reciente a lo más viejo. */
+function ordenCalendario(lista){
+  const hoy = hoyISO()
+  const porVenir = lista.filter(f => f.fecha_fin >= hoy)
+    .sort((a,b) => a.fecha_inicio.localeCompare(b.fecha_inicio))
+  const pasadas = lista.filter(f => f.fecha_fin < hoy)
+    .sort((a,b) => b.fecha_inicio.localeCompare(a.fecha_inicio))
+  return { porVenir, pasadas }
+}
+
+/* Dibuja una feria de la lista. Se usa igual en las dos vistas para que
+   administrador y feriante vean la misma información de cercanía. */
+function botonFeria(f, etiquetaEstado, esSiguiente){
+  const c = cuandoEs(f)
+  const b = document.createElement('button')
+  b.className = 'feria' + (esSiguiente ? ' siguiente' : '') + (c.pasada ? ' pasada' : '')
+  b.type = 'button'
+  b.innerHTML = `<span class="feria__txt">
+      <span class="feria__nom">${f.nombre}</span><br>
+      <span class="feria__meta">${f.lugar ? f.lugar + ' · ' : ''}${rango(f.fecha_inicio, f.fecha_fin)}</span>
+    </span>
+    <span class="feria__cuando ${c.clase}">${c.texto}</span>
+    <span class="estado ${f.estado}">${etiquetaEstado}</span>`
+  return b
+}
+
+function separador(texto){
+  const s = document.createElement('div')
+  s.className = 'separador'; s.textContent = texto
+  return s
+}
+
 /* Los avisos se limpian solos con un temporizador. Si llega uno nuevo antes
    de que el anterior se apague, hay que cancelar ese temporizador: si no, el
    mensaje recién puesto desaparece a los pocos milisegundos y la persona no
@@ -812,21 +895,23 @@ async function cargarFeriasFeriante(){
     return
   }
   cont.innerHTML = ''
-  data.forEach(f => {
-    const b = document.createElement('button')
-    b.className = 'feria'; b.type = 'button'
-    b.innerHTML = `<span>
-        <span class="feria__nom">${f.nombre}</span><br>
-        <span class="feria__meta">${f.lugar ? f.lugar + ' · ' : ''}${rango(f.fecha_inicio, f.fecha_fin)}</span>
-      </span>
-      <span class="estado ${f.estado}">${f.estado === 'abierta' ? 'Marca tu disponibilidad' : 'Turnos publicados'}</span>`
+  const { porVenir, pasadas } = ordenCalendario(data)
+
+  const pintar = (f, esSiguiente) => {
+    const b = botonFeria(f, f.estado === 'abierta' ? 'Marca tu disponibilidad' : 'Turnos publicados', esSiguiente)
     b.onclick = () => {
       $$('.feria', cont).forEach(x => x.classList.remove('activa'))
       b.classList.add('activa')
       abrirFeriaFeriante(f)
     }
     cont.appendChild(b)
-  })
+  }
+
+  porVenir.forEach((f, i) => pintar(f, i === 0))
+  if (pasadas.length) {
+    cont.appendChild(separador('Ya pasaron'))
+    pasadas.forEach(f => pintar(f, false))
+  }
 }
 
 async function abrirFeriaFeriante(f){
@@ -1059,25 +1144,28 @@ function agrupar(lista, clave){
    VISTA ADMINISTRADOR
    ========================================================================== */
 async function cargarFeriasAdmin(){
-  const { data, error } = await sb.from('ferias').select('*').order('fecha_inicio', { ascending:false })
+  const { data, error } = await sb.from('ferias').select('*').order('fecha_inicio')
   const cont = $('#listaFeriasAdmin')
   if (error) { cont.innerHTML = `<div class="vacio">${error.message}</div>`; return }
   if (!data.length) { cont.innerHTML = `<div class="vacio">Aún no hay ferias. Crea la primera.</div>`; return }
   cont.innerHTML = ''
-  data.forEach(f => {
-    const b = document.createElement('button')
-    b.className = 'feria'; b.type = 'button'
-    b.innerHTML = `<span>
-        <span class="feria__nom">${f.nombre}</span><br>
-        <span class="feria__meta">${f.lugar ? f.lugar + ' · ' : ''}${rango(f.fecha_inicio, f.fecha_fin)}</span>
-      </span><span class="estado ${f.estado}">${f.estado}</span>`
+  const { porVenir, pasadas } = ordenCalendario(data)
+
+  const pintar = (f, esSiguiente) => {
+    const b = botonFeria(f, f.estado, esSiguiente)
     b.onclick = () => {
       $$('.feria', cont).forEach(x => x.classList.remove('activa'))
       b.classList.add('activa')
       abrirFeriaAdmin(f)
     }
     cont.appendChild(b)
-  })
+  }
+
+  porVenir.forEach((f, i) => pintar(f, i === 0))
+  if (pasadas.length) {
+    cont.appendChild(separador('Ya pasaron'))
+    pasadas.forEach(f => pintar(f, false))
+  }
 }
 
 /* ---------- crear feria ---------- */
