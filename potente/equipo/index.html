@@ -1706,12 +1706,12 @@ function textoRecordatorio(){
          + `y la feria ya está cerca. ${uno ? 'Cámbialos' : 'Cámbienlos'} a Sí o a No `
          + `y ${uno ? 'sube tu' : 'suban su'} disponibilidad.`)
   }
-  // Aquí sin nombres a propósito: son muchos y la lista se vuelve ilegible.
-  // El número presiona igual y no señala a nadie en particular.
+  // Sin nombres y sin número, a propósito. Quien no ha subido nada puede
+  // simplemente no querer ir a esta feria, y eso también es una respuesta.
+  // Se abre la puerta en vez de pasar lista.
   if (soloFaltaSubir.length)
-    l.push(soloFaltaSubir.length === 1
-      ? '⏳ Falta *1 persona* por subir su disponibilidad.'
-      : `⏳ Faltan *${soloFaltaSubir.length} personas* por subir su disponibilidad.`)
+    l.push('⏳ Todavía quedan horarios libres. Si aún no subes tu disponibilidad, '
+         + 'estás a tiempo: la seguimos recibiendo hasta que armemos los turnos.')
   l.push('')
   l.push('Entren a cuantics.pe/potente, bajen hasta el final y toquen "Acceso equipo".')
   l.push('Marquen Sí o No en cada bloque y no se olviden de darle a *Subir mi disponibilidad* 🙌')
