@@ -224,6 +224,14 @@
   .btn--fantasma{background:transparent;border:1px solid var(--linea);color:var(--humo)}
   .btn--fantasma:hover{border-color:var(--crema-media);color:var(--crema)}
   .btn[disabled]{opacity:.45;cursor:not-allowed;filter:grayscale(.5)}
+  /* Cuando ya respondió todo pero no le ha dado a subir, el botón late.
+     Es el único momento en que hace falta llamar la atención. */
+  @keyframes latido{
+    0%,100%{box-shadow:0 0 0 0 rgba(242,129,29,.55)}
+    50%    {box-shadow:0 0 0 9px rgba(242,129,29,0)}
+  }
+  .envio.pide #btnSubir{animation:latido 1.7s ease-out infinite}
+  @media (prefers-reduced-motion:reduce){ .envio.pide #btnSubir{animation:none} }
   /* Aire al final para que la barra no tape el último bloque. */
   #vistaFeriante.con-envio{padding-bottom:96px}
   @media (max-width:520px){
@@ -257,6 +265,11 @@
   td.avance-p{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700;
     font-family:var(--f-util);letter-spacing:.06em;font-size:.8rem;color:var(--si)}
   td.avance-p.incompleto{color:var(--brasa)}
+  td.avance-p.amano{color:var(--crema-media)}
+  /* Orden de llegada: con pocos cupos, es el criterio para repartirlos. */
+  .puesto{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:2px;
+    background:rgba(47,191,107,.16);border:1px solid rgba(47,191,107,.4);
+    font-size:.72rem;letter-spacing:.04em}
   tr.fila-incompleta td.persona{color:var(--brasa)}
   .leyenda{margin:10px 0 0;font-size:.82rem;color:var(--humo)}
 
@@ -542,7 +555,7 @@
 
         <div id="tabDisp">
           <div class="scroll-x" id="tablaDisp"></div>
-          <p class="leyenda"><b style="color:var(--si)">Enviada</b> = respondió todos los bloques y le dio a subir. <b style="color:var(--brasa)">3/6</b> = va a medias, todavía no la sube.</p>
+          <p class="leyenda"><b style="color:var(--si)">Enviada 1º</b> = respondió todo y le dio a subir; el número es el orden en que llegó (pasa el mouse por encima para ver la hora exacta). <b style="color:var(--brasa)">3/6</b> = va a medias, todavía no la sube. <b style="color:var(--crema-media)">Completa</b> = está todo respondido pero no lo subió desde su cuenta (normalmente porque lo llenaste tú). La tabla se ordena sola: primero quienes ya la enviaron, por orden de llegada.</p>
           <p class="leyenda">Haz clic en cualquier casilla para corregirla: pasa de <b style="color:var(--si)">Sí</b> a <b style="color:var(--quizas)">Quizás</b>, a <b style="color:var(--no)">No</b> y a vacío. Úsalo cuando alguien te avise por fuera de la página.</p>
           <p class="aviso" id="avisoDisp" role="status" aria-live="polite"></p>
         </div>
@@ -674,6 +687,16 @@ function rango(ini, fin){
   return (ini === fin ? fecha(ini) : `${fecha(ini)} — ${fecha(fin)}`) + cola
 }
 function hhmm(t){ return (t || '').slice(0,5) }
+
+/* Marca de tiempo legible, en la hora del equipo. */
+function fechaHora(iso){
+  const f = new Date(iso)
+  if (isNaN(f)) return ''
+  const dd = String(f.getDate()).padStart(2,'0')
+  const hh = String(f.getHours()).padStart(2,'0')
+  const mi = String(f.getMinutes()).padStart(2,'0')
+  return `${DIAS[f.getDay()]} ${dd} de ${MESES[f.getMonth()]}, ${hh}:${mi}`
+}
 
 /* Hoy en 'YYYY-MM-DD' con la hora local del equipo, no en UTC: en Lima son
    cinco horas menos y de noche el UTC ya está en el día siguiente. */
@@ -1068,6 +1091,7 @@ function refrescarAvance(){
   const alDia  = mandada && !hayCambios        // …y no tocó nada desde entonces
   barra.classList.toggle('listo', completo && !alDia)
   barra.classList.toggle('mandada', alDia)
+  barra.classList.toggle('pide', completo && !alDia)
   mostrar($('#btnSiguiente'), !completo)
   const subir = $('#btnSubir')
   subir.disabled = !completo || alDia
@@ -1080,6 +1104,20 @@ function refrescarAvance(){
   : `Te <b>${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`}</b>. `
     + 'Hasta que respondas todos no se puede subir.'
 }
+
+/* Si se va con la disponibilidad marcada pero sin subir, el navegador le
+   pregunta si de verdad quiere salir. Es lo más parecido a "obligar" que
+   permite una página web: no se puede impedir que cierre la pestaña, pero sí
+   que lo haga sin enterarse de que le faltaba un paso. */
+window.addEventListener('beforeunload', ev => {
+  if (!yo || yo.rol !== 'feriante') return
+  if (!feriaSel || feriaSel.estado !== 'abierta' || !soportaEnvios) return
+  const marcados = cacheBloques.filter(b => misMarcas[b.id]).length
+  if (!marcados) return                       // no tocó nada: no hay nada que perder
+  const completo = marcados === cacheBloques.length
+  const sinSubir = !completo || !miEnvio || hayCambios
+  if (sinSubir) { ev.preventDefault(); ev.returnValue = '' }
+})
 
 /* Lleva al primer bloque sin responder. En el celular la lista es larga y
    buscar a mano lo que falta es la excusa perfecta para dejarlo a medias. */
@@ -1478,19 +1516,51 @@ function pintarDisponibilidad(){
   cab += '</tr></thead>'
 
   const total = cacheBloques.length
-  const subieron = new Set(cacheEnvios.map(e => e.perfil_id))
-  let cuerpo = '<tbody>'
-  cachePerfiles.forEach(p => {
+  const cuando = Object.fromEntries(cacheEnvios.map(e => [e.perfil_id, e.enviado_en]))
+
+  // Una fila por persona, con lo que hace falta para ordenarlas.
+  const filas = cachePerfiles.map(p => {
     const hechos = cacheBloques.filter(b => mapa[p.id + '|' + b.id]).length
     // Vale como enviada solo si además respondió todo lo que hoy tiene la feria:
     // si el admin agregó un bloque después, vuelve a quedar pendiente.
     // Sin la tabla de envíos aún, "completa" es lo mejor que se puede afirmar.
-    const enviada = hechos === total && (soportaEnvios ? subieron.has(p.id) : true)
-    const incompleto = !enviada
-    cuerpo += `<tr${incompleto ? ' class="fila-incompleta"' : ''}>` +
+    const completa = hechos === total
+    // "Enviada" es cuando la propia persona le dio a subir. Si el administrador
+    // completó la fila a mano, está completa pero no la mandó ella: son cosas
+    // distintas y conviene poder distinguirlas.
+    const enviada = completa && (soportaEnvios ? !!cuando[p.id] : true)
+    return { p, hechos, completa, enviada, envio: enviada ? (cuando[p.id] || '') : '' }
+  })
+
+  // Quien la mandó primero va primero: en ferias de pocos cupos, el orden de
+  // llegada es el criterio para repartirlos.
+  const puesto = new Map()
+  filas.filter(f => f.enviada && f.envio)
+       .sort((a, b) => a.envio.localeCompare(b.envio))
+       .forEach((f, i) => puesto.set(f.p.id, i + 1))
+
+  filas.sort((a, b) => {
+    const pa = puesto.get(a.p.id), pb = puesto.get(b.p.id)
+    if (pa && pb) return pa - pb                       // por orden de envío
+    if (pa) return -1
+    if (pb) return 1
+    if (a.completa !== b.completa) return a.completa ? -1 : 1
+    if (b.hechos !== a.hechos) return b.hechos - a.hechos   // los más avanzados antes
+    return a.p.nombre.localeCompare(b.p.nombre)
+  })
+
+  let cuerpo = '<tbody>'
+  filas.forEach(({ p, hechos, completa, enviada, envio }) => {
+    const n = puesto.get(p.id)
+    const sello = enviada ? `Enviada${n ? ` <span class="puesto">${n}º</span>` : ''}`
+                : completa ? 'Completa'
+                : `${hechos}/${total}`
+    const clase = enviada ? '' : completa ? ' amano' : ' incompleto'
+    cuerpo += `<tr${completa ? '' : ' class="fila-incompleta"'}>` +
               `<td class="persona">${p.nombre}</td>` +
-              `<td class="avance-p${incompleto ? ' incompleto' : ''}">` +
-              `${enviada ? (soportaEnvios ? 'Enviada' : 'Completa') : `${hechos}/${total}`}</td>`
+              `<td class="avance-p${clase}"` +
+              `${envio ? ` title="Enviada el ${fechaHora(envio)}"`
+                       : completa ? ' title="Respondida completa, pero sin subir desde su cuenta"' : ''}>${sello}</td>`
     cacheBloques.forEach(b => {
       const v = mapa[p.id + '|' + b.id]
       const txt = v === 'si' ? 'Sí' : v === 'quizas' ? '?' : v === 'no' ? 'No' : '–'
