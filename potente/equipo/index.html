@@ -60,6 +60,8 @@
   label.campo{display:block;margin-bottom:14px}
   label.campo span{display:block;font-family:var(--f-util);text-transform:uppercase;
     letter-spacing:.16em;font-weight:600;font-size:.72rem;color:var(--humo);margin-bottom:6px}
+  label.campo .pista{display:block;margin:6px 0 0;font-family:var(--f-body);text-transform:none;
+    letter-spacing:0;font-size:.8rem;font-weight:400;color:var(--humo);line-height:1.4}
 
   .aviso{min-height:20px;margin:10px 0 0;font-family:var(--f-util);text-transform:uppercase;
     letter-spacing:.08em;font-size:.8rem;color:var(--chispa)}
@@ -272,6 +274,16 @@
     font-size:.72rem;letter-spacing:.04em}
   tr.fila-incompleta td.persona{color:var(--brasa)}
   .leyenda{margin:10px 0 0;font-size:.82rem;color:var(--humo)}
+  /* Recordatorio listo para pegar en el grupo. Se ve tal cual va a quedar. */
+  .recordatorio{margin-top:22px;border:1px solid var(--linea);border-radius:4px;
+    background:var(--plancha);padding:16px 18px}
+  .recordatorio__cab{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:12px}
+  .recordatorio__cab b{color:var(--chispa);font-family:var(--f-util);text-transform:uppercase;
+    letter-spacing:.14em;font-size:.78rem}
+  .recordatorio__cab .btn{margin-left:auto}
+  .recordatorio__txt{margin:0;padding:14px 16px;background:var(--carbon-hondo);
+    border:1px solid var(--linea);border-radius:3px;white-space:pre-wrap;word-break:break-word;
+    font-family:var(--f-body);font-size:.88rem;line-height:1.55;color:var(--crema-media)}
 
   /* ---------- turnos ---------- */
   .turno{border:1px solid var(--linea);border-radius:4px;padding:16px;margin-bottom:12px;background:var(--plancha)}
@@ -481,6 +493,10 @@
           </div>
           <label class="campo"><span>Dirección del Dark Kitchen (distinta a la feria)</span>
             <input type="text" id="fDireccionDk" placeholder="Calle Frisancho Melchor 376 — Santiago de Surco"></label>
+          <label class="campo"><span>Días antes en que ya no vale "Quizás"</span>
+            <input type="number" id="fDiasDef" min="0" max="90" value="7">
+            <small class="pista">Desde ese día el equipo solo puede marcar Sí o No, y quien tenga
+              "quizás" tiene que definirlo. Un 0 acepta "quizás" hasta el final.</small></label>
           <label class="campo"><span>Notas para el equipo</span>
             <textarea id="fNotas" placeholder="Lo que quieras que lean antes de marcar: cómo llegar, qué llevar, uniforme, con quién coordinar…"></textarea></label>
         </fieldset>
@@ -558,6 +574,15 @@
           <p class="leyenda"><b style="color:var(--si)">Enviada 1º</b> = respondió todo y le dio a subir; el número es el orden en que llegó (pasa el mouse por encima para ver la hora exacta). <b style="color:var(--brasa)">3/6</b> = va a medias, todavía no la sube. <b style="color:var(--crema-media)">Completa</b> = está todo respondido pero no lo subió desde su cuenta (normalmente porque lo llenaste tú). La tabla se ordena sola: primero quienes ya la enviaron, por orden de llegada.</p>
           <p class="leyenda">Haz clic en cualquier casilla para corregirla: pasa de <b style="color:var(--si)">Sí</b> a <b style="color:var(--quizas)">Quizás</b>, a <b style="color:var(--no)">No</b> y a vacío. Úsalo cuando alguien te avise por fuera de la página.</p>
           <p class="aviso" id="avisoDisp" role="status" aria-live="polite"></p>
+
+          <div class="recordatorio" id="cajaRecordatorio" hidden>
+            <div class="recordatorio__cab">
+              <b>Falta gente por responder</b>
+              <button class="btn btn--linea btn--mini" id="btnCopiarAviso" type="button">Copiar para WhatsApp</button>
+            </div>
+            <pre class="recordatorio__txt" id="textoAviso"></pre>
+            <p class="aviso" id="avisoCopia" role="status" aria-live="polite"></p>
+          </div>
         </div>
 
         <div id="tabTurnos" hidden>
@@ -574,6 +599,8 @@
               <label class="campo"><span>Último día de feria</span><input type="date" id="eFin"></label>
             </div>
             <label class="campo"><span>Dirección del Dark Kitchen (distinta a la feria)</span><input type="text" id="eDireccionDk"></label>
+            <label class="campo"><span>Días antes en que ya no vale "Quizás"</span>
+              <input type="number" id="eDiasDef" min="0" max="90"></label>
             <label class="campo"><span>Notas para el equipo</span>
               <textarea id="eNotas" placeholder="Cómo llegar, qué llevar, uniforme, con quién coordinar…"></textarea></label>
             <p class="seccion__sub" style="margin:-8px 0 14px">
@@ -710,6 +737,22 @@ function diasEntreFechas(desde, hasta){
   const [a1,m1,d1] = desde.split('-').map(Number)
   const [a2,m2,d2] = hasta.split('-').map(Number)
   return Math.round((new Date(a2,m2-1,d2) - new Date(a1,m1-1,d1)) / 86400000)
+}
+
+/* ¿La feria ya entró en la ventana en que hay que definir Sí o No?
+   Un "quizás" a un mes es información; a tres días es un problema. */
+function enDefinicion(f){
+  const plazo = f.dias_definicion ?? 7
+  if (!plazo) return false
+  const hoy = hoyISO()
+  if (f.fecha_fin < hoy) return false
+  return diasEntreFechas(hoy, f.fecha_inicio) <= plazo
+}
+
+/* Un bloque cuenta como respondido salvo que siga en "quizás" cuando la feria
+   ya entró en la ventana de definición. */
+function resuelto(estado, definiendo){
+  return !!estado && !(definiendo && estado === 'quizas')
 }
 
 /* Cómo de cerca está una feria, en palabras. */
@@ -973,6 +1016,7 @@ async function abrirFeriaFeriante(f){
   const misTurnos = Object.fromEntries((asig || []).map(a => [a.bloque_id, a.rol]))
 
   const cont = $('#diasFeriante'); cont.innerHTML = ''
+  const definiendo = enDefinicion(f)
 
   // Aclaraciones que escribió el administrador para esta feria.
   if (f.notas && f.notas.trim()) {
@@ -987,6 +1031,14 @@ async function abrirFeriaFeriante(f){
     n.innerHTML = `<b>Los bloques de despacho son condicionales.</b> Se confirman el día anterior,
       según lo que haya quedado de stock. Marca igual si podrías: si al final no hace falta, te avisamos.`
     cont.appendChild(n)
+  }
+
+  if (definiendo && f.estado === 'abierta') {
+    const d = document.createElement('p'); d.className = 'nota-cond'
+    d.innerHTML = `<b>Ya no se puede responder "Quizás".</b> La feria está muy cerca y hay que
+      cerrar los turnos, así que en cada bloque toca decidir <b>Sí</b> o <b>No</b>.
+      Si habías marcado "quizás", ese bloque te aparece pendiente abajo.`
+    cont.appendChild(d)
   }
 
   if (cacheBloques.some(esDk)) {
@@ -1024,7 +1076,9 @@ async function abrirFeriaFeriante(f){
       fila.appendChild(ub)
       if (f.estado === 'abierta') {
         const ops = document.createElement('div'); ops.className = 'opciones'
-        ;[['si','Sí'],['quizas','Quizás'],['no','No']].forEach(([v, txt]) => {
+        const posibles = definiendo ? [['si','Sí'],['no','No']]
+                                    : [['si','Sí'],['quizas','Quizás'],['no','No']]
+        posibles.forEach(([v, txt]) => {
           const b = document.createElement('button')
           b.className = 'op'; b.type = 'button'; b.dataset.v = v; b.textContent = txt
           b.setAttribute('aria-pressed', String(mias[bl.id] === v))
@@ -1065,15 +1119,24 @@ function faltaLaTabla(error){
 function refrescarAvance(){
   const total = cacheBloques.length
   if (!total) return
-  const hechos = cacheBloques.filter(b => misMarcas[b.id]).length
+  const definiendo = feriaSel ? enDefinicion(feriaSel) : false
+  const hechos = cacheBloques.filter(b => resuelto(misMarcas[b.id], definiendo)).length
   const faltan = total - hechos
   const completo = faltan === 0
+  // Los que siguen en "quizás" dentro de la ventana no están sin contestar:
+  // están sin decidir, y merecen otra palabra.
+  const porDefinir = definiendo
+    ? cacheBloques.filter(b => misMarcas[b.id] === 'quizas').length : 0
 
   $$('.bloque[data-bloque]', $('#diasFeriante')).forEach(fila => {
-    const pendiente = !misMarcas[fila.dataset.bloque]
+    const marca = misMarcas[fila.dataset.bloque]
+    const pendiente = !resuelto(marca, definiendo)
     fila.classList.toggle('falta', pendiente)
     const et = $('.pendiente', fila)
-    if (et) mostrar(et, pendiente)
+    if (et) {
+      mostrar(et, pendiente)
+      et.textContent = (definiendo && marca === 'quizas') ? 'Define' : 'Falta'
+    }
   })
 
   const caja = $('#avanceFeriante')
@@ -1081,8 +1144,11 @@ function refrescarAvance(){
   $('#avanceTit').textContent = completo ? '¡Listo!' : `${hechos} de ${total}`
   $('#avanceTxt').textContent = completo
     ? 'Respondiste todos los bloques. Ya puedes subir tu disponibilidad, abajo.'
-    : `Te ${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`} por responder. `
-      + 'Están marcados abajo; contesta también los que no puedes, para que no queden en duda.'
+    : porDefinir === faltan
+      ? `Te ${faltan === 1 ? 'queda 1 bloque en "Quizás"' : `quedan ${faltan} bloques en "Quizás"`}. `
+        + 'La feria ya está cerca: cámbialos a Sí o a No.'
+      : `Te ${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`} por responder. `
+        + 'Están marcados abajo; contesta también los que no puedes, para que no queden en duda.'
   $('#avanceBarra').style.width = Math.round(hechos / total * 100) + '%'
 
   // ---- barra de abajo ----
@@ -1101,8 +1167,11 @@ function refrescarAvance(){
     alDia   ? '<b>Disponibilidad enviada.</b> Puedes cambiarla cuando quieras, mientras la feria siga abierta.'
   : mandada ? '<b>Cambiaste una respuesta.</b> Actualiza tu envío para que quede registrado.'
   : completo ? '<b>Todo respondido.</b> Súbela para que quede registrada.'
-  : `Te <b>${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`}</b>. `
-    + 'Hasta que respondas todos no se puede subir.'
+  : porDefinir === faltan
+    ? `Te <b>${faltan === 1 ? 'queda 1 en "Quizás"' : `quedan ${faltan} en "Quizás"`}</b>. `
+      + 'Cámbialos a Sí o a No para poder subirla.'
+    : `Te <b>${faltan === 1 ? 'falta 1 bloque' : `faltan ${faltan} bloques`}</b>. `
+      + 'Hasta que respondas todos no se puede subir.'
 }
 
 /* Si se va con la disponibilidad marcada pero sin subir, el navegador le
@@ -1112,8 +1181,9 @@ function refrescarAvance(){
 window.addEventListener('beforeunload', ev => {
   if (!yo || yo.rol !== 'feriante') return
   if (!feriaSel || feriaSel.estado !== 'abierta' || !soportaEnvios) return
-  const marcados = cacheBloques.filter(b => misMarcas[b.id]).length
-  if (!marcados) return                       // no tocó nada: no hay nada que perder
+  const definiendo = enDefinicion(feriaSel)
+  if (!cacheBloques.some(b => misMarcas[b.id])) return   // no tocó nada
+  const marcados = cacheBloques.filter(b => resuelto(misMarcas[b.id], definiendo)).length
   const completo = marcados === cacheBloques.length
   const sinSubir = !completo || !miEnvio || hayCambios
   if (sinSubir) { ev.preventDefault(); ev.returnValue = '' }
@@ -1135,8 +1205,11 @@ $('#btnSiguiente').onclick = () => {
    esto registra que la persona terminó, que es lo que el admin necesita saber. */
 $('#btnSubir').onclick = async () => {
   if (!feriaSel) return
-  const faltan = cacheBloques.filter(b => !misMarcas[b.id]).length
-  if (faltan) return decir($('#avisoGuardado'), 'Todavía te faltan bloques por responder.', true)
+  const definiendo = enDefinicion(feriaSel)
+  const faltan = cacheBloques.filter(b => !resuelto(misMarcas[b.id], definiendo)).length
+  if (faltan) return decir($('#avisoGuardado'),
+    definiendo ? 'Todavía tienes bloques en "Quizás" por definir.'
+               : 'Todavía te faltan bloques por responder.', true)
 
   $('#btnSubir').disabled = true
   decir($('#avisoGuardado'), 'Subiendo…')
@@ -1284,6 +1357,7 @@ formFeria.onsubmit = async (e) => {
     lugar:  $('#fLugar').value.trim() || null,
     direccion_dk: $('#fDireccionDk').value.trim() || null,
     notas: $('#fNotas').value.trim() || null,
+    dias_definicion: Math.max(0, Math.min(90, Number($('#fDiasDef').value) || 0)),
     fecha_inicio: ini, fecha_fin: fin, estado: 'borrador'
   }).select().single()
 
@@ -1516,11 +1590,16 @@ function pintarDisponibilidad(){
   cab += '</tr></thead>'
 
   const total = cacheBloques.length
+  const definiendo = feriaSel ? enDefinicion(feriaSel) : false
   const cuando = Object.fromEntries(cacheEnvios.map(e => [e.perfil_id, e.enviado_en]))
 
   // Una fila por persona, con lo que hace falta para ordenarlas.
   const filas = cachePerfiles.map(p => {
-    const hechos = cacheBloques.filter(b => mapa[p.id + '|' + b.id]).length
+    // Un bloque en "quizás" deja de contar cuando la feria ya entró en la
+    // ventana de definición: ahí hace falta un Sí o un No.
+    const hechos = cacheBloques.filter(b => resuelto(mapa[p.id + '|' + b.id], definiendo)).length
+    const dudas  = definiendo
+      ? cacheBloques.filter(b => mapa[p.id + '|' + b.id] === 'quizas').length : 0
     // Vale como enviada solo si además respondió todo lo que hoy tiene la feria:
     // si el admin agregó un bloque después, vuelve a quedar pendiente.
     // Sin la tabla de envíos aún, "completa" es lo mejor que se puede afirmar.
@@ -1529,7 +1608,7 @@ function pintarDisponibilidad(){
     // completó la fila a mano, está completa pero no la mandó ella: son cosas
     // distintas y conviene poder distinguirlas.
     const enviada = completa && (soportaEnvios ? !!cuando[p.id] : true)
-    return { p, hechos, completa, enviada, envio: enviada ? (cuando[p.id] || '') : '' }
+    return { p, hechos, dudas, completa, enviada, envio: enviada ? (cuando[p.id] || '') : '' }
   })
 
   // Quien la mandó primero va primero: en ferias de pocos cupos, el orden de
@@ -1548,6 +1627,12 @@ function pintarDisponibilidad(){
     if (b.hechos !== a.hechos) return b.hechos - a.hechos   // los más avanzados antes
     return a.p.nombre.localeCompare(b.p.nombre)
   })
+
+  pendientes = {
+    sinEnviar: filas.filter(f => !f.enviada).map(f => f.p.nombre),
+    conDudas:  filas.filter(f => f.dudas).map(f => f.p.nombre)
+  }
+  mostrar($('#cajaRecordatorio'), pendientes.sinEnviar.length > 0 || pendientes.conDudas.length > 0)
 
   let cuerpo = '<tbody>'
   filas.forEach(({ p, hechos, completa, enviada, envio }) => {
@@ -1583,6 +1668,66 @@ function pintarDisponibilidad(){
   }
   cont.innerHTML = ''
   cont.appendChild(t)
+  pintarRecordatorio()
+}
+
+/* ==========================================================================
+   RECORDATORIO PARA EL GRUPO
+   El equipo vive en WhatsApp, no en el correo. En vez de montar envíos
+   automáticos, se arma aquí el mensaje con los nombres que faltan y se copia
+   de un clic. Lo manda una persona, que es lo que la gente responde.
+   ========================================================================== */
+let pendientes = { sinEnviar: [], conDudas: [] }
+
+function listar(nombres){
+  if (nombres.length === 1) return nombres[0]
+  return nombres.slice(0, -1).join(', ') + ' y ' + nombres[nombres.length - 1]
+}
+
+function textoRecordatorio(){
+  if (!feriaSel) return ''
+  const c = cuandoEs(feriaSel)
+  const cuando = c.texto === 'En curso' ? 'ya empezó'
+               : c.texto === 'Mañana'   ? 'es mañana'
+               : c.texto.startsWith('En') ? `es ${c.texto.toLowerCase()}`
+               : c.texto.toLowerCase()
+
+  // Quien tiene un "quizás" pendiente también está sin enviar, pero nombrarlo
+  // dos veces confunde: se le pide lo concreto, que es definir.
+  const soloFaltaSubir = pendientes.sinEnviar.filter(n => !pendientes.conDudas.includes(n))
+
+  const l = []
+  l.push(`Hola equipo 👋 La *${feriaSel.nombre}* ${cuando} — ${rango(feriaSel.fecha_inicio, feriaSel.fecha_fin)}.`)
+  if (feriaSel.lugar) l.push(`📍 ${feriaSel.lugar}`)
+  l.push('')
+  if (pendientes.conDudas.length)
+    l.push(`🤔 *${listar(pendientes.conDudas)}*: tienen bloques en "Quizás" y la feria ya está cerca. `
+         + 'Cámbienlos a Sí o a No y suban su disponibilidad.')
+  if (soloFaltaSubir.length)
+    l.push(`⏳ *${listar(soloFaltaSubir)}*: falta que suban su disponibilidad.`)
+  l.push('')
+  l.push('Entren a cuantics.pe/potente, bajen hasta el final y toquen "Acceso equipo".')
+  l.push('Marquen Sí o No en cada bloque y no se olviden de darle a *Subir mi disponibilidad* 🙌')
+  return l.join('\n')
+}
+
+function pintarRecordatorio(){
+  const caja = $('#textoAviso')
+  if (caja) caja.textContent = textoRecordatorio()
+}
+
+$('#btnCopiarAviso').onclick = async () => {
+  const txt = textoRecordatorio()
+  try {
+    await navigator.clipboard.writeText(txt)
+    decirYborrar($('#avisoCopia'), 'Copiado ✓ pégalo en el grupo', 2600)
+  } catch {
+    // Algunos navegadores no dan permiso al portapapeles: se selecciona el
+    // texto para que lo copie a mano, en vez de dejarlo sin salida.
+    const r = document.createRange(); r.selectNodeContents($('#textoAviso'))
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r)
+    decirYborrar($('#avisoCopia'), 'Está seleccionado: cópialo con Ctrl+C', 4000, true)
+  }
 }
 
 /* El administrador corrige la marca de cualquiera. Gira Sí → Quizás → No →
@@ -1823,6 +1968,7 @@ function pintarAjustes(){
   $('#eInicio').value      = feriaSel.fecha_inicio
   $('#eFin').value         = feriaSel.fecha_fin
   $('#eDireccionDk').value = feriaSel.direccion_dk || ''
+  $('#eDiasDef').value      = feriaSel.dias_definicion ?? 7
   $('#eNotas').value       = feriaSel.notas || ''
   decir($('#avisoEditar'), ''); decir($('#avisoBloques'), ''); decir($('#avisoBorrar'), '')
   reiniciarBorrado()
@@ -1840,6 +1986,7 @@ $('#btnGuardarFeria').onclick = async () => {
     nombre: $('#eNombre').value.trim(),
     lugar: $('#eLugar').value.trim() || null,
     direccion_dk: $('#eDireccionDk').value.trim() || null,
+    dias_definicion: Math.max(0, Math.min(90, Number($('#eDiasDef').value) || 0)),
     notas: $('#eNotas').value.trim() || null,
     fecha_inicio: ini, fecha_fin: fin
   }
