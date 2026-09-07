@@ -659,8 +659,15 @@ function fechaCorta(iso){
   const [,m,d] = iso.split('-').map(Number)
   return `${d}/${String(m).padStart(2,'0')}`
 }
+/* El año solo aparece cuando no es el año en curso. Así la lista del día a
+   día se lee limpia, y una feria del próximo año salta a la vista en vez de
+   confundirse con una de este. */
 function rango(ini, fin){
-  return ini === fin ? fecha(ini) : `${fecha(ini)} — ${fecha(fin)}`
+  const a1 = Number(ini.slice(0,4)), a2 = Number(fin.slice(0,4))
+  const esteAnio = new Date().getFullYear()
+  if (a1 !== a2) return `${fecha(ini)} de ${a1} — ${fecha(fin)} de ${a2}`
+  const cola = a1 === esteAnio ? '' : ` de ${a1}`
+  return (ini === fin ? fecha(ini) : `${fecha(ini)} — ${fecha(fin)}`) + cola
 }
 function hhmm(t){ return (t || '').slice(0,5) }
 
