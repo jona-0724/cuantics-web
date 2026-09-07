@@ -1700,11 +1700,18 @@ function textoRecordatorio(){
   l.push(`Hola equipo 👋 La *${feriaSel.nombre}* ${cuando} — ${rango(feriaSel.fecha_inicio, feriaSel.fecha_fin)}.`)
   if (feriaSel.lugar) l.push(`📍 ${feriaSel.lugar}`)
   l.push('')
-  if (pendientes.conDudas.length)
-    l.push(`🤔 *${listar(pendientes.conDudas)}*: tienen bloques en "Quizás" y la feria ya está cerca. `
-         + 'Cámbienlos a Sí o a No y suban su disponibilidad.')
+  if (pendientes.conDudas.length) {
+    const uno = pendientes.conDudas.length === 1
+    l.push(`🤔 *${listar(pendientes.conDudas)}*: ${uno ? 'tienes' : 'tienen'} bloques en "Quizás" `
+         + `y la feria ya está cerca. ${uno ? 'Cámbialos' : 'Cámbienlos'} a Sí o a No `
+         + `y ${uno ? 'sube tu' : 'suban su'} disponibilidad.`)
+  }
+  // Aquí sin nombres a propósito: son muchos y la lista se vuelve ilegible.
+  // El número presiona igual y no señala a nadie en particular.
   if (soloFaltaSubir.length)
-    l.push(`⏳ *${listar(soloFaltaSubir)}*: falta que suban su disponibilidad.`)
+    l.push(soloFaltaSubir.length === 1
+      ? '⏳ Falta *1 persona* por subir su disponibilidad.'
+      : `⏳ Faltan *${soloFaltaSubir.length} personas* por subir su disponibilidad.`)
   l.push('')
   l.push('Entren a cuantics.pe/potente, bajen hasta el final y toquen "Acceso equipo".')
   l.push('Marquen Sí o No en cada bloque y no se olviden de darle a *Subir mi disponibilidad* 🙌')
