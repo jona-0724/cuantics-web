@@ -130,12 +130,10 @@
   .feria__cuando.lejos{background:transparent;color:var(--humo);border-color:var(--linea)}
   .feria__cuando.pasada{background:transparent;color:var(--humo);border-color:var(--linea);opacity:.8}
 
-  /* Dos señales distintas que antes se confundían:
-       · "siguiente"  = la más próxima en el calendario  → barrita al costado
-       · "activa"     = la que estás viendo ahora        → borde naranja entero
-     Si se pintan igual, parece que hay dos seleccionadas. */
-  .feria.siguiente{box-shadow:inset 4px 0 0 var(--brasa)}
-  .feria.siguiente .feria__nom{color:var(--chispa)}
+  /* En esta lista solo se resalta UNA cosa: la feria que estás viendo.
+     Marcar además "la más próxima" resultaba en dos filas encendidas a la vez
+     y no se sabía cuál estaba abierta. Cuál es la próxima ya lo dicen el
+     orden de la lista y su etiqueta de días, sin necesidad de pintarla. */
   .feria.pasada{opacity:.62}
   .feria.pasada:hover{opacity:1}
 
@@ -715,10 +713,10 @@ function ordenCalendario(lista){
 
 /* Dibuja una feria de la lista. Se usa igual en las dos vistas para que
    administrador y feriante vean la misma información de cercanía. */
-function botonFeria(f, etiquetaEstado, esSiguiente){
+function botonFeria(f, etiquetaEstado){
   const c = cuandoEs(f)
   const b = document.createElement('button')
-  b.className = 'feria' + (esSiguiente ? ' siguiente' : '') + (c.pasada ? ' pasada' : '')
+  b.className = 'feria' + (c.pasada ? ' pasada' : '')
   b.type = 'button'
   b.innerHTML = `<span class="feria__txt">
       <span class="feria__nom">${f.nombre}</span><br>
@@ -910,8 +908,8 @@ async function cargarFeriasFeriante(){
   cont.innerHTML = ''
   const { porVenir, pasadas } = ordenCalendario(data)
 
-  const pintar = (f, esSiguiente) => {
-    const b = botonFeria(f, f.estado === 'abierta' ? 'Marca tu disponibilidad' : 'Turnos publicados', esSiguiente)
+  const pintar = f => {
+    const b = botonFeria(f, f.estado === 'abierta' ? 'Marca tu disponibilidad' : 'Turnos publicados')
     b.onclick = () => {
       $$('.feria', cont).forEach(x => x.classList.remove('activa'))
       b.classList.add('activa')
@@ -920,10 +918,10 @@ async function cargarFeriasFeriante(){
     cont.appendChild(b)
   }
 
-  porVenir.forEach((f, i) => pintar(f, i === 0))
+  porVenir.forEach(pintar)
   if (pasadas.length) {
     cont.appendChild(separador('Ya pasaron'))
-    pasadas.forEach(f => pintar(f, false))
+    pasadas.forEach(pintar)
   }
 }
 
@@ -1164,8 +1162,8 @@ async function cargarFeriasAdmin(){
   cont.innerHTML = ''
   const { porVenir, pasadas } = ordenCalendario(data)
 
-  const pintar = (f, esSiguiente) => {
-    const b = botonFeria(f, f.estado, esSiguiente)
+  const pintar = f => {
+    const b = botonFeria(f, f.estado)
     b.onclick = () => {
       $$('.feria', cont).forEach(x => x.classList.remove('activa'))
       b.classList.add('activa')
@@ -1174,10 +1172,10 @@ async function cargarFeriasAdmin(){
     cont.appendChild(b)
   }
 
-  porVenir.forEach((f, i) => pintar(f, i === 0))
+  porVenir.forEach(pintar)
   if (pasadas.length) {
     cont.appendChild(separador('Ya pasaron'))
-    pasadas.forEach(f => pintar(f, false))
+    pasadas.forEach(pintar)
   }
 }
 
