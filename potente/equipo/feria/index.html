@@ -574,6 +574,26 @@ function bloqueDeAhora(){
 /* ==========================================================================
    ARRANQUE
    ========================================================================== */
+
+/* El navegador puede descartar una pestaña que lleva rato en segundo plano
+   para liberar memoria: al volver, la página arranca de cero y no hay forma de
+   impedirlo desde aquí. Lo que sí se puede es dejar anotado dónde estabas. */
+const SITIO = "potente.feria.sitio";
+function recordarSitio(){
+  if (!S.listo) return;
+  try {
+    sessionStorage.setItem(SITIO, JSON.stringify({
+      role:S.role, feriaSel:S.feriaSel, adminVista:S.adminVista,
+      adminSub:S.adminSub, diaSel:S.diaSel, y:window.scrollY, ts:Date.now()
+    }));
+  } catch(e){}
+}
+function sitioGuardado(){
+  try {
+    const v = JSON.parse(sessionStorage.getItem(SITIO) || "null");
+    return (v && Date.now() - v.ts < 12 * 3600 * 1000) ? v : null;
+  } catch(e){ return null; }
+}
 async function boot(){
   render();
   const { data:{ session } } = await sb.auth.getSession();
@@ -594,6 +614,21 @@ async function boot(){
   else if (!esAdmin()) S.role = null;
   if (S.role === "cocina") S.ordenes.forEach(o => S.vistos[o.id] = 1);
 
+  // Si la pestaña se recargó sola, se vuelve a donde estaba: misma pantalla,
+  // misma feria, mismo día y misma altura de página. Los permisos se vuelven a
+  // comprobar aquí, así que una nota vieja nunca abre algo que ya no te toca.
+  const sitio = sitioGuardado();
+  if (sitio){
+    if (sitio.role === "admin" && esAdmin()) S.role = "admin";
+    else if ((sitio.role === "caja" || sitio.role === "cocina") && puedoOperar()) S.role = sitio.role;
+    if (sitio.feriaSel && S.ferias.some(f => f.id === sitio.feriaSel)) S.feriaSel = sitio.feriaSel;
+    if (sitio.adminVista) S.adminVista = sitio.adminVista;
+    if (sitio.adminSub)   S.adminSub   = sitio.adminSub;
+    if (sitio.diaSel)     S.diaSel     = sitio.diaSel;
+    if (S.role === "cocina") S.ordenes.forEach(o => S.vistos[o.id] = 1);
+    if (S.role === "admin" && S.adminVista === "feria") await refrescarAdmin();
+  }
+
   // Si llegó desde "Ventas y objetivos" de una feria concreta, abre esa misma
   // y no la lista: el administrador ya dijo cuál quiere ver.
   const pedida = new URLSearchParams(location.search).get("feria");
@@ -604,11 +639,30 @@ async function boot(){
   }
 
   render();
-  setInterval(() => { if (S.role === "caja" || S.role === "cocina") refrescarCola(); }, 5000);
-  setInterval(() => { if (S.role === "admin" && S.adminVista === "feria") refrescarAdmin(); }, 20000);
+  if (sitio && sitio.y){
+    // La página termina de crecer por partes (la barra del equipo, los
+    // gráficos), así que se insiste un rato hasta que el alto dé para volver.
+    [0, 180, 420, 900, 1600].forEach(t => setTimeout(() => volverAlScroll(sitio.y), t));
+  }
+
+  // Con la pestaña en segundo plano el navegador amontona los temporizadores y
+  // los suelta todos juntos al volver, encima de una página que aún no se ha
+  // vuelto a medir: eso es lo que tiraba el scroll al inicio. Mientras no se
+  // ve, no se refresca nada; al volver, una sola puesta al día.
+  const dormida = () => document.hidden;
+  setInterval(() => { if (!dormida() && (S.role === "caja" || S.role === "cocina")) refrescarCola(); }, 5000);
+  setInterval(() => { if (!dormida() && S.role === "admin" && S.adminVista === "feria") refrescarAdmin(); }, 20000);
+  document.addEventListener("visibilitychange", async () => {
+    if (document.hidden){ recordarSitio(); return; }
+    if (!S.listo) return;
+    if (S.role === "caja" || S.role === "cocina") await refrescarCola();
+    else if (S.role === "admin" && S.adminVista === "feria") await refrescarAdmin();
+  });
+  window.addEventListener("pagehide", recordarSitio);
   // Cada minuto se vuelve a preguntar el turno: si el administrador te cambia
   // por un reemplazo, tu pantalla se cierra sola sin que tengas que recargar.
   setInterval(async () => {
+    if (dormida()) return;
     const antes = JSON.stringify(S.turnos.map(t => t.feria_id + t.rol + t.publicado));
     const { data, error } = await sb.rpc("mi_turno_hoy");
     if (!error) S.turnos = data || [];
@@ -1085,12 +1139,23 @@ function render(suave){
   pintarTop();
   const v = $("#view");
   if ((S.role === "caja" || S.role === "cocina") && !puedoOperar()) S.role = null;
-  if (!S.role)               v.innerHTML = vistaGate();
-  else if (S.role === "caja")   v.innerHTML = vistaCaja();
-  else if (S.role === "cocina") v.innerHTML = vistaCocina();
-  else                          v.innerHTML = vistaAdmin();
+  if (!S.role)               pintar(v, vistaGate());
+  else if (S.role === "caja")   pintar(v, vistaCaja());
+  else if (S.role === "cocina") pintar(v, vistaCocina());
+  else                          pintar(v, vistaAdmin());
   pintarModal();
-  if (S.role) window.scrollTo(0, y);
+  if (S.role) volverAlScroll(y);
+}
+/* Reescribir el HTML manda el scroll al tope y hace parpadear la pantalla.
+   Como la mayoría de refrescos no cambian nada, solo se escribe si cambió. */
+function pintar(cont, html){ if (cont.innerHTML !== html) cont.innerHTML = html; }
+/* Y cuando sí cambió: el navegador recorta el scroll mientras vuelve a medir
+   la página — sobre todo si la pestaña estuvo en segundo plano — así que hay
+   que insistir en el siguiente cuadro. */
+function volverAlScroll(y){
+  if (!y) return;
+  window.scrollTo(0, y);
+  requestAnimationFrame(() => { if (Math.abs(window.scrollY - y) > 2) window.scrollTo(0, y); });
 }
 
 const feriaSel    = () => S.ferias.find(f => f.id === S.feriaSel) || null;
