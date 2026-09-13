@@ -988,8 +988,53 @@ async function arrancarApp(){
   mostrar($('#irOperacion'), !admin)
   mostrar($('#vistaAdmin'), admin)
   mostrar($('#vistaFeriante'), !admin)
-  admin ? cargarFeriasAdmin() : cargarFeriasFeriante()
+  if (admin) { await cargarFeriasAdmin(); volverAlSitio() }
+  else cargarFeriasFeriante()
 }
+
+/* --------------------------------------------------------------------------
+   Dónde estabas
+   El navegador puede descartar una pestaña que lleva rato en segundo plano
+   para liberar memoria: al volver, la página arranca de cero. Eso no se puede
+   impedir desde aquí, pero sí dejar anotado en qué feria y en qué pestaña
+   estabas para no hacerte buscarla otra vez.
+   -------------------------------------------------------------------------- */
+const SITIO = 'potente.equipo.sitio'
+
+function recordarSitio(){
+  if (!yo || yo.rol !== 'admin') return
+  try {
+    const panel = $('.pestana[data-panel][aria-selected="true"]')
+    const tab   = $('.pestana[data-tab][aria-selected="true"]')
+    sessionStorage.setItem(SITIO, JSON.stringify({
+      panel: panel ? panel.dataset.panel : 'ferias',
+      feria: feriaSel ? feriaSel.id : null,
+      tab:   tab ? tab.dataset.tab : null,
+      y:     window.scrollY,
+      ts:    Date.now()
+    }))
+  } catch (e) {}
+}
+
+async function volverAlSitio(){
+  let s = null
+  try { s = JSON.parse(sessionStorage.getItem(SITIO) || 'null') } catch (e) {}
+  if (!s || Date.now() - s.ts > 12 * 3600 * 1000) return
+  if (s.panel === 'equipo') { const p = $('.pestana[data-panel="equipo"]'); if (p) p.click() }
+  if (s.feria) {
+    const b = $(`#listaFeriasAdmin .feria[data-feria="${s.feria}"]`)
+    if (b) {
+      b.click()
+      await new Promise(r => setTimeout(r, 450))   // abrirFeriaAdmin va a la base
+      if (s.tab) { const t = $(`.pestana[data-tab="${s.tab}"]`); if (t) t.click() }
+    }
+  }
+  // La página termina de crecer por partes, así que se insiste un rato.
+  if (s.y) [0, 200, 500, 1000].forEach(t => setTimeout(() => window.scrollTo(0, s.y), t))
+}
+
+document.addEventListener('visibilitychange', () => { if (document.hidden) recordarSitio() })
+window.addEventListener('pagehide', recordarSitio)
 
 /* ==========================================================================
    VISTA FERIANTE
@@ -1307,6 +1352,7 @@ async function cargarFeriasAdmin(){
 
   const pintar = f => {
     const b = botonFeria(f, f.estado)
+    b.dataset.feria = f.id
     b.onclick = () => {
       $$('.feria', cont).forEach(x => x.classList.remove('activa'))
       b.classList.add('activa')
