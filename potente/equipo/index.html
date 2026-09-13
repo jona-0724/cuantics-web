@@ -293,6 +293,12 @@
     border:1px solid var(--linea);border-radius:3px;white-space:pre-wrap;word-break:break-word;
     font-family:var(--f-body);font-size:.88rem;line-height:1.55;color:var(--crema-media)}
 
+  /* Reemplazos del día: se activa poco, así que no debe gritar. */
+  .reemplazos{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-bottom:14px;
+    padding:10px 14px;border:1px solid var(--linea);border-radius:4px;background:var(--plancha)}
+  .reemplazos label{display:flex;gap:8px;align-items:center;font-weight:600;white-space:nowrap}
+  .reemplazos span{font-size:.82rem;color:var(--humo);flex:1;min-width:220px}
+
   /* ---------- turnos ---------- */
   .turno{border:1px solid var(--linea);border-radius:4px;padding:16px;margin-bottom:12px;background:var(--plancha)}
   .turno__cab{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin-bottom:12px}
@@ -602,6 +608,14 @@
         </div>
 
         <div id="tabTurnos" hidden>
+          <!-- Cubrir una falta el mismo día: sin esto, el desplegable solo
+               ofrece a quien marcó disponibilidad, que casi nunca es el que
+               termina reemplazando. -->
+          <div class="reemplazos">
+            <label><input type="checkbox" id="verTodos"> Mostrar a todo el equipo</label>
+            <span>Para cubrir una falta: con esto puedes poner a cualquiera, haya marcado disponibilidad o no.
+            El cambio entra al momento, aunque los turnos ya estén publicados.</span>
+          </div>
           <div id="listaTurnos"></div>
         </div>
 
@@ -693,6 +707,7 @@ let cacheBloques = []
 let cacheDisp = []
 let cacheAsig = []
 let cachePerfiles = []
+let verTodoElEquipo = false   // desplegables de turno: solo disponibles, o todos
 let misMarcas = {}       // bloque_id → estado, solo del usuario actual
 let miEnvio = false      // ¿ya subió su disponibilidad de la feria abierta?
 let hayCambios = false   // cambió algo después de subirla
@@ -1514,6 +1529,8 @@ $$('.pestana[data-tab]').forEach(t => t.onclick = () => {
   if (t.dataset.tab === 'ajustes') pintarAjustes()
 })
 
+$('#verTodos').onchange = e => { verTodoElEquipo = e.target.checked; pintarTurnos() }
+
 /* ---------- pestañas de nivel superior: Ferias / Equipo ---------- */
 $$('.pestana[data-panel]').forEach(t => t.onclick = () => {
   $$('.pestana[data-panel]').forEach(x => x.setAttribute('aria-selected', String(x === t)))
@@ -1881,7 +1898,8 @@ function celdaCupo(b, i){
   const ocupados = asigs.filter(a => a !== actual).map(a => a.perfil_id)
   const candidatos = cachePerfiles.filter(p =>
     !ocupados.includes(p.id) &&
-    (marcados.some(m => m.perfil_id === p.id) || (actual && actual.perfil_id === p.id)))
+    (verTodoElEquipo || marcados.some(m => m.perfil_id === p.id) ||
+     (actual && actual.perfil_id === p.id)))
 
   const sel = document.createElement('select')
   const vacio = document.createElement('option')
@@ -1890,9 +1908,15 @@ function celdaCupo(b, i){
 
   candidatos.forEach(p => {
     const m = marcados.find(x => x.perfil_id === p.id)
+    // Con la lista abierta hay que decir en qué condiciones entra cada uno:
+    // no es lo mismo poner a quien dudó que a quien dijo que no podía.
+    const d = cacheDisp.find(x => x.bloque_id === b.id && x.perfil_id === p.id)
+    const nota = verTodoElEquipo
+      ? (!d ? ' (sin responder)' : d.estado === 'no' ? ' (dijo que no)' : d.estado === 'quizas' ? ' (quizás)' : '')
+      : (m && m.estado === 'quizas' ? ' (quizás)' : '')
     const o = document.createElement('option')
     o.value = p.id
-    o.textContent = p.nombre + (m && m.estado === 'quizas' ? ' (quizás)' : '')
+    o.textContent = p.nombre + nota
     if (actual && actual.perfil_id === p.id) o.selected = true
     sel.appendChild(o)
   })
