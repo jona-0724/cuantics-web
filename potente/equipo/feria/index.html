@@ -584,6 +584,15 @@ async function boot(){
   else if (!esAdmin()) S.role = null;
   if (S.role === "cocina") S.ordenes.forEach(o => S.vistos[o.id] = 1);
 
+  // Si llegó desde "Ventas y objetivos" de una feria concreta, abre esa misma
+  // y no la lista: el administrador ya dijo cuál quiere ver.
+  const pedida = new URLSearchParams(location.search).get("feria");
+  if (pedida && esAdmin() && S.ferias.some(f => f.id === pedida)){
+    S.role = "admin"; S.feriaSel = pedida;
+    S.adminVista = "feria"; S.adminSub = "resumen"; S.diaSel = "todos";
+    refrescarAdmin();
+  }
+
   render();
   setInterval(() => { if (S.role === "caja" || S.role === "cocina") refrescarCola(); }, 5000);
   setInterval(() => { if (S.role === "admin" && S.adminVista === "feria") refrescarAdmin(); }, 20000);
@@ -706,16 +715,35 @@ async function guardarCarta(){
   render();
 }
 
+/* Lo que el administrador está escribiendo vive aquí, no solo en el campo:
+   así un refresco de fondo no puede borrárselo a media edición. */
+function draftP0(f){
+  if (!S.p0Draft || S.p0Draft.id !== f.id)
+    S.p0Draft = { id:f.id,
+      punto0: f.punto0 ? String(f.punto0) : "",
+      bonoPct: String(f.bonoPct == null ? 50 : f.bonoPct),
+      ver: f.mostrarEquipo !== false };
+  return S.p0Draft;
+}
 async function guardarPunto0(){
-  const v = Math.max(0, +($("#p0").value || 0));
-  const bp = Math.max(0, +(($("#p0bono") || {}).value || 50));
-  const ver = !$("#p0Ver") || $("#p0Ver").getAttribute("aria-pressed") === "true";
-  const { error } = await sb.from("ferias")
-    .update({ punto0:v, bono_pct:bp, mostrar_equipo:ver }).eq("id", S.feriaSel);
-  if (error){ toast("No se pudo guardar: " + error.message); return; }
   const f = S.ferias.find(x => x.id === S.feriaSel);
-  if (f){ f.punto0 = v; f.bonoPct = bp; f.mostrarEquipo = ver; }
-  toast(v ? "Punto 0 y bono guardados." : "Punto 0 borrado.");
+  if (!f) return;
+  const d = draftP0(f);
+  const txt = String(($("#p0") ? $("#p0").value : d.punto0) || "").trim();
+  if (txt === ""){
+    toast("Escribe cuánto te cuesta poner esta feria en pie, y después guarda.");
+    if ($("#p0")) $("#p0").focus();
+    return;
+  }
+  const v = Math.max(0, +txt || 0);
+  const bp = Math.max(0, +(($("#p0bono") ? $("#p0bono").value : d.bonoPct) || 50));
+  const ver = $("#p0Ver") ? $("#p0Ver").getAttribute("aria-pressed") === "true" : d.ver;
+  const { error } = await sb.from("ferias")
+    .update({ punto0:v, bono_pct:bp, mostrar_equipo:ver }).eq("id", f.id);
+  if (error){ toast("No se pudo guardar: " + error.message); return; }
+  f.punto0 = v; f.bonoPct = bp; f.mostrarEquipo = ver;
+  S.p0Draft = null;
+  toast(v ? "Punto 0 guardado: " + soles(v) + " · bono al superar " + soles(v * (1 + bp / 100)) : "Punto 0 borrado.");
   render();
 }
 
@@ -1399,16 +1427,17 @@ function panelPunto0(a){
   const meta = +f.punto0 || 0;
   const bonoPct = f.bonoPct == null ? 50 : +f.bonoPct;
   const bono = meta * (1 + bonoPct / 100);
+  const dP0 = draftP0(f);
   const vendido = a.porDia.reduce((t, d) => t + d.total, 0);
   const ordenes = a.porDia.reduce((t, d) => t + d.n, 0);
   const editor = '<div class="p0-edit">' +
     '<label><span class="lbl" style="display:block;margin-bottom:5px">Punto 0 de esta feria (S/)</span>' +
-    '<input id="p0" type="number" min="0" step="10" value="' + (meta || "") + '" placeholder="0.00"></label>' +
+    '<input id="p0" type="number" min="0" step="10" value="' + esc(dP0.punto0) + '" placeholder="0.00"></label>' +
     '<label><span class="lbl" style="display:block;margin-bottom:5px">Bono del equipo al superar</span>' +
-    '<input id="p0bono" type="number" min="0" step="5" value="' + bonoPct + '" placeholder="50"></label>' +
+    '<input id="p0bono" type="number" min="0" step="5" value="' + esc(dP0.bonoPct) + '" placeholder="50"></label>' +
     '<span class="lbl" style="align-self:end;padding-bottom:11px">% sobre el punto 0</span>' +
-    '<button class="toggle" id="p0Ver" aria-pressed="' + (f.mostrarEquipo !== false) + '" style="align-self:end;padding:10px 13px">' +
-      (f.mostrarEquipo !== false ? "El equipo ve su avance" : "Oculto para el equipo") + "</button>" +
+    '<button class="toggle" id="p0Ver" aria-pressed="' + dP0.ver + '" style="align-self:end;padding:10px 13px">' +
+      (dP0.ver ? "El equipo ve su avance" : "Oculto para el equipo") + "</button>" +
     '<button class="btn sm" id="p0Guardar" style="align-self:end">Guardar</button></div>';
 
   const estado = !meta ? "sin" : vendido >= bono ? "bono" : vendido >= meta ? "cubierto" : "rojo";
@@ -1887,6 +1916,7 @@ async function manejarClick(ev){
     const on = t.getAttribute("aria-pressed") === "true";
     t.setAttribute("aria-pressed", String(!on));
     t.textContent = !on ? "El equipo ve su avance" : "Oculto para el equipo";
+    if (S.p0Draft) S.p0Draft.ver = !on;
     return;
   }
   if (t.hasAttribute("data-activo")){
@@ -1901,9 +1931,12 @@ async function manejarClick(ev){
 
 document.addEventListener("keydown", ev => {
   if (ev.key === "Escape" && S.sheet) cerrarSheet();
+  if (ev.key === "Enter" && (ev.target.id === "p0" || ev.target.id === "p0bono")) guardarPunto0();
 });
 document.addEventListener("input", ev => {
   if (S.sheet && (ev.target.id === "nota" || ev.target.id === "notaLinea")) S.sheet.nota = ev.target.value;
+  if (S.p0Draft && ev.target.id === "p0")     S.p0Draft.punto0  = ev.target.value;
+  if (S.p0Draft && ev.target.id === "p0bono") S.p0Draft.bonoPct = ev.target.value;
 });
 
 /* tooltip de gráficos */
