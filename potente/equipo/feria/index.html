@@ -548,16 +548,23 @@ const feriasPorEstado = e => S.ferias.filter(f => estadoFeria(f) === e);
 const feriaEnCurso = () => S.ferias.find(f => f.id === S.feriaOp) || null;
 
 function ajustarFeriaOp(){
-  // 1) la feria del turno que el administrador me asignó para hoy;
-  // 2) si no tengo turno, la única en curso;
-  // 3) si hay varias, la que empezó más recientemente.
+  // La feria en la que puedes operar es la de TU turno de hoy, y ninguna otra.
+  // El administrador es la excepción: entra a cualquiera que esté en curso,
+  // porque es quien resuelve los problemas del día.
   const curso = feriasPorEstado("activa").slice().sort((a, b) =>
     (a.inicio || "") === (b.inicio || "") ? 0 : ((a.inicio || "") < (b.inicio || "") ? 1 : -1));
   const delTurno = S.turnos.map(t => t.feria_id).find(id => curso.some(f => f.id === id));
-  const id = delTurno || (curso.length ? curso[0].id : null);
+  const id = delTurno || (esAdmin() && curso.length ? curso[0].id : null);
   if (id !== S.feriaOp){ S.feriaOp = id; return true; }
   return false;
 }
+/* El permiso para cobrar y para cocinar es el mismo: estar asignado hoy a esta
+   feria. No separa por rol a propósito — el equipo rota entre caja y cocina. */
+function miTurno(){ return S.turnos.find(t => t.feria_id === S.feriaOp) || null; }
+/* Un turno armado pero sin publicar no habilita nada: la base lo rechaza igual.
+   Se distingue del "no te toca" para que el equipo sepa a quién reclamar. */
+function turnoSinPublicar(){ const t = miTurno(); return !!t && t.publicado === false; }
+function puedoOperar(){ const t = miTurno(); return esAdmin() || (!!t && t.publicado !== false); }
 function bloqueDeAhora(){
   const f = feriaEnCurso(); if (!f) return null;
   const t = S.turnos.find(x => x.feria_id === f.id);
@@ -580,8 +587,9 @@ async function boot(){
   try { await cargarBase(); } catch(e){ console.error(e); avisoDuro("No se pudieron cargar los datos."); return; }
   S.listo = true;
 
-  // El turno de hoy decide la pantalla; el administrador elige.
-  const t = S.turnos.find(x => x.feria_id === S.feriaOp) || S.turnos[0];
+  // El turno de hoy abre la pantalla más probable; quien está asignado puede
+  // cambiarse a la otra cuando quiera (en el stand se rota).
+  const t = miTurno();
   if (t && (t.rol === "caja" || t.rol === "cocina")) S.role = t.rol;
   else if (!esAdmin()) S.role = null;
   if (S.role === "cocina") S.ordenes.forEach(o => S.vistos[o.id] = 1);
@@ -784,23 +792,35 @@ function vistaGate(){
   const card = (r, n, d, dev) =>
     '<button class="role" data-rol="' + r + '">' + ic[r] + '<span class="rn">' + n + '</span><span class="rd">' + d + '</span><span class="rdev">' + dev + "</span></button>";
   const f = feriaEnCurso();
-  const turno = S.turnos.find(x => x.feria_id === S.feriaOp);
+  const turno = miTurno();
+  const puedo = puedoOperar();
+  const hoyHay = feriasPorEstado("activa").length > 0;
   return '<div class="gate">' +
     '<div class="logo logomark" role="img" aria-label="Potente"></div>' +
     '<div class="kicker">Operación de feria</div>' +
     "<h1>Hola, " + esc((S.yo && S.yo.nombre.split(" ")[0]) || "equipo") + "</h1>" +
     '<p class="lead">' +
-      (f ? (turno
-            ? "Hoy te toca <b>" + esc(turno.rol) + "</b> en <b>" + esc(f.nombre) + "</b>, de " +
-              turno.hora_inicio.slice(0,5) + " a " + turno.hora_fin.slice(0,5) + "."
-            : "La feria en curso es <b>" + esc(f.nombre) + "</b>. No tienes turno asignado para hoy, pero puedes entrar igual si estás cubriendo a alguien.")
-         : "No hay ninguna feria en curso hoy.") +
+      (puedo
+        ? (f ? (turno
+                ? "Hoy trabajas en <b>" + esc(f.nombre) + "</b>, de " +
+                  turno.hora_inicio.slice(0,5) + " a " + turno.hora_fin.slice(0,5) +
+                  ". Puedes usar caja y cocina indistintamente."
+                : "Estás entrando como <b>administrador</b> a <b>" + esc(f.nombre) + "</b>.")
+             : "No hay ninguna feria en curso hoy.")
+        : (turnoSinPublicar()
+            ? "Tienes turno hoy en <b>" + esc(f ? f.nombre : "una feria") + "</b>, pero el administrador <b>todavía no ha publicado los turnos</b>. En cuanto lo haga, esta pantalla se abre sola."
+            : hoyHay
+              ? "Hoy <b>no estás asignado</b> a ninguna feria, así que esta pantalla no se abre. Si te toca cubrir a alguien, el administrador te asigna el turno desde <b>Equipo → Turnos</b> y entras con tu propio usuario."
+              : "No hay ninguna feria en curso hoy. Cuando te toque un turno, esta pantalla se enciende sola.")) +
     "</p>" +
-    '<div class="roles">' +
+    (puedo ? '<div class="roles">' +
       card("caja", "Caja", "Arma el pedido, cobra y lo manda a cocina.", "Celular") +
       card("cocina", "Cocina", "La cola de preparación, en orden de llegada.", "Tablet") +
       (esAdmin() ? card("admin", "Ventas", "Resumen del día, de la feria y de cada producto.", "Solo administrador") : "") +
-    "</div>" +
+    "</div>"
+    : (esAdmin() ? '<div class="roles">' +
+        card("admin", "Ventas", "Resumen del día, de la feria y de cada producto.", "Solo administrador") +
+      "</div>" : "")) +
     '<div class="foot"><a href="../" style="color:var(--ink-3)">← Volver a Equipo</a></div></div>';
 }
 
@@ -1056,6 +1076,7 @@ function render(suave){
   const y = window.scrollY;
   pintarTop();
   const v = $("#view");
+  if ((S.role === "caja" || S.role === "cocina") && !puedoOperar()) S.role = null;
   if (!S.role)               v.innerHTML = vistaGate();
   else if (S.role === "caja")   v.innerHTML = vistaCaja();
   else if (S.role === "cocina") v.innerHTML = vistaCocina();
@@ -1825,6 +1846,7 @@ async function manejarClick(ev){
   if (t.hasAttribute("data-rol")){
     const r = g("data-rol");
     if (r === "admin" && !esAdmin()) return;
+    if ((r === "caja" || r === "cocina") && !puedoOperar()) return;
     S.role = r || null; S.cart = []; S.cartOpen = false;
     if (r === "admin") refrescarAdmin();
     if (r === "cocina") S.ordenes.forEach(o => S.vistos[o.id] = 1);
