@@ -606,7 +606,15 @@ async function boot(){
   render();
   setInterval(() => { if (S.role === "caja" || S.role === "cocina") refrescarCola(); }, 5000);
   setInterval(() => { if (S.role === "admin" && S.adminVista === "feria") refrescarAdmin(); }, 20000);
-  setInterval(() => { if (ajustarFeriaOp()) { refrescarCola(); render(true); } }, 60000);
+  // Cada minuto se vuelve a preguntar el turno: si el administrador te cambia
+  // por un reemplazo, tu pantalla se cierra sola sin que tengas que recargar.
+  setInterval(async () => {
+    const antes = JSON.stringify(S.turnos.map(t => t.feria_id + t.rol + t.publicado));
+    const { data, error } = await sb.rpc("mi_turno_hoy");
+    if (!error) S.turnos = data || [];
+    const cambio = ajustarFeriaOp() || JSON.stringify(S.turnos.map(t => t.feria_id + t.rol + t.publicado)) !== antes;
+    if (cambio){ await refrescarCola(); render(true); }
+  }, 60000);
 }
 function avisoDuro(txt){
   $("#view").innerHTML = '<div class="wrap"><div class="empty" style="padding-top:70px">' +
