@@ -92,6 +92,14 @@
     font-size:.68rem;color:var(--brasa)}
 
   main{padding-block:26px 60px}
+  /* ---------- acceso a la operación en feria ---------- */
+  .opfe{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    border:1px solid #6a4a1c;border-radius:4px;padding:16px 18px;
+    background:linear-gradient(150deg,#2b1d0c,var(--plancha) 70%)}
+  .opfe__txt{flex:1;min-width:200px}
+  .opfe__txt b{display:block;font-family:var(--f-display);text-transform:uppercase;font-size:1.15rem;line-height:1.1}
+  .opfe__txt span{font-size:.9rem;color:var(--crema-media)}
+
   .seccion{margin-bottom:34px}
   .seccion__tit{font-size:1.5rem;margin-bottom:4px}
   .seccion__sub{margin:0 0 18px;color:var(--humo);font-size:.92rem}
@@ -418,6 +426,19 @@
   </header>
 
   <main class="env">
+    <!-- ---------- acceso a la operación en feria ---------- -->
+    <div class="seccion" id="accesoFeria" hidden>
+      <h2 class="seccion__tit">Hoy hay feria</h2>
+      <p class="seccion__sub">Toma los pedidos, prepáralos en cocina y —si administras— mira la venta en vivo.</p>
+      <div class="opfe">
+        <div class="opfe__txt">
+          <b id="opfeNom">—</b>
+          <span id="opfeSub">—</span>
+        </div>
+        <a class="btn btn--fuego" href="feria/">Abrir operación</a>
+      </div>
+    </div>
+
     <!-- ---------- vista feriante ---------- -->
     <div id="vistaFeriante" hidden>
       <div class="seccion">
@@ -957,6 +978,25 @@ async function arrancarApp(){
   mostrar($('#vistaAdmin'), admin)
   mostrar($('#vistaFeriante'), !admin)
   admin ? cargarFeriasAdmin() : cargarFeriasFeriante()
+  pintarAccesoFeria()
+}
+
+/* La operación (caja, cocina y ventas) vive en feria/ y usa esta misma
+   sesión. La tarjeta aparece solo el día que hay feria: el resto del año
+   no tiene nada que hacer en pantalla. */
+async function pintarAccesoFeria(){
+  const hoy = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Lima' }).format(new Date())
+  const { data, error } = await sb.from('ferias')
+    .select('id,nombre,lugar,fecha_inicio,fecha_fin')
+    .neq('estado', 'borrador')
+    .lte('fecha_inicio', hoy).gte('fecha_fin', hoy)
+    .order('fecha_inicio', { ascending:false }).limit(1)
+  if (error || !data || !data.length) return
+  const f = data[0]
+  $('#opfeNom').textContent = f.nombre
+  $('#opfeSub').textContent = (f.lugar ? f.lugar + ' · ' : '') +
+    (f.fecha_inicio === f.fecha_fin ? 'hoy' : 'del ' + fecha(f.fecha_inicio) + ' al ' + fecha(f.fecha_fin))
+  mostrar($('#accesoFeria'), true)
 }
 
 /* ==========================================================================
