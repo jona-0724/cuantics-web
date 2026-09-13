@@ -607,11 +607,10 @@ async function boot(){
   try { await cargarBase(); } catch(e){ console.error(e); avisoDuro("No se pudieron cargar los datos."); return; }
   S.listo = true;
 
-  // El turno de hoy abre la pantalla más probable; quien está asignado puede
-  // cambiarse a la otra cuando quiera (en el stand se rota).
-  const t = miTurno();
-  if (t && (t.rol === "caja" || t.rol === "cocina")) S.role = t.rol;
-  else if (!esAdmin()) S.role = null;
+  // Nadie tiene rol fijo: en el stand se rota, así que cada quien elige su
+  // pantalla al entrar. Son dos tarjetas y un toque, y puede cambiar cuando
+  // quiera desde el botón de arriba.
+  S.role = null;
   if (S.role === "cocina") S.ordenes.forEach(o => S.vistos[o.id] = 1);
 
   // Si la pestaña se recargó sola, se vuelve a donde estaba: misma pantalla,
