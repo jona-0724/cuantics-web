@@ -331,7 +331,7 @@ select:hover{border-color:var(--ink-3)}
 .p0.cubierto .p0-num{color:var(--brasa)}
 .p0.bono .p0-num{color:#7ee0a0}
 .p0-txt{color:var(--ink-2);font-size:14px;flex:1;min-width:200px}
-.p0-bar{position:relative;height:18px;border-radius:9px;background:var(--panel-3);border:1px solid var(--line);margin-top:24px}
+.p0-bar{position:relative;height:18px;border-radius:9px;background:var(--panel-3);border:1px solid var(--line);margin-top:24px;margin-bottom:20px}
 .p0-fill{max-width:100%}
 .p0-fill{height:100%;border-radius:9px 0 0 9px;animation:crece .7s cubic-bezier(.2,.8,.3,1) both}
 .p0.rojo .p0-fill{background:linear-gradient(90deg,#8a2b2b,#d03b3b)}
@@ -342,6 +342,8 @@ select:hover{border-color:var(--ink-3)}
 .p0-mark.bono{background:#7ee0a0;opacity:.95}
 .p0-mark.bono::after{color:#7ee0a0}
 .p0-mark::after{content:attr(data-lab);position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
+.p0-mark::before{content:attr(data-val);position:absolute;top:20px;left:50%;transform:translateX(-50%);font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap}
+.p0-mark.bono::before{color:#7ee0a0}
 .p0-foot{display:flex;gap:20px;flex-wrap:wrap;margin-top:16px;font-size:13px;color:var(--ink-2)}
 .p0-foot b{color:var(--ink);font-weight:600;margin-left:4px}
 .p0-edit{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
@@ -1442,16 +1444,27 @@ function panelPunto0(a){
 
   const estado = !meta ? "sin" : vendido >= bono ? "bono" : vendido >= meta ? "cubierto" : "rojo";
   const ticket = ordenes ? vendido / ordenes : 0;
-  const pedidos = falta => (ticket ? " · unos <b>" + Math.ceil(falta / ticket) + "</b> pedidos más al ticket promedio" : "");
+  const pedidos = falta => { if (!ticket) return ""; const n = Math.ceil(falta / ticket);
+    return " · " + (n === 1 ? "un <b>1</b> pedido más" : "unos <b>" + n + "</b> pedidos más") + " al ticket promedio"; };
   const cabeza = {
     sin:      { pill:"○ Sin meta",         num:vendido,          txt:"vendido en la feria. Escribe abajo cuánto te cuesta ponerla en pie — insumos, personal, transporte, el puesto — y esta tarjeta te dirá en vivo si ya lo cubriste y a cuánto está el equipo del bono." },
-    rojo:     { pill:"▼ En rojo",          num:meta - vendido,   txt:"para cubrir los costos" + pedidos(meta - vendido) },
+    rojo:     { pill:"▼ En rojo",          num:meta - vendido,   txt:(vendido ? "te faltan para llegar al punto 0 de <b>" + soles(meta) + "</b>" : "es el punto 0 de esta feria · todavía no hay ventas registradas") + pedidos(meta - vendido) },
     cubierto: { pill:"✔ Costos cubiertos", num:vendido - meta,   txt:"sobre el punto 0 · faltan <b>" + soles(bono - vendido) + "</b> para el bono del equipo" + pedidos(bono - vendido) },
     bono:     { pill:"★ Bono alcanzado",   num:vendido - bono,   txt:"por encima del punto de bono — el equipo se lo ganó" }
   }[estado];
 
-  const tope = Math.max(bono, vendido) * 1.06 || 1;
-  const pos = v => Math.min(100, v / tope * 100);
+  // El punto 0 se dibuja SIEMPRE en el mismo lugar de la barra (ANCLA %): es fijo, es lo que
+  // cuesta la feria. Cambiar el % del bono, o vender más, mueve el tramo de la derecha, nunca el punto 0.
+  const ANCLA = 58;
+  const derecha = Math.max(bono, vendido, meta * 1.15);
+  const pos = v => {
+    if (!meta) return 0;
+    if (v <= meta) return v / meta * ANCLA;
+    const span = derecha - meta;
+    return Math.min(100, ANCLA + (span > 0 ? (v - meta) / span * (100 - ANCLA) * 0.94 : 0));
+  };
+  const marca = (v, lab, cls) => '<span class="p0-mark' + cls + '" style="left:' + pos(v) + '%" data-lab="' +
+    esc(lab) + '" data-val="' + esc(soles(v)) + '"></span>';
 
   return '<div class="panel p0 ' + estado + '"><h3>Punto 0 y bono</h3>' +
     '<div class="ph">Sobre <b>toda la feria</b>, no sobre el día que estés viendo: los costos son de la feria completa.</div>' +
@@ -1461,8 +1474,7 @@ function panelPunto0(a){
       '<span class="p0-txt">' + cabeza.txt + "</span>" +
     "</div>" +
     '<div class="p0-bar"><div class="p0-fill" style="width:' + (meta ? pos(vendido) : 0) + '%"></div>' +
-      (meta ? '<span class="p0-mark" style="left:' + pos(meta) + '%" data-lab="punto 0"></span>' +
-              '<span class="p0-mark bono" style="left:' + pos(bono) + '%" data-lab="bono"></span>' : "") + "</div>" +
+      (meta ? marca(meta, "punto 0", "") + marca(bono, "bono", " bono") : "") + "</div>" +
     '<div class="p0-foot">' +
       '<span>Vendido <b class="num">' + soles(vendido) + "</b></span>" +
       '<span>Punto 0 <b class="num">' + (meta ? soles(meta) : "—") + "</b></span>" +
