@@ -358,6 +358,11 @@
     font-size:.84rem;padding:11px 16px;background:none;border:0;border-bottom:2px solid transparent;
     color:var(--humo);cursor:pointer;white-space:nowrap}
   .pestana[aria-selected="true"]{color:var(--chispa);border-bottom-color:var(--brasa)}
+  /* Pestañas que llevan a otra pantalla: la flecha avisa que se sale de aquí. */
+  .pestana--ir{text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+  .pestana--ir::after{content:"→";font-size:1.05em;opacity:.75}
+  .pestana--ir:hover{color:var(--chispa)}
+  .barra .btn{white-space:nowrap}
 
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -421,24 +426,12 @@
         <b id="miNombre">—</b>
         <small id="miRol">—</small>
       </div>
+      <a class="btn btn--linea btn--mini" id="irOperacion" href="feria/">Operación</a>
       <button class="btn btn--linea btn--mini" id="btnSalir">Salir</button>
     </div>
   </header>
 
   <main class="env">
-    <!-- ---------- acceso a la operación en feria ---------- -->
-    <div class="seccion" id="accesoFeria">
-      <h2 class="seccion__tit">Operación en feria</h2>
-      <p class="seccion__sub" id="opfeSubTit">Caja, cocina y —si administras— la venta en vivo.</p>
-      <div class="opfe">
-        <div class="opfe__txt">
-          <b id="opfeNom">—</b>
-          <span id="opfeSub">—</span>
-        </div>
-        <a class="btn btn--fuego" id="opfeBtn" href="feria/">Abrir operación</a>
-      </div>
-    </div>
-
     <!-- ---------- vista feriante ---------- -->
     <div id="vistaFeriante" hidden>
       <div class="seccion">
@@ -473,6 +466,7 @@
       <div class="pestanas" role="tablist" style="margin-bottom:26px">
         <button class="pestana" role="tab" aria-selected="true"  data-panel="ferias">Ferias</button>
         <button class="pestana" role="tab" aria-selected="false" data-panel="equipo">Equipo</button>
+        <a class="pestana pestana--ir" href="feria/">Operación en feria</a>
       </div>
 
       <!-- ===== panel Equipo ===== -->
@@ -588,6 +582,7 @@
           <button class="pestana" role="tab" aria-selected="true"  data-tab="disp">Disponibilidad</button>
           <button class="pestana" role="tab" aria-selected="false" data-tab="turnos">Turnos</button>
           <button class="pestana" role="tab" aria-selected="false" data-tab="ajustes">Editar feria</button>
+          <a class="pestana pestana--ir" id="irAVentas" href="feria/">Ventas y objetivos</a>
         </div>
 
         <div id="tabDisp">
@@ -975,58 +970,10 @@ async function arrancarApp(){
   mostrar(pAcceso, false); mostrar(pApp, true)
 
   const admin = yo.rol === 'admin'
+  mostrar($('#irOperacion'), !admin)
   mostrar($('#vistaAdmin'), admin)
   mostrar($('#vistaFeriante'), !admin)
   admin ? cargarFeriasAdmin() : cargarFeriasFeriante()
-  pintarAccesoFeria()
-}
-
-/* La operación (caja, cocina y ventas) vive en feria/ y usa esta misma
-   sesión. La tarjeta está siempre: lo que cambia es qué dice. El día de la
-   feria invita a cobrar; el resto del tiempo el administrador entra igual a
-   preparar el punto 0, la carta y a mirar ferias pasadas. */
-async function pintarAccesoFeria(){
-  const hoy = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Lima' }).format(new Date())
-  const { data, error } = await sb.from('ferias')
-    .select('id,nombre,lugar,fecha_inicio,fecha_fin')
-    .neq('estado', 'borrador')
-    .order('fecha_inicio')
-  const nom = $('#opfeNom'), sub = $('#opfeSub'), btn = $('#opfeBtn'), tit = $('#opfeSubTit')
-  const admin = yo && yo.rol === 'admin'
-
-  if (error || !data || !data.length) {
-    nom.textContent = 'Todavía no hay ferias'
-    sub.textContent = admin ? 'Crea una aquí abajo y luego define su punto 0 y su carta.'
-                            : 'Cuando el administrador cree una, aparecerá aquí.'
-    btn.textContent = admin ? 'Abrir panel de ventas' : 'Abrir operación'
-    return
-  }
-
-  const enCurso = data.find(f => f.fecha_inicio <= hoy && hoy <= f.fecha_fin)
-  const proxima = data.find(f => f.fecha_inicio > hoy)
-  const rango = f => (f.lugar ? f.lugar + ' · ' : '') +
-    (f.fecha_inicio === f.fecha_fin ? fecha(f.fecha_inicio) : 'del ' + fecha(f.fecha_inicio) + ' al ' + fecha(f.fecha_fin))
-
-  if (enCurso) {
-    tit.textContent = 'Hoy hay feria. Toma los pedidos, prepáralos en cocina y mira la venta en vivo.'
-    nom.textContent = enCurso.nombre
-    sub.textContent = rango(enCurso)
-    btn.textContent = 'Abrir operación'
-  } else if (proxima) {
-    tit.textContent = admin
-      ? 'Hoy no hay feria. Entra igual para dejar lista la carta y el punto 0, o para revisar ferias pasadas.'
-      : 'Hoy no hay feria. El día que empiece, caja y cocina se encienden solas.'
-    nom.textContent = 'La próxima: ' + proxima.nombre
-    sub.textContent = rango(proxima)
-    btn.textContent = admin ? 'Abrir panel de ventas' : 'Ver la operación'
-  } else {
-    tit.textContent = admin
-      ? 'No hay ferias por venir. Puedes revisar la venta de las que ya pasaron.'
-      : 'No hay ferias por venir.'
-    nom.textContent = 'Sin feria próxima'
-    sub.textContent = 'La última fue ' + data[data.length - 1].nombre
-    btn.textContent = admin ? 'Abrir panel de ventas' : 'Ver la operación'
-  }
 }
 
 /* ==========================================================================
@@ -1490,6 +1437,9 @@ function diasEntre(ini, fin){
 
 /* ---------- detalle ---------- */
 async function abrirFeriaAdmin(f){
+  // La operación vive en feria/ pero entra directo a ESTA feria: el punto 0 y
+  // el bono se definen ahí, junto a su venta, sin buscarla otra vez en la lista.
+  $('#irAVentas').href = 'feria/?feria=' + f.id
   feriaSel = f
   mostrar(formFeria, false)
   mostrar($('#detalleFeria'), true)
