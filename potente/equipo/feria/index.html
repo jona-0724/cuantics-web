@@ -503,10 +503,21 @@ const S = {
 const esAdmin = () => !!(S.yo && S.yo.rol === "admin");
 
 /* ---------- mapeos entre la base y la app ---------- */
+
+/* De qué se compone un producto para la cocina. El reporte de producción usa
+   esto para abrir los combos: un Combo Potente son tres cosas en la plancha,
+   no una. No está en la base porque no es un dato de venta sino de receta. */
+const RECETAS = {
+  combo: [ { n:"Sándwich (del combo)", k:"opt:sandwich" },
+           { n:"Papas Crujientes",     k:"papas" },
+           { n:"Refresco 12 oz",       k:"refresco12" } ]
+};
+
 function mapProducto(p){
   return { sku:p.sku, nombre:p.nombre, cat:p.categoria, desc:p.descripcion || "",
            precio:+p.precio, salsas:!!p.lleva_salsas, activo:p.activo !== false,
-           opciones:(p.opciones && p.opciones.length) ? p.opciones : null, pos:p.posicion || 0 };
+           opciones:(p.opciones && p.opciones.length) ? p.opciones : null,
+           produce:RECETAS[p.sku] || null, pos:p.posicion || 0 };
 }
 function mapFeria(f){
   return { id:f.id, nombre:f.nombre, lugar:f.lugar || "", inicio:f.fecha_inicio, fin:f.fecha_fin,
@@ -1005,15 +1016,16 @@ let CARTA = [
   { salsas:true, sku:"choripan",   cat:"Sándwiches",     nombre:"Choripán Criollo", precio:15,   desc:"Chorizo a la plancha, papas al hilo y salsas" },
   { salsas:true, sku:"hotdog",     cat:"Sándwiches",     nombre:"Hotdog Callejero", precio:15,   desc:"Salchicha, papas al hilo y salsas" },
   { salsas:true, sku:"burger",     cat:"Sándwiches",     nombre:"Burger Potente",   precio:18,   desc:"Doble carne, lechuga, tomate y cheddar" },
-  { salsas:true, sku:"pancho",     cat:"Panchos",        nombre:"Pancho",           precio:10,   desc:"En palo, sin pan",
-    opciones:[ {id:"tipo", label:"Tipo", valores:["Chorizo","Hot-Dog"]} ] },
+  { salsas:true, sku:"salchipapa", cat:"Salchipapas",    nombre:"Salchipapa Potente", precio:20, desc:"Salchicha, papas crujientes y salsas" },
+  { salsas:true, sku:"choripapa",  cat:"Salchipapas",    nombre:"Choripapa Potente",  precio:20, desc:"Chorizo, papas crujientes y salsas" },
+  { salsas:true, sku:"pancho",     cat:"Panchos",        nombre:"Pancho Hot-Dog",   precio:5,    desc:"En palo, sin pan" },
   { salsas:true, sku:"papas",      cat:"Acompañamientos",nombre:"Papas Crujientes", precio:8,    desc:"Porción de papas fritas" },
   { sku:"refresco12", cat:"Bebidas",        nombre:"Refresco 12 oz",   precio:5,    desc:"Casero, bien frío",
     opciones:[ {id:"sabor", label:"Sabor", valores:SABORES} ] },
   { sku:"refresco9",  cat:"Bebidas",        nombre:"Refresco 9 oz",    precio:3.5,  desc:"Casero, bien frío",
     opciones:[ {id:"sabor", label:"Sabor", valores:SABORES} ] }
 ];
-let CATS = ["Combos","Sándwiches","Panchos","Acompañamientos","Bebidas"];
+let CATS = ["Combos","Sándwiches","Salchipapas","Panchos","Acompañamientos","Bebidas"];
 
 const PAGOS = [
   { id:"qr",        nombre:"QR Yape / Plin", corto:"QR Yape/Plin", color:"var(--p-qr)",        hex:"#9085e9" },
