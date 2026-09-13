@@ -427,15 +427,15 @@
 
   <main class="env">
     <!-- ---------- acceso a la operación en feria ---------- -->
-    <div class="seccion" id="accesoFeria" hidden>
-      <h2 class="seccion__tit">Hoy hay feria</h2>
-      <p class="seccion__sub">Toma los pedidos, prepáralos en cocina y —si administras— mira la venta en vivo.</p>
+    <div class="seccion" id="accesoFeria">
+      <h2 class="seccion__tit">Operación en feria</h2>
+      <p class="seccion__sub" id="opfeSubTit">Caja, cocina y —si administras— la venta en vivo.</p>
       <div class="opfe">
         <div class="opfe__txt">
           <b id="opfeNom">—</b>
           <span id="opfeSub">—</span>
         </div>
-        <a class="btn btn--fuego" href="feria/">Abrir operación</a>
+        <a class="btn btn--fuego" id="opfeBtn" href="feria/">Abrir operación</a>
       </div>
     </div>
 
@@ -982,21 +982,51 @@ async function arrancarApp(){
 }
 
 /* La operación (caja, cocina y ventas) vive en feria/ y usa esta misma
-   sesión. La tarjeta aparece solo el día que hay feria: el resto del año
-   no tiene nada que hacer en pantalla. */
+   sesión. La tarjeta está siempre: lo que cambia es qué dice. El día de la
+   feria invita a cobrar; el resto del tiempo el administrador entra igual a
+   preparar el punto 0, la carta y a mirar ferias pasadas. */
 async function pintarAccesoFeria(){
   const hoy = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Lima' }).format(new Date())
   const { data, error } = await sb.from('ferias')
     .select('id,nombre,lugar,fecha_inicio,fecha_fin')
     .neq('estado', 'borrador')
-    .lte('fecha_inicio', hoy).gte('fecha_fin', hoy)
-    .order('fecha_inicio', { ascending:false }).limit(1)
-  if (error || !data || !data.length) return
-  const f = data[0]
-  $('#opfeNom').textContent = f.nombre
-  $('#opfeSub').textContent = (f.lugar ? f.lugar + ' · ' : '') +
-    (f.fecha_inicio === f.fecha_fin ? 'hoy' : 'del ' + fecha(f.fecha_inicio) + ' al ' + fecha(f.fecha_fin))
-  mostrar($('#accesoFeria'), true)
+    .order('fecha_inicio')
+  const nom = $('#opfeNom'), sub = $('#opfeSub'), btn = $('#opfeBtn'), tit = $('#opfeSubTit')
+  const admin = yo && yo.rol === 'admin'
+
+  if (error || !data || !data.length) {
+    nom.textContent = 'Todavía no hay ferias'
+    sub.textContent = admin ? 'Crea una aquí abajo y luego define su punto 0 y su carta.'
+                            : 'Cuando el administrador cree una, aparecerá aquí.'
+    btn.textContent = admin ? 'Abrir panel de ventas' : 'Abrir operación'
+    return
+  }
+
+  const enCurso = data.find(f => f.fecha_inicio <= hoy && hoy <= f.fecha_fin)
+  const proxima = data.find(f => f.fecha_inicio > hoy)
+  const rango = f => (f.lugar ? f.lugar + ' · ' : '') +
+    (f.fecha_inicio === f.fecha_fin ? fecha(f.fecha_inicio) : 'del ' + fecha(f.fecha_inicio) + ' al ' + fecha(f.fecha_fin))
+
+  if (enCurso) {
+    tit.textContent = 'Hoy hay feria. Toma los pedidos, prepáralos en cocina y mira la venta en vivo.'
+    nom.textContent = enCurso.nombre
+    sub.textContent = rango(enCurso)
+    btn.textContent = 'Abrir operación'
+  } else if (proxima) {
+    tit.textContent = admin
+      ? 'Hoy no hay feria. Entra igual para dejar lista la carta y el punto 0, o para revisar ferias pasadas.'
+      : 'Hoy no hay feria. El día que empiece, caja y cocina se encienden solas.'
+    nom.textContent = 'La próxima: ' + proxima.nombre
+    sub.textContent = rango(proxima)
+    btn.textContent = admin ? 'Abrir panel de ventas' : 'Ver la operación'
+  } else {
+    tit.textContent = admin
+      ? 'No hay ferias por venir. Puedes revisar la venta de las que ya pasaron.'
+      : 'No hay ferias por venir.'
+    nom.textContent = 'Sin feria próxima'
+    sub.textContent = 'La última fue ' + data[data.length - 1].nombre
+    btn.textContent = admin ? 'Abrir panel de ventas' : 'Ver la operación'
+  }
 }
 
 /* ==========================================================================
