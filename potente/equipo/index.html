@@ -332,7 +332,6 @@
     font-size:.74rem;color:var(--humo);white-space:nowrap}
   .celda{padding:7px;display:flex;flex-direction:column;gap:5px;min-width:158px}
   .celda select{padding:7px 8px;font-size:.84rem}
-  .celda select.rol{font-size:.74rem;padding:5px 8px;color:var(--humo)}
   .celda.dk{background:rgba(154,124,242,.07)}
   .celda.puesta select:first-child{border-color:var(--brasa);color:var(--crema)}
   .sin-cupo{background:repeating-linear-gradient(45deg,transparent,transparent 6px,rgba(61,34,20,.35) 6px,rgba(61,34,20,.35) 12px)}
@@ -697,7 +696,9 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 const $  = (s, r = document) => r.querySelector(s)
 const $$ = (s, r = document) => [...r.querySelectorAll(s)]
 
-const ROLES = ['caja', 'cocina', 'jalador']
+/* El rol no se asigna: en el stand se rota, así que quien está en el turno
+   hace caja y cocina indistintamente. Lo que se graba es solo para que la
+   fila de la base tenga algo: 'cocina' en Dark Kitchen, 'caja' en feria. */
 const DIAS  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado']
 const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
 
@@ -1168,7 +1169,7 @@ async function abrirFeriaFeriante(f){
         const et = document.createElement('span')
         et.className = 'estado ' + (t ? 'publicada' : 'borrador')
         et.style.marginLeft = 'auto'
-        et.textContent = t ? `Te toca · ${t}` : 'Libre'
+        et.textContent = t !== undefined ? 'Te toca' : 'Libre'
         fila.appendChild(et)
       }
       caja.appendChild(fila)
@@ -1985,23 +1986,6 @@ function celdaCupo(b, i){
     pintarTurnos()
   }
   caja.appendChild(sel)
-
-  // El rol solo tiene sentido en los bloques de atención al público.
-  if (actual && !esDk(b)) {
-    const rol = document.createElement('select')
-    rol.className = 'rol'
-    ROLES.forEach(r => {
-      const o = document.createElement('option')
-      o.value = r; o.textContent = r[0].toUpperCase() + r.slice(1)
-      if (actual.rol === r) o.selected = true
-      rol.appendChild(o)
-    })
-    rol.onchange = async () => {
-      await sb.from('asignaciones').update({ rol: rol.value }).eq('id', actual.id)
-      actual.rol = rol.value
-    }
-    caja.appendChild(rol)
-  }
 
   td.appendChild(caja)
   return td
