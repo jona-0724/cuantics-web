@@ -1000,8 +1000,6 @@ async function entregar(filename, data){
 
 /* ==========================================================================
    POTENTE · Feria — caja, cocina y ventas
-   Datos: capacidad `db` del Artifact (compartida entre dispositivos).
-   Sin db disponible cae a un modo local del propio dispositivo.
    ========================================================================== */
 
 /* ---------- carta (catálogo base; precios editables desde Admin) ---------- */
@@ -1035,6 +1033,16 @@ const PAGOS = [
 ];
 const PAGO = Object.fromEntries(PAGOS.map(p => [p.id, p]));
 
+/* Un medio de pago que no esté en esta lista NO puede tumbar la pantalla en
+   plena feria. Antes se leía PAGO[o.pago].color directamente: bastaba una
+   orden con el medio vacío o con un nombre que la lista no conoce para que
+   cocina dejara de dibujarse entera. Ahora ese caso sale como "Otro" y la
+   cola sigue funcionando. */
+function pagoDe(id){
+  return PAGO[id] || { id:id || "otro", nombre:"Otro medio", corto:"Otro",
+                       color:"var(--ink-3)", hex:"#ab917c" };
+}
+
 const ESTADOS = { cola:"En cola", prep:"Preparando", listo:"Listo", entregado:"Entregado", anulado:"Anulada" };
 
 /* ---------- utilidades ---------- */
@@ -1061,17 +1069,6 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 function lsGet(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } }
 function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 
-
-/* ---------- capa de datos: db del Artifact, o local ---------- */
-/* ---------- arranque ---------- */
-
-/* ¿En qué feria cobra ESTE equipo?
-   1) la que le asignó el administrador, si sigue en curso;
-   2) si solo hay una en curso, esa, sin preguntar nada;
-   3) si hay varias y nadie asignó, la que empezó más recientemente. */
-/* ---------- escrituras ---------- */
-// Red de seguridad: si aun así dos órdenes quedaran con el mismo número,
-// la que se creó después se renumera sola. La primera no se toca.
 /* ---------- carrito ---------- */
 function precioDe(sku){ const p = CARTA.find(x => x.sku === sku); return p ? p.precio : 0; }
 function activo(sku){ const p = CARTA.find(x => x.sku === sku); return !p || p.activo !== false; }
@@ -1150,12 +1147,33 @@ function render(suave){
   pintarTop();
   const v = $("#view");
   if ((S.role === "caja" || S.role === "cocina") && !puedoOperar()) S.role = null;
-  if (!S.role)               pintar(v, vistaGate());
-  else if (S.role === "caja")   pintar(v, vistaCaja());
-  else if (S.role === "cocina") pintar(v, vistaCocina());
-  else                          pintar(v, vistaAdmin());
+  // Si una pantalla se rompe al dibujarse, antes quedaba la anterior congelada
+  // y solo salía un aviso abajo: desde el celular parecía que el botón no hacía
+  // nada. Ahora el fallo se ve, se puede salir de él y queda el detalle para
+  // administración.
+  let html;
+  try { html = vistaActual(); }
+  catch(e){ console.error("[potente] render", e); html = pantallaError(e); }
+  pintar(v, html);
   pintarModal();
   if (S.role) volverAlScroll(y);
+}
+function vistaActual(){
+  if (!S.role) return vistaGate();
+  if (S.role === "caja")   return vistaCaja();
+  if (S.role === "cocina") return vistaCocina();
+  return vistaAdmin();
+}
+function pantallaError(e){
+  return '<div class="wrap"><div class="empty" style="padding-top:60px">' +
+    '<div class="big">Se trabó esta pantalla</div>' +
+    "<p>Los pedidos ya cobrados están guardados: no se perdió nada.<br>" +
+    "Vuelve a elegir pantalla, o recarga la página.</p>" +
+    '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px">' +
+      '<button class="btn primary" data-rol="">Elegir pantalla</button>' +
+      '<a class="btn" href="../">Volver a Equipo</a></div>' +
+    '<p style="color:var(--ink-3);font-size:12px;margin-top:16px">Para administración: ' +
+      esc(String((e && e.message) || e)) + "</p></div></div>";
 }
 /* Reescribir el HTML manda el scroll al tope y hace parpadear la pantalla.
    Como la mayoría de refrescos no cambian nada, solo se escribe si cambió. */
@@ -1171,8 +1189,6 @@ function volverAlScroll(y){
 
 const feriaSel    = () => S.ferias.find(f => f.id === S.feriaSel) || null;
 
-/* ---------- portada ---------- */
-/* ---------- sin feria en curso ---------- */
 /* ---------- CAJA ---------- */
 function vistaCaja(){
   if (!S.listo) return '<div class="wrap"><div class="empty">Cargando la carta…</div></div>';
@@ -1221,9 +1237,10 @@ const TRAMOS = [
   { hasta:50,  cara:"\u{1F642}", txt:"Vamos subiendo" },
   { hasta:75,  cara:"\u{1F604}", txt:"A mitad de camino" },
   { hasta:100, cara:"\u{1F929}", txt:"Ya casi, falta poco" },
-  { hasta:1e9, cara:"\u{1F3C6}", txt:"\u00A1Bono alcanzado!" }
+  { hasta:1e9, cara:"\u{1F3C6}", txt:"¡Bono alcanzado!" }
 ];
 let ultimoBono = null;
+
 /* ---------- COCINA ---------- */
 function vistaCocina(){
   if (!S.listo) return '<div class="wrap"><div class="empty">Conectando con caja…</div></div>';
@@ -1235,7 +1252,7 @@ function vistaCocina(){
     const os = de(est);
     return "<section><div class=\"col-h\"><span class=\"ct\">" + titulo + '</span><span class="cc num">' + os.length + "</span>" +
       '<span class="bar" style="background:' + color + '"></span></div><div class="kcards">' +
-      (os.length ? os.map(o => kcard(o, est)).join("") :
+      (os.length ? os.map(o => tarjetaSegura(o, est)).join("") :
         '<div class="card" style="padding:22px;text-align:center;color:var(--ink-3);font-size:14px">' +
         (est === "cola" ? "Sin pedidos nuevos" : est === "prep" ? "Nada en la plancha" : "Nada esperando entrega") + "</div>") +
       "</div></section>";
@@ -1252,6 +1269,32 @@ function vistaCocina(){
       col("Listos para entregar", "listo", "var(--ok)") +
     "</div></div>";
 }
+
+/* Una sola orden con un dato raro no puede dejar a cocina sin pantalla: si esa
+   tarjeta falla, se dibuja lo mínimo indispensable —el número, lo que lleva y
+   el botón para avanzarla— y las demás órdenes siguen saliendo normal. */
+function tarjetaSegura(o, est){
+  try { return kcard(o, est); }
+  catch(e){
+    console.error("[potente] tarjeta", o && o.num, e);
+    const items = ((o && o.items) || []).map(i =>
+      '<div class="kit"><span class="kq num">' + esc(i.qty) + '×</span>' +
+      '<span class="kb"><b>' + esc(i.nombre) + "</b>" +
+      (i.detalle ? "<span>" + esc(i.detalle) + "</span>" : "") +
+      (i.salsas && i.salsas.length ? '<span class="ksal">' + esc(i.salsas.join(", ")) + "</span>" : "") +
+      (i.nota ? '<span class="knot">✎ ' + esc(i.nota) + "</span>" : "") + "</span></div>").join("");
+    const btn = est === "cola"
+      ? '<button class="btn primary" data-est="' + esc(o && o.id) + '|prep">Empezar</button>'
+      : est === "prep"
+        ? '<button class="btn primary" data-est="' + esc(o && o.id) + '|listo">Listo</button>'
+        : '<button class="btn primary" data-est="' + esc(o && o.id) + '|entregado">Entregado</button>';
+    return '<article class="kcard s-' + est + '">' +
+      '<div class="kh"><span class="kn num">#' + esc(o && o.num) + "</span></div>" +
+      '<div class="kitems">' + (items || '<div class="kit">Sin detalle</div>') + "</div>" +
+      '<div class="kacts">' + btn + "</div></article>";
+  }
+}
+
 function kcard(o, est){
   const items = o.items.map(i =>
     '<div class="kit"><span class="kq num">' + i.qty + '×</span><span class="kb"><b>' + esc(i.nombre) + "</b>" +
@@ -1265,10 +1308,11 @@ function kcard(o, est){
     : est === "prep"
       ? '<button class="btn ghost" data-est="' + o.id + '|cola">Volver</button><button class="btn primary" data-est="' + o.id + '|listo">Listo</button>'
       : '<button class="btn ghost" data-est="' + o.id + '|prep">Volver</button><button class="btn primary" data-est="' + o.id + '|entregado">Entregado</button>';
+  const pg = pagoDe(o.pago);
   return '<article class="kcard s-' + est + (nuevo ? " nuevo" : "") + '">' +
     '<div class="kh"><span class="kn num">#' + o.num + "</span>" +
       (o.renumerada ? '<span class="pill" style="color:var(--warn);border-color:var(--warn)">renumerado</span>' : "") +
-      '<span class="pill"><span class="sw" style="background:' + PAGO[o.pago].color + '"></span>' + esc(PAGO[o.pago].corto) + "</span>" +
+      '<span class="pill"><span class="sw" style="background:' + pg.color + '"></span>' + esc(pg.corto) + "</span>" +
       '<span class="kt num" data-espera="' + esc(o.ts) + '">' + espera(o.ts) + "</span></div>" +
     '<div class="kitems">' + items + "</div>" +
     (o.nota ? '<div class="knota">✎ ' + esc(o.nota) + "</div>" : "") +
@@ -1319,7 +1363,7 @@ function analitica(ordenes, dia){
     horas[o.hora != null ? o.hora : hhDe(new Date(o.ts))] = (horas[o.hora != null ? o.hora : hhDe(new Date(o.ts))] || 0) + o.total;
     o.items.forEach(i => {
       const p = prod[i.sku] || (prod[i.sku] = { sku:i.sku, nombre:i.nombre, cat:i.cat, unid:0, monto:0, pagos:vacio() });
-      p.unid += i.qty; p.monto += i.subtotal; p.pagos[o.pago] += i.subtotal;
+      p.unid += i.qty; p.monto += i.subtotal; p.pagos[o.pago] = (p.pagos[o.pago] || 0) + i.subtotal;
       // unidades que cocina realmente prepara (los combos se abren)
       const base = CARTA.find(x => x.sku === i.sku);
       if (base && base.produce){
@@ -1469,7 +1513,7 @@ function panelStand(){
       ultimas.map(o => '<div class="ordrow" style="padding:8px 0"><span class="on num">#' + o.num + "</span>" +
         '<span class="oi"><b>' + esc(o.items.map(i => i.qty + "× " + i.nombre).join(", ")) + "</b>" +
         horaDe(new Date(o.ts)) + " · " + esc(ESTADOS[o.estado] || o.estado) + "</span>" +
-        '<span class="pill"><span class="sw" style="background:' + PAGO[o.pago].color + '"></span>' + esc(PAGO[o.pago].corto) + "</span>" +
+        '<span class="pill"><span class="sw" style="background:' + pagoDe(o.pago).color + '"></span>' + esc(pagoDe(o.pago).corto) + "</span>" +
         '<span class="ov num">' + soles(o.total) + "</span></div>").join("") + "</div>" : "") +
     "</div>";
 }
@@ -1825,7 +1869,7 @@ function tabOrdenes(){
         '<span class="on num">#' + o.num + "</span>" +
         '<span class="oi"><b>' + esc(o.items.map(i => i.qty + "× " + i.nombre + (i.detalle ? " (" + i.detalle + ")" : "")).join(", ")) + "</b>" +
           diaLargo(o.dia) + " " + horaDe(new Date(o.ts)) + " · " + esc(ESTADOS[o.estado] || o.estado) + "</span>" +
-        '<span class="pill"><span class="sw" style="background:' + PAGO[o.pago].color + '"></span>' + esc(PAGO[o.pago].corto) + "</span>" +
+        '<span class="pill"><span class="sw" style="background:' + pagoDe(o.pago).color + '"></span>' + esc(pagoDe(o.pago).corto) + "</span>" +
         '<span class="ov num">' + soles(o.total) + "</span>" +
         (o.estado === "anulado" ? '<button class="btn ghost sm" data-anular="' + o.id + '|no">Restaurar</button>'
                                 : '<button class="btn ghost sm" data-anular="' + o.id + '|si">Anular</button>') +
@@ -1884,7 +1928,7 @@ function pintarModal(){
   }
   else if (s.t === "ticket"){
     html = '<div class="ticket-ok"><div class="tn num">#' + s.num + '</div><div class="tt">Pedido en cocina</div>' +
-      '<div class="td">' + soles(s.total) + " · " + esc(PAGO[s.pago].nombre) + "</div></div>" +
+      '<div class="td">' + soles(s.total) + " · " + esc(pagoDe(s.pago).nombre) + "</div></div>" +
       '<button class="btn primary" data-cerrar-sheet="1" style="width:100%;margin-top:16px">Siguiente cliente</button>';
   }
   else if (s.t === "confirm"){
@@ -2177,7 +2221,7 @@ async function exportarExcel(){
                   "Nota del producto", "Cantidad", "Precio unit. (S/)", "Subtotal (S/)", "Total orden (S/)", "Nota del pedido"]];
   S.ordSel.filter(o => S.diaSel === "todos" || o.dia === S.diaSel).slice().sort((x, y) => x.num - y.num)
     .forEach(o => o.items.forEach(i => filas.push([o.num, o.dia, horaDe(new Date(o.ts)), ESTADOS[o.estado] || o.estado,
-      PAGO[o.pago].nombre, i.nombre, i.detalle || "", (i.salsas || []).join(", "), i.nota || "",
+      pagoDe(o.pago).nombre, i.nombre, i.detalle || "", (i.salsas || []).join(", "), i.nota || "",
       i.qty, i.precio, i.subtotal, o.total, o.nota || ""])));
   const tt = tiempos(S.ordSel, S.diaSel);
   hoja("Tiempos de cocina",
