@@ -174,6 +174,10 @@ button{cursor:pointer;border:0;background:none}
 .prod .pd{font-size:12.5px;color:var(--ink-3);line-height:1.25}
 .prod .pp{margin-top:auto;font-family:var(--f-display);font-size:19px;color:var(--brasa)}
 .prod .pp small{font-size:11px;color:var(--ink-3);font-family:var(--f-body);letter-spacing:.08em;text-transform:uppercase;margin-left:5px}
+.gcat{grid-column:1/-1;margin:14px 0 -2px;font-family:var(--f-display);text-transform:uppercase;
+  font-size:15px;letter-spacing:.08em;color:var(--fuego);display:flex;align-items:center;gap:10px}
+.gcat:first-child{margin-top:2px}
+.gcat::after{content:"";flex:1;height:1px;background:var(--line)}
 .prod.combo{background:linear-gradient(150deg,#33210c,var(--panel) 62%);border-color:#6a4a1c}
 .prod .opts-tag{position:absolute;top:9px;right:9px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line-2);border-radius:999px;padding:1px 6px}
 .prod .qty-badge{position:absolute;top:8px;right:8px;background:var(--fuego);color:#17130F;font-family:var(--f-display);font-size:13px;min-width:22px;height:22px;border-radius:999px;display:grid;place-items:center;padding:0 5px}
@@ -510,11 +514,37 @@ const esAdmin = () => !!(S.yo && S.yo.rol === "admin");
 const RECETAS = {
   combo: [ { n:"Sándwich (del combo)", k:"opt:sandwich" },
            { n:"Papas Crujientes",     k:"papas" },
-           { n:"Refresco 12 oz",       k:"refresco12" } ]
+           { n:"Refresco 12 oz",       k:"refresco12" } ],
+  combo_salchipapa: [ { n:"Salchipapa (del combo)", k:"opt:salchipapa" },
+                      { n:"Refresco 12 oz",         k:"refresco12" } ],
+  combo_pancho:     [ { n:"Pancho Hot-Dog",         k:"pancho" },
+                      { n:"Refresco 9 oz",          k:"refresco9" } ]
 };
 
+/* Orden de la carta en caja y en los reportes. Es el orden en que se piensa
+   el pedido en el stand: primero lo que más se vende armado (combos), después
+   cada cosa suelta. Una categoría nueva que no esté aquí sale al final. */
+const ORDEN_CATS = ["Combos", "Sándwiches", "Panchos", "Acompañamientos", "Refrescos", "Salchipapas"];
+/* En la base las bebidas se llaman "Bebidas"; en pantalla, "Refrescos". Se
+   traduce solo al mostrar: lo que se graba sigue siendo el nombre de la base,
+   así no se toca ninguna regla ni ningún dato viejo. */
+const ALIAS_CAT = { "Bebidas":"Refrescos" };
+const nombreCat = c => ALIAS_CAT[c] || c || "Otros";
+function ordenCat(c){ const i = ORDEN_CATS.indexOf(c); return i < 0 ? 99 : i; }
+/* Arma la carta ya ordenada: por categoría y, dentro de cada una, por posición. */
+function armarCarta(lista){
+  CARTA = lista.slice().sort((a, b) => (ordenCat(a.cat) - ordenCat(b.cat)) || (a.pos - b.pos));
+  CATS = [];
+  CARTA.forEach(p => { if (CATS.indexOf(p.cat) < 0) CATS.push(p.cat); });
+}
+/* Las categorías de un reporte: las de la carta en su orden, más cualquiera
+   que venga en órdenes viejas y ya no esté en la carta — que no desaparezca. */
+function catsDe(porCat){
+  return CATS.concat(Object.keys(porCat).filter(c => CATS.indexOf(c) < 0));
+}
+
 function mapProducto(p){
-  return { sku:p.sku, nombre:p.nombre, cat:p.categoria, desc:p.descripcion || "",
+  return { sku:p.sku, nombre:p.nombre, cat:nombreCat(p.categoria), catBD:p.categoria, desc:p.descripcion || "",
            precio:+p.precio, salsas:!!p.lleva_salsas, activo:p.activo !== false,
            opciones:(p.opciones && p.opciones.length) ? p.opciones : null,
            produce:RECETAS[p.sku] || null, pos:p.posicion || 0 };
@@ -534,7 +564,7 @@ function mapOrden(o, items){
            tsPrep:o.iniciada_en, tsListo:o.lista_en, tsEntregado:o.entregada_en };
 }
 function mapItem(i){
-  return { sku:i.sku, nombre:i.nombre, cat:i.categoria, qty:i.cantidad,
+  return { sku:i.sku, nombre:i.nombre, cat:nombreCat(i.categoria), qty:i.cantidad,
            precio:i.precio == null ? null : +i.precio,
            subtotal:i.subtotal == null ? null : +i.subtotal,
            opts:i.opciones || {}, salsas:i.salsas || [], nota:i.nota || "",
@@ -694,9 +724,7 @@ async function cargarBase(){
   ]);
   if (prod.error) throw prod.error;
   S.productos = prod.data.map(mapProducto);
-  CARTA = S.productos.slice().sort((a, b) => a.pos - b.pos);
-  CATS = [];
-  CARTA.forEach(p => { if (CATS.indexOf(p.cat) < 0) CATS.push(p.cat); });
+  armarCarta(S.productos);
 
   S.ferias = (fer.data || []).map(mapFeria);
   S.turnos = turno.error ? [] : (turno.data || []);
@@ -762,7 +790,7 @@ async function registrarOrden(pago, nota){
   const f = feriaEnCurso();
   if (!f) throw new Error("sin feria");
   const items = S.cart.map(l => ({
-    sku:l.sku, nombre:l.nombre, categoria:l.cat, cantidad:l.qty, precio:l.precio,
+    sku:l.sku, nombre:l.nombre, categoria:l.catBD || l.cat, cantidad:l.qty, precio:l.precio,
     subtotal:Math.round(l.precio * l.qty * 100) / 100,
     opciones:l.opts || {}, salsas:l.salsas || [], nota:l.nota || ""
   }));
@@ -792,7 +820,7 @@ async function guardarCarta(){
   }
   const { data } = await sb.from("productos").select("*").order("posicion");
   S.productos = (data || []).map(mapProducto);
-  CARTA = S.productos.slice().sort((a, b) => a.pos - b.pos);
+  armarCarta(S.productos);
   toast("Carta actualizada.");
   render();
 }
@@ -1007,23 +1035,31 @@ const SABORES = ["Chicha morada", "Maracuyá"];
 const SALSAS = ["Kétchup", "Mayonesa", "Mostaza", "Ají", "Tártara", "Salsa hamburguesa"];   // Recetario R4 §F
 const SIN_SALSA = "Sin salsa";
 let CARTA = [
-  { salsas:true, sku:"combo",      cat:"Combos",         nombre:"Combo Potente",    precio:25,   desc:"Sándwich + papas + refresco 12 oz",
+  { salsas:true, sku:"combo",      cat:"Combos",         nombre:"Combo Potente",    precio:25,   desc:"Sándwich + papas + refresco 12 oz", pos:10,
     opciones:[ {id:"sandwich", label:"Sándwich", valores:["Choripán Criollo","Hotdog Callejero","Burger Potente"]},
                {id:"sabor",    label:"Refresco 12 oz", valores:SABORES} ],
-    produce:[{n:"Sándwich (del combo)",k:"opt:sandwich"},{n:"Papas Crujientes",k:"papas"},{n:"Refresco 12 oz",k:"refresco12"}] },
-  { salsas:true, sku:"choripan",   cat:"Sándwiches",     nombre:"Choripán Criollo", precio:15,   desc:"Chorizo a la plancha, papas al hilo y salsas" },
-  { salsas:true, sku:"hotdog",     cat:"Sándwiches",     nombre:"Hotdog Callejero", precio:15,   desc:"Salchicha, papas al hilo y salsas" },
-  { salsas:true, sku:"burger",     cat:"Sándwiches",     nombre:"Burger Potente",   precio:18,   desc:"Doble carne, lechuga, tomate y cheddar" },
-  { salsas:true, sku:"salchipapa", cat:"Salchipapas",    nombre:"Salchipapa Potente", precio:20, desc:"Salchicha, papas crujientes y salsas" },
-  { salsas:true, sku:"choripapa",  cat:"Salchipapas",    nombre:"Choripapa Potente",  precio:20, desc:"Chorizo, papas crujientes y salsas" },
-  { salsas:true, sku:"pancho",     cat:"Panchos",        nombre:"Pancho Hot-Dog",   precio:5,    desc:"En palo, sin pan" },
-  { salsas:true, sku:"papas",      cat:"Acompañamientos",nombre:"Papas Crujientes", precio:8,    desc:"Porción de papas fritas" },
-  { sku:"refresco12", cat:"Bebidas",        nombre:"Refresco 12 oz",   precio:5,    desc:"Casero, bien frío",
+    produce:RECETAS.combo },
+  { salsas:true, sku:"combo_salchipapa", cat:"Combos",   nombre:"Combo Salchipapa", precio:23,   desc:"Salchipapa a elección + refresco 12 oz", pos:11,
+    opciones:[ {id:"salchipapa", label:"Salchipapa", valores:["Salchipapa Potente","Choripapa Potente","Salchipapa Mixta"]},
+               {id:"sabor",      label:"Refresco 12 oz", valores:SABORES} ],
+    produce:RECETAS.combo_salchipapa },
+  { salsas:true, sku:"combo_pancho", cat:"Combos",       nombre:"Combo Pancho",     precio:5,    desc:"Pancho Hot-Dog + refresco 9 oz", pos:12,
+    opciones:[ {id:"sabor", label:"Refresco 9 oz", valores:SABORES} ],
+    produce:RECETAS.combo_pancho },
+  { salsas:true, sku:"choripan",   cat:"Sándwiches",     nombre:"Choripán Criollo", precio:15,   desc:"Chorizo a la plancha, papas al hilo y salsas", pos:20 },
+  { salsas:true, sku:"hotdog",     cat:"Sándwiches",     nombre:"Hotdog Callejero", precio:15,   desc:"Salchicha, papas al hilo y salsas", pos:21 },
+  { salsas:true, sku:"burger",     cat:"Sándwiches",     nombre:"Burger Potente",   precio:18,   desc:"Doble carne, lechuga, tomate y cheddar", pos:22 },
+  { salsas:true, sku:"pancho",     cat:"Panchos",        nombre:"Pancho Hot-Dog",   precio:5,    desc:"En palo, sin pan", pos:30 },
+  { salsas:true, sku:"papas",      cat:"Acompañamientos",nombre:"Papas Crujientes", precio:8,    desc:"Porción de papas fritas", pos:40 },
+  { sku:"refresco12", cat:"Refrescos",      nombre:"Refresco 12 oz",   precio:5,    desc:"Casero, bien frío", pos:50,
     opciones:[ {id:"sabor", label:"Sabor", valores:SABORES} ] },
-  { sku:"refresco9",  cat:"Bebidas",        nombre:"Refresco 9 oz",    precio:3.5,  desc:"Casero, bien frío",
-    opciones:[ {id:"sabor", label:"Sabor", valores:SABORES} ] }
+  { sku:"refresco9",  cat:"Refrescos",      nombre:"Refresco 9 oz",    precio:3.5,  desc:"Casero, bien frío", pos:51,
+    opciones:[ {id:"sabor", label:"Sabor", valores:SABORES} ] },
+  { salsas:true, sku:"salchipapa", cat:"Salchipapas",    nombre:"Salchipapa Potente", precio:20, desc:"Salchicha, papas crujientes y salsas", pos:60 },
+  { salsas:true, sku:"choripapa",  cat:"Salchipapas",    nombre:"Choripapa Potente",  precio:20, desc:"Chorizo, papas crujientes y salsas", pos:61 },
+  { salsas:true, sku:"salchipapa_mixta", cat:"Salchipapas", nombre:"Salchipapa Mixta", precio:20, desc:"Salchicha y chorizo, papas crujientes y salsas", pos:62 }
 ];
-let CATS = ["Combos","Sándwiches","Salchipapas","Panchos","Acompañamientos","Bebidas"];
+let CATS = ORDEN_CATS.slice();
 
 const PAGOS = [
   { id:"qr",        nombre:"QR Yape / Plin", corto:"QR Yape/Plin", color:"var(--p-qr)",        hex:"#9085e9" },
@@ -1091,7 +1127,7 @@ function agregar(sku, opts, salsas, nota, qty, editKey){
   const k = claveLinea(sku, opts, salsas, nota);
   const ex = S.cart.find(l => l.key === k);
   if (ex) ex.qty += qty;
-  else S.cart.push({ key:k, sku, nombre:p.nombre, cat:p.cat, precio:precioDe(sku), qty,
+  else S.cart.push({ key:k, sku, nombre:p.nombre, cat:p.cat, catBD:p.catBD || p.cat, precio:precioDe(sku), qty,
                      opts:opts || {}, salsas:salsas || [], nota:nota || "" });
   beep(660, .05);
   render();
@@ -1198,14 +1234,22 @@ function vistaCaja(){
   const cats = ["Todo"].concat(CATS);
   const enCat = p => (S.cat === "Todo" || p.cat === S.cat) && activo(p.sku);
   const enCarrito = sku => S.cart.filter(l => l.sku === sku).reduce((s, l) => s + l.qty, 0);
-  const prods = CARTA.filter(enCat).map(p => {
+  const tarjeta = p => {
     const q = enCarrito(p.sku);
-    return '<button class="prod' + (p.sku === "combo" ? " combo" : "") + '" data-add="' + p.sku + '">' +
+    return '<button class="prod' + (p.cat === "Combos" ? " combo" : "") + '" data-add="' + p.sku + '">' +
       (q ? '<span class="qty-badge num">' + q + "</span>" : "") +
       '<span class="pn">' + esc(p.nombre) + "</span>" +
       '<span class="pd">' + esc(p.desc || "") + "</span>" +
-      '<span class="pp num">' + soles(precioDe(p.sku)).replace("S/ ", "S/") + (p.sku === "combo" ? " <small>ahorra 6</small>" : "") + "</span></button>";
-  }).join("");
+      '<span class="pp num">' + soles(precioDe(p.sku)).replace("S/ ", "S/") + "</span></button>";
+  };
+  // En "Todo" cada categoría lleva su título: con catorce productos, buscar un
+  // combo entre refrescos y salchipapas es justo lo que hace lento a caja.
+  const prods = S.cat === "Todo"
+    ? CATS.map(c => {
+        const de = CARTA.filter(p => p.cat === c && activo(p.sku));
+        return de.length ? '<div class="gcat">' + esc(c) + "</div>" + de.map(tarjeta).join("") : "";
+      }).join("")
+    : CARTA.filter(enCat).map(tarjeta).join("");
 
   const n = itemsCarrito(), tot = totalCarrito();
   const lineas = S.cart.map(l =>
@@ -1642,10 +1686,10 @@ function panelProductos(a){
     '<div class="ht"><div class="hf" style="width:' + (p.unid / maxU * 100) + '%;background:' +
       (p.sku === "combo" ? "var(--grad)" : "var(--fuego)") + '"></div></div>' +
     '<div class="hv num">' + p.unid + " uds<small>" + soles(p.monto) + "</small></div></div>").join("");
-  const orden = CATS.slice(), porCat = {};
+  const porCat = {};
   a.porProducto.forEach(p => { (porCat[p.cat] || (porCat[p.cat] = [])).push(p); });
   let filas = "";
-  orden.forEach(c => {
+  catsDe(porCat).forEach(c => {
     if (!porCat[c]) return;
     filas += '<tr class="grp"><td colspan="5">' + esc(c) + "</td></tr>";
     porCat[c].sort((x, y) => y.unid - x.unid).forEach(p => {
@@ -1670,10 +1714,10 @@ function panelProductoDia(a){
   const dias = a.porDia.map(d => d.dia);
   const modo = S.matrizModo === "monto" ? "monto" : "unid";
   const val = c => !c ? '<span class="mut">—</span>' : (modo === "unid" ? c.unid : soles(c.monto));
-  const orden = CATS.slice(), porCat = {};
+  const porCat = {};
   a.porProductoDia.forEach(p => { (porCat[p.cat] || (porCat[p.cat] = [])).push(p); });
   let filas = "";
-  orden.forEach(c => {
+  catsDe(porCat).forEach(c => {
     if (!porCat[c]) return;
     filas += '<tr class="grp"><td colspan="' + (dias.length + 2) + '">' + esc(c) + "</td></tr>";
     porCat[c].forEach(p => {
@@ -1723,11 +1767,10 @@ function panelPagos(a){
 
 function panelMatriz(a){
   if (!a.porProducto.length) return "";
-  const orden = CATS.slice();
   const porCat = {};
   a.porProducto.forEach(p => { (porCat[p.cat] || (porCat[p.cat] = [])).push(p); });
   let filas = "";
-  orden.forEach(c => {
+  catsDe(porCat).forEach(c => {
     if (!porCat[c]) return;
     filas += '<tr class="grp"><td colspan="' + (PAGOS.length + 3) + '">' + esc(c) + "</td></tr>";
     porCat[c].forEach(p => {
