@@ -112,6 +112,17 @@ button{cursor:pointer;border:0;background:none}
 .editbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 0;padding:11px 14px;
   border-radius:12px;border:1px solid var(--fuego);background:#33210c;font-size:14px}
 .editbar b{color:var(--brasa)}
+.clientebar{display:flex;gap:10px;align-items:center;padding:12px 0 2px}
+.clientebar label{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:600;flex:none}
+.clientebar input{flex:1;min-width:0}
+.clientebar input:focus{border-color:var(--fuego);outline:none}
+.line .btn.peligro{color:#e88a8a;border-color:#5a2727}
+.line .btn.peligro:hover{border-color:var(--bad);color:#ff9a9a}
+@media (max-width:520px){
+  .clientebar label{display:none}
+  .line .btn.sm{padding:6px 9px;font-size:12.5px}
+}
 .peds{display:flex;flex-direction:column;gap:10px;padding:12px 0 40px}
 .ped{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
 .ped.anul{opacity:.5}
@@ -1416,6 +1427,7 @@ function vistaCaja(){
     '</span><button data-q="' + l.key + '|1">+</button></div>' +
     '<div class="ln"><b>' + esc(l.nombre) + "</b>" + (resumenLinea(l) ? "<span>" + esc(resumenLinea(l)) + "</span>" : "") + "</div>" +
     '<button class="btn ghost sm" data-editar="' + l.key + '" title="Salsas y nota">Salsas</button>' +
+    '<button class="btn ghost sm peligro" data-quitar="' + l.key + '" title="Sacar del pedido">Quitar</button>' +
     '<div class="lp num">' + soles(l.precio * l.qty) + "</div></div>").join("");
 
   if (S.verOrdenes) return vistaPedidos();
@@ -1433,11 +1445,20 @@ function vistaCaja(){
     : "";
   const editando = S.editando
     ? '<div class="editbar"><b>Corrigiendo el pedido #' + S.editando.num + ".</b> " +
-      "Cambia lo que haga falta y guarda: el ticket sigue siendo el mismo." +
+      "Toca un producto para agregarlo, o Quitar en la lista de abajo para sacarlo. " +
+      "El ticket sigue siendo el mismo." +
       '<button class="btn ghost sm" data-caned="1" style="margin-left:auto">Cancelar</button></div>'
     : "";
+  // El nombre se pregunta al empezar el pedido, mientras el cliente está
+  // hablando, no al final: al cobrar ya se fue a esperar.
+  const quien = '<div class="clientebar">' +
+    '<label for="clienteCaja">Cliente</label>' +
+    '<input id="clienteCaja" type="text" autocomplete="off" placeholder="¿A nombre de quién? (opcional)" value="' +
+      esc(S.cliente || "") + '">' +
+    (S.cliente ? '<button class="btn ghost sm" data-limpiacli="1">Borrar</button>' : "") +
+    "</div>";
 
-  return '<div class="wrap caja">' + barraEquipo() + avisoPrueba() + cabecera + editando +
+  return '<div class="wrap caja">' + barraEquipo() + avisoPrueba() + cabecera + editando + quien +
     '<div class="cats">' + cats.map(c => '<button class="cat" data-cat="' + esc(c) + '" aria-pressed="' + (S.cat === c) + '">' + esc(c) + "</button>").join("") + "</div>" +
     '<div class="grid">' + prods + "</div>" +
     '<div class="foot">Feria: ' + esc(f.nombre) + " · Pedidos de hoy: " + S.ordenes.filter(o => o.dia === diaDe(new Date()) && o.estado !== "anulado").length + "</div>" +
@@ -1529,6 +1550,7 @@ function abrirCorreccion(o){
              qty:i.qty, opts:i.opts || {}, salsas:i.salsas || [], nota:i.nota || "" };
   });
   S.editando = { id:o.id, num:o.num, pago:o.pago, cliente:o.cliente || "", nota:o.nota || "" };
+  S.cliente = o.cliente || "";
   S.verOrdenes = false; S.cartOpen = true; S.cat = "Todo";
   render();
 }
@@ -2221,8 +2243,8 @@ function pintarModal(){
         (resumenLinea(l) ? "<span>" + esc(resumenLinea(l)) + "</span>" : "") + "</span>" +
         '<span class="lp num">' + soles(l.precio * l.qty) + "</span></div>").join("") + "</div>" +
       '<label style="display:block;margin-bottom:16px">' +
-        '<span class="lbl" style="display:block;margin-bottom:7px">Nombre del cliente ' +
-        '<span style="text-transform:none;letter-spacing:0;color:var(--ink-3)">· para llamarlo cuando esté listo</span></span>' +
+        '<span class="lbl" style="display:block;margin-bottom:7px">Cliente ' +
+        '<span style="text-transform:none;letter-spacing:0;color:var(--ink-3)">· se lo llama cuando esté listo</span></span>' +
         '<input id="cliente" type="text" placeholder="Carlos" value="' + esc(s.cliente || "") + '" style="width:100%"></label>' +
       '<span class="lbl" style="display:block;margin-bottom:8px">¿Con qué pagó?</span><div class="pays">' +
       PAGOS.map(p => '<button class="pay" data-pay="' + p.id + '" aria-pressed="' + (s.pago === p.id) + '" style="color:' + p.color + '">' +
@@ -2312,7 +2334,7 @@ async function manejarClick(ev){
     if (S.verOrdenes) await refrescarCola();
     return render();
   }
-  if (t.hasAttribute("data-caned")){ S.editando = null; S.cart = []; S.cartOpen = false; return render(); }
+  if (t.hasAttribute("data-caned")){ S.editando = null; S.cart = []; S.cartOpen = false; S.cliente = ""; return render(); }
   if (t.hasAttribute("data-edi")){
     const o = S.ordenes.find(x => x.id === g("data-edi"));
     if (o) abrirCorreccion(o);
@@ -2348,10 +2370,16 @@ async function manejarClick(ev){
   }
   if (t.hasAttribute("data-q")){ const [k, d] = g("data-q").split("|"); return cambiarQty(k, +d); }
   if (t.id === "toggleCart"){ S.cartOpen = !S.cartOpen; return render(); }
-  if (t.id === "vaciar"){ S.cart = []; S.cartOpen = false; S.editando = null; return render(); }
+  if (t.id === "vaciar"){ S.cart = []; S.cartOpen = false; S.editando = null; S.cliente = ""; return render(); }
+  if (t.hasAttribute("data-limpiacli")){ S.cliente = ""; return render(); }
+  if (t.hasAttribute("data-quitar")){
+    S.cart = S.cart.filter(l => l.key !== g("data-quitar"));
+    if (!S.cart.length) S.cartOpen = false;
+    return render();
+  }
   if (t.id === "cobrar"){
     const ed = S.editando;
-    S.sheet = { t:"cobro", pago: ed ? ed.pago : null, nota: ed ? ed.nota : "", cliente: ed ? ed.cliente : "" };
+    S.sheet = { t:"cobro", pago: ed ? ed.pago : null, nota: ed ? ed.nota : "", cliente: S.cliente || "" };
     return pintarModal();
   }
   if (t.hasAttribute("data-opt")){
@@ -2389,13 +2417,13 @@ async function manejarClick(ev){
       if (S.editando){
         const num = S.editando.num;
         await guardarEdicion(s.pago, nota, cliente);
-        S.cart = []; S.cartOpen = false; S.editando = null; S.sheet = null; S.verOrdenes = true;
+        S.cart = []; S.cartOpen = false; S.editando = null; S.sheet = null; S.verOrdenes = true; S.cliente = "";
         beep(760, .1);
         toast("Pedido #" + num + " corregido. Cocina ya lo ve cambiado.");
         return render();
       }
       const num = await registrarOrden(s.pago, nota, cliente);
-      S.cart = []; S.cartOpen = false;
+      S.cart = []; S.cartOpen = false; S.cliente = "";
       S.sheet = { t:"ticket", num, total, pago:s.pago, cliente };
       beep(760, .1); setTimeout(() => beep(1020, .12), 110);
       render();
@@ -2463,7 +2491,8 @@ document.addEventListener("keydown", ev => {
 });
 document.addEventListener("input", ev => {
   if (S.sheet && (ev.target.id === "nota" || ev.target.id === "notaLinea")) S.sheet.nota = ev.target.value;
-  if (S.sheet && ev.target.id === "cliente") S.sheet.cliente = ev.target.value;
+  if (S.sheet && ev.target.id === "cliente"){ S.sheet.cliente = ev.target.value; S.cliente = ev.target.value; }
+  if (ev.target.id === "clienteCaja") S.cliente = ev.target.value;
   if (S.p0Draft && ev.target.id === "p0")     S.p0Draft.punto0  = ev.target.value;
   if (S.p0Draft && ev.target.id === "p0bono") S.p0Draft.bonoPct = ev.target.value;
 });
