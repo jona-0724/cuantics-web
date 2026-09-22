@@ -112,6 +112,22 @@ button{cursor:pointer;border:0;background:none}
 .editbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 0;padding:11px 14px;
   border-radius:12px;border:1px solid var(--fuego);background:#33210c;font-size:14px}
 .editbar b{color:var(--brasa)}
+.reemplbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 0;padding:11px 14px;
+  border-radius:12px;border:1px dashed var(--fuego);background:#2a1a0b;font-size:14px}
+.reemplbar b{color:var(--brasa)}
+.clientebar{display:flex;gap:10px;align-items:center;padding:12px 0 2px}
+.clientebar label{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:600;flex:none}
+.clientebar input{flex:1;min-width:0}
+.clientebar input:focus{border-color:var(--fuego);outline:none}
+.line .btn.peligro{color:#e88a8a;border-color:#5a2727}
+.line .btn.peligro:hover{border-color:var(--bad);color:#ff9a9a}
+@media (max-width:520px){
+  .clientebar label{display:none}
+  .line .btn.sm{padding:6px 9px;font-size:12.5px}
+  .line .lacc{order:5;flex:1 1 100%;justify-content:flex-end}
+  .line .lp{order:4;min-width:0}
+}
 .peds{display:flex;flex-direction:column;gap:10px;padding:12px 0 40px}
 .ped{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
 .ped.anul{opacity:.5}
@@ -231,7 +247,9 @@ button{cursor:pointer;border:0;background:none}
 .cart-sum .cs1{display:block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
 .cart-sum .cs2{display:block;font-family:var(--f-display);font-size:25px;line-height:1.05}
 .cart-lines{max-height:44vh;overflow:auto;border-bottom:1px solid var(--line);padding:6px 16px 10px;max-width:1280px;margin:0 auto}
-.line{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.line{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.line .step{order:1}.line .ln{order:2}.line .lacc{order:3}.line .lp{order:4}
+.lacc{display:flex;gap:8px;flex:none}
 .line:last-child{border-bottom:0}
 .line .ln{flex:1;min-width:0}
 .line .ln b{display:block;font-weight:600;font-size:15px}
@@ -540,8 +558,10 @@ const S = {
   feriaSel:null, ordSel:[],  // lo que mira el administrador (con montos)
   cart:[], cat:"Todo", cartOpen:false,
   verOrdenes:false,          // caja mirando su lista de pedidos del día
+  verEntregados:false,       // cocina mirando lo que ya despachó hoy
   editando:null,             // pedido que caja está corrigiendo
   cliente:"",                // nombre del cliente del pedido en curso
+  reemplazando:null,         // producto que se sacó para cambiarlo por otro
   soportaCaja:true,          // ¿la base ya tiene la vista de caja?
   adminVista:"ferias", adminSub:"resumen", diaSel:"todos", matrizModo:"unid",
   sonido:lsGet("pot_sonido", true),
@@ -1287,8 +1307,11 @@ function agregar(sku, opts, salsas, nota, qty, editKey){
   if (ex) ex.qty += qty;
   else S.cart.push({ key:k, sku, nombre:p.nombre, cat:p.cat, catBD:p.catBD || p.cat, precio:precioDe(sku), qty,
                      opts:opts || {}, salsas:salsas || [], nota:nota || "" });
+  const cambiado = S.reemplazando;
+  S.reemplazando = null;
   beep(660, .05);
   render();
+  if (cambiado && p) toast(cambiado.nombre + " → " + p.nombre + ". Listo, el pedido quedó cambiado.");
 }
 function cambiarQty(key, d){
   const l = S.cart.find(x => x.key === key); if (!l) return;
@@ -1412,10 +1435,14 @@ function vistaCaja(){
 
   const n = itemsCarrito(), tot = totalCarrito();
   const lineas = S.cart.map(l =>
-    '<div class="line"><div class="step"><button data-q="' + l.key + '|-1">−</button><span class="q num">' + l.qty +
-    '</span><button data-q="' + l.key + '|1">+</button></div>' +
+    '<div class="line"><div class="step"><button data-q="' + esc(l.key) + '" data-d="-1">−</button><span class="q num">' + l.qty +
+    '</span><button data-q="' + esc(l.key) + '" data-d="1">+</button></div>' +
     '<div class="ln"><b>' + esc(l.nombre) + "</b>" + (resumenLinea(l) ? "<span>" + esc(resumenLinea(l)) + "</span>" : "") + "</div>" +
-    '<button class="btn ghost sm" data-editar="' + l.key + '" title="Salsas y nota">Salsas</button>' +
+    '<div class="lacc">' +
+      '<button class="btn ghost sm" data-editar="' + esc(l.key) + '" title="Salsas y nota">Salsas</button>' +
+      '<button class="btn ghost sm" data-cambiar="' + esc(l.key) + '" title="Cambiarlo por otro producto">Cambiar</button>' +
+      '<button class="btn ghost sm peligro" data-quitar="' + esc(l.key) + '" title="Sacar del pedido">Quitar</button>' +
+    '</div>' +
     '<div class="lp num">' + soles(l.precio * l.qty) + "</div></div>").join("");
 
   if (S.verOrdenes) return vistaPedidos();
@@ -1433,11 +1460,27 @@ function vistaCaja(){
     : "";
   const editando = S.editando
     ? '<div class="editbar"><b>Corrigiendo el pedido #' + S.editando.num + ".</b> " +
-      "Cambia lo que haga falta y guarda: el ticket sigue siendo el mismo." +
+      "Abre el detalle del pedido abajo: ahí cada línea tiene Cambiar (por otro producto), " +
+      "Quitar y − / + . El ticket sigue siendo el mismo." +
       '<button class="btn ghost sm" data-caned="1" style="margin-left:auto">Cancelar</button></div>'
     : "";
+  // Reemplazar = sacar la línea y elegir la que entra. Sin este aviso el
+  // producto desaparece y caja se queda sin saber qué estaba haciendo.
+  const reempl = S.reemplazando
+    ? '<div class="reemplbar"><b>Cambiando ' + esc(S.reemplazando.nombre) + ".</b> " +
+      "Toca abajo el producto que lo reemplaza." +
+      '<button class="btn ghost sm" data-canreempl="1" style="margin-left:auto">Ya no</button></div>'
+    : "";
+  // El nombre se pregunta al empezar el pedido, mientras el cliente está
+  // hablando, no al final: al cobrar ya se fue a esperar.
+  const quien = '<div class="clientebar">' +
+    '<label for="clienteCaja">Cliente</label>' +
+    '<input id="clienteCaja" type="text" autocomplete="off" placeholder="¿A nombre de quién? (opcional)" value="' +
+      esc(S.cliente || "") + '">' +
+    (S.cliente ? '<button class="btn ghost sm" data-limpiacli="1">Borrar</button>' : "") +
+    "</div>";
 
-  return '<div class="wrap caja">' + barraEquipo() + avisoPrueba() + cabecera + editando +
+  return '<div class="wrap caja">' + barraEquipo() + avisoPrueba() + cabecera + editando + reempl + quien +
     '<div class="cats">' + cats.map(c => '<button class="cat" data-cat="' + esc(c) + '" aria-pressed="' + (S.cat === c) + '">' + esc(c) + "</button>").join("") + "</div>" +
     '<div class="grid">' + prods + "</div>" +
     '<div class="foot">Feria: ' + esc(f.nombre) + " · Pedidos de hoy: " + S.ordenes.filter(o => o.dia === diaDe(new Date()) && o.estado !== "anulado").length + "</div>" +
@@ -1529,6 +1572,7 @@ function abrirCorreccion(o){
              qty:i.qty, opts:i.opts || {}, salsas:i.salsas || [], nota:i.nota || "" };
   });
   S.editando = { id:o.id, num:o.num, pago:o.pago, cliente:o.cliente || "", nota:o.nota || "" };
+  S.cliente = o.cliente || "";
   S.verOrdenes = false; S.cartOpen = true; S.cat = "Todo";
   render();
 }
@@ -1560,16 +1604,61 @@ function vistaCocina(){
       "</div></section>";
   };
   const entregadas = S.ordenes.filter(o => o.estado === "entregado" && o.dia === hoy);
+  if (S.verEntregados) return vistaEntregados(f, hoy, entregadas);
   return '<div class="wrap">' +
     '<div class="sec-h" style="margin:16px 0 0"><h2>Cola de cocina</h2><span class="sub">' + diaLargo(hoy) + " · " + esc(f.nombre) +
-      " · " + entregadas.length + " entregados hoy</span>" +
-      '<span style="flex:1"></span><button class="btn ghost sm" id="sonido">Sonido: ' + (S.sonido ? "sí" : "no") + "</button></div>" +
+      "</span>" +
+      '<span style="flex:1"></span>' +
+      '<button class="btn ghost sm" data-ent="1">Entregados hoy · ' + entregadas.length + "</button>" +
+      '<button class="btn ghost sm" id="sonido">Sonido: ' + (S.sonido ? "sí" : "no") + "</button></div>" +
     barraEquipo() +
     '<div class="kds">' +
       col("En cola", "cola", "var(--warn)") +
       col("Preparando", "prep", "var(--fuego)") +
       col("Listos para entregar", "listo", "var(--ok)") +
     "</div></div>";
+}
+
+/* Lo que cocina ya despachó hoy. Antes la orden entregada desaparecía de la
+   pantalla y nadie podía decir a quién ni con qué número se entregó: si el
+   cliente volvía reclamando, cocina no tenía dónde mirar. */
+function vistaEntregados(f, hoy, entregadas){
+  const os = entregadas.slice().sort((a, b) =>
+    new Date(b.tsEntregado || b.ts) - new Date(a.tsEntregado || a.ts));
+  const lista = os.length
+    ? os.map(filaEntregado).join("")
+    : '<div class="card" style="padding:26px;text-align:center;color:var(--ink-3);font-size:14px">' +
+      "Todavía no hay nada entregado hoy.</div>";
+  return '<div class="wrap">' +
+    '<div class="sec-h" style="margin:16px 0 0"><h2>Entregados hoy</h2>' +
+      '<span class="sub">' + diaLargo(hoy) + " · " + esc(f ? f.nombre : "") + " · " +
+      os.length + (os.length === 1 ? " pedido" : " pedidos") + "</span>" +
+      '<span style="flex:1"></span>' +
+      '<button class="btn ghost sm" data-ent="0">Volver a la cola</button></div>' +
+    barraEquipo() +
+    '<div class="peds">' + lista + "</div></div>";
+}
+
+/* Sin montos: cocina no ve plata. Número, nombre, qué llevaba, a qué hora se
+   entregó y cuánto tomó desde que entró el pedido. */
+function filaEntregado(o){
+  const fin = o.tsEntregado ? new Date(o.tsEntregado) : null;
+  const mins = fin ? Math.max(0, Math.round((fin - new Date(o.ts)) / 60000)) : null;
+  return '<article class="ped">' +
+    '<div class="ped__h"><span class="ped__n num">#' + o.num + "</span>" +
+      (o.cliente ? '<span class="ped__c">' + esc(o.cliente) + "</span>"
+                 : '<span class="ped__c" style="opacity:.55">Sin nombre</span>') +
+      (o.editada ? '<span class="keditada">corregida</span>' : "") +
+      '<span class="ped__e">Entregado</span>' +
+      (mins != null ? '<span class="ped__t num">' + mins + " min</span>" : "") + "</div>" +
+    '<div class="ped__i">' +
+      esc(o.items.map(i => i.qty + "× " + i.nombre + (i.detalle ? " (" + i.detalle + ")" : "")).join(", ")) +
+      (o.nota ? " · ✎ " + esc(o.nota) : "") + "</div>" +
+    '<div class="ped__a">' +
+      '<button class="btn ghost sm" data-est="' + esc(o.id) + '|listo" title="Se entregó por error">Volver a listos</button>' +
+      '<span class="ped__hora">entrado ' + horaDe(new Date(o.ts)) +
+        (fin ? " · entregado " + horaDe(fin) : "") + "</span>" +
+    "</div></article>";
 }
 
 /* Una sola orden con un dato raro no puede dejar a cocina sin pantalla: si esa
@@ -2221,8 +2310,8 @@ function pintarModal(){
         (resumenLinea(l) ? "<span>" + esc(resumenLinea(l)) + "</span>" : "") + "</span>" +
         '<span class="lp num">' + soles(l.precio * l.qty) + "</span></div>").join("") + "</div>" +
       '<label style="display:block;margin-bottom:16px">' +
-        '<span class="lbl" style="display:block;margin-bottom:7px">Nombre del cliente ' +
-        '<span style="text-transform:none;letter-spacing:0;color:var(--ink-3)">· para llamarlo cuando esté listo</span></span>' +
+        '<span class="lbl" style="display:block;margin-bottom:7px">Cliente ' +
+        '<span style="text-transform:none;letter-spacing:0;color:var(--ink-3)">· se lo llama cuando esté listo</span></span>' +
         '<input id="cliente" type="text" placeholder="Carlos" value="' + esc(s.cliente || "") + '" style="width:100%"></label>' +
       '<span class="lbl" style="display:block;margin-bottom:8px">¿Con qué pagó?</span><div class="pays">' +
       PAGOS.map(p => '<button class="pay" data-pay="' + p.id + '" aria-pressed="' + (s.pago === p.id) + '" style="color:' + p.color + '">' +
@@ -2284,7 +2373,7 @@ async function manejarClick(ev){
     const r = g("data-rol");
     if (r === "admin" && !esAdmin()) return;
     if ((r === "caja" || r === "cocina") && !puedoOperar()) return;
-    S.role = r || null; S.cart = []; S.cartOpen = false;
+    S.role = r || null; S.cart = []; S.cartOpen = false; S.reemplazando = null; S.verEntregados = false;
     S.editando = null; S.verOrdenes = false;
     if (r === "admin") refrescarAdmin();
     if (r === "cocina") S.ordenes.forEach(o => S.vistos[o.id] = 1);
@@ -2293,13 +2382,13 @@ async function manejarClick(ev){
     return render();
   }
   if (t.id === "chipRole") { S.role = null; S.sheet = null; return render(); }
-  if (t.id === "chipFeria"){ S.feriaOp = null; S.role = null; S.sheet = null; S.cart = []; S.editando = null; return render(); }
+  if (t.id === "chipFeria"){ S.feriaOp = null; S.role = null; S.sheet = null; S.cart = []; S.editando = null; S.reemplazando = null; return render(); }
 
   /* --- elegir feria --- */
   if (t.hasAttribute("data-feria")){
     const id = g("data-feria") || null;
     if (id && !feriasOperables().some(f => f.id === id)) return;
-    S.feriaOp = id; S.role = null; S.cart = []; S.cartOpen = false;
+    S.feriaOp = id; S.role = null; S.cart = []; S.cartOpen = false; S.reemplazando = null; S.verEntregados = false;
     S.editando = null; S.verOrdenes = false; S.ordenes = [];
     render();
     if (id) await refrescarCola();
@@ -2312,7 +2401,13 @@ async function manejarClick(ev){
     if (S.verOrdenes) await refrescarCola();
     return render();
   }
-  if (t.hasAttribute("data-caned")){ S.editando = null; S.cart = []; S.cartOpen = false; return render(); }
+  /* --- lo que cocina ya despachó --- */
+  if (t.hasAttribute("data-ent")){
+    S.verEntregados = g("data-ent") === "1";
+    if (S.verEntregados) await refrescarCola();
+    return render();
+  }
+  if (t.hasAttribute("data-caned")){ S.editando = null; S.cart = []; S.cartOpen = false; S.cliente = ""; S.reemplazando = null; return render(); }
   if (t.hasAttribute("data-edi")){
     const o = S.ordenes.find(x => x.id === g("data-edi"));
     if (o) abrirCorreccion(o);
@@ -2346,12 +2441,45 @@ async function manejarClick(ev){
                 nota:l.nota || "", qty:l.qty, editKey:l.key };
     return pintarModal();
   }
-  if (t.hasAttribute("data-q")){ const [k, d] = g("data-q").split("|"); return cambiarQty(k, +d); }
+  // La clave de la línea lleva "|" y comillas adentro (sku|opciones|salsas|nota),
+  // así que va sola en el atributo y escapada; el signo viaja aparte.
+  if (t.hasAttribute("data-q")) return cambiarQty(g("data-q"), +g("data-d"));
   if (t.id === "toggleCart"){ S.cartOpen = !S.cartOpen; return render(); }
-  if (t.id === "vaciar"){ S.cart = []; S.cartOpen = false; S.editando = null; return render(); }
+  if (t.id === "vaciar"){ S.cart = []; S.cartOpen = false; S.editando = null; S.cliente = ""; S.reemplazando = null; return render(); }
+  if (t.hasAttribute("data-limpiacli")){ S.cliente = ""; return render(); }
+  if (t.hasAttribute("data-quitar")){
+    S.cart = S.cart.filter(l => l.key !== g("data-quitar"));
+    if (!S.cart.length) S.cartOpen = false;
+    return render();
+  }
+  /* Cambiar un producto por otro: se saca la línea, se cierra el detalle para
+     dejar la carta a la vista y queda el aviso de qué se está reemplazando. */
+  if (t.hasAttribute("data-cambiar")){
+    const k = g("data-cambiar");
+    const l = S.cart.find(x => x.key === k); if (!l) return;
+    S.cart = S.cart.filter(x => x.key !== k);
+    if (l.qty > 1) S.cart.push(Object.assign({}, l, { qty: l.qty - 1 }));
+    S.reemplazando = { nombre:l.nombre, linea:Object.assign({}, l, { qty:1 }) };
+    S.cartOpen = false;
+    S.cat = "Todo";
+    render();
+    const rej = document.querySelector(".grid");
+    if (rej && rej.scrollIntoView) { try { rej.scrollIntoView({ behavior:"smooth", block:"start" }) } catch(e){ rej.scrollIntoView() } }
+    return;
+  }
+  /* "Ya no": devuelve la línea al carrito tal como estaba. */
+  if (t.hasAttribute("data-canreempl")){
+    const r = S.reemplazando; S.reemplazando = null;
+    if (r && r.linea){
+      const ex = S.cart.find(x => x.key === r.linea.key);
+      if (ex) ex.qty += r.linea.qty; else S.cart.push(r.linea);
+      S.cartOpen = true;
+    }
+    return render();
+  }
   if (t.id === "cobrar"){
     const ed = S.editando;
-    S.sheet = { t:"cobro", pago: ed ? ed.pago : null, nota: ed ? ed.nota : "", cliente: ed ? ed.cliente : "" };
+    S.sheet = { t:"cobro", pago: ed ? ed.pago : null, nota: ed ? ed.nota : "", cliente: S.cliente || "" };
     return pintarModal();
   }
   if (t.hasAttribute("data-opt")){
@@ -2389,13 +2517,13 @@ async function manejarClick(ev){
       if (S.editando){
         const num = S.editando.num;
         await guardarEdicion(s.pago, nota, cliente);
-        S.cart = []; S.cartOpen = false; S.editando = null; S.sheet = null; S.verOrdenes = true;
+        S.cart = []; S.cartOpen = false; S.editando = null; S.sheet = null; S.verOrdenes = true; S.cliente = ""; S.reemplazando = null;
         beep(760, .1);
         toast("Pedido #" + num + " corregido. Cocina ya lo ve cambiado.");
         return render();
       }
       const num = await registrarOrden(s.pago, nota, cliente);
-      S.cart = []; S.cartOpen = false;
+      S.cart = []; S.cartOpen = false; S.cliente = ""; S.reemplazando = null;
       S.sheet = { t:"ticket", num, total, pago:s.pago, cliente };
       beep(760, .1); setTimeout(() => beep(1020, .12), 110);
       render();
@@ -2463,7 +2591,8 @@ document.addEventListener("keydown", ev => {
 });
 document.addEventListener("input", ev => {
   if (S.sheet && (ev.target.id === "nota" || ev.target.id === "notaLinea")) S.sheet.nota = ev.target.value;
-  if (S.sheet && ev.target.id === "cliente") S.sheet.cliente = ev.target.value;
+  if (S.sheet && ev.target.id === "cliente"){ S.sheet.cliente = ev.target.value; S.cliente = ev.target.value; }
+  if (ev.target.id === "clienteCaja") S.cliente = ev.target.value;
   if (S.p0Draft && ev.target.id === "p0")     S.p0Draft.punto0  = ev.target.value;
   if (S.p0Draft && ev.target.id === "p0bono") S.p0Draft.bonoPct = ev.target.value;
 });
