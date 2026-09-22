@@ -92,6 +92,44 @@ button{cursor:pointer;border:0;background:none}
 .chip-role{border-color:var(--line-2);color:var(--ink);gap:8px;padding-right:9px}
 .chip-role svg{width:14px;height:14px;flex:none;color:var(--fuego)}
 .chip-role .cambiar{color:var(--ink-3);border-left:1px solid var(--line-2);padding-left:8px}
+.chip-feria{gap:8px;padding-right:9px;max-width:38vw}
+.chip-feria svg{width:14px;height:14px;flex:none;color:var(--fuego)}
+.chip-feria b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip-feria .cambiar{color:var(--ink-3);border-left:1px solid var(--line-2);padding-left:8px;flex:none}
+@media (max-width:640px){.chip-feria .cambiar{display:none}}
+.feriacard{min-height:0;gap:8px}
+.feriacard .rn{font-size:22px}
+.feriacard .rdev{margin-top:4px}
+.prueba{border:1px solid #6a4a1c;background:linear-gradient(150deg,#33210c,var(--panel) 70%);
+  border-radius:12px;padding:13px 15px;margin:0 0 22px;font-size:14px;color:var(--ink-2);line-height:1.45}
+.prueba b{color:var(--brasa)}
+
+/* ---------- caja: sus pedidos del día ---------- */
+.cajahead{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:12px 0 2px}
+.cajahead .btn{flex:none}
+.warnpill{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;
+  border:1px solid #6a4a1c;background:#33210c;color:var(--brasa);font-size:12.5px;font-weight:700}
+.editbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 0;padding:11px 14px;
+  border-radius:12px;border:1px solid var(--fuego);background:#33210c;font-size:14px}
+.editbar b{color:var(--brasa)}
+.peds{display:flex;flex-direction:column;gap:10px;padding:12px 0 40px}
+.ped{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+.ped.anul{opacity:.5}
+.ped.anul .ped__i{text-decoration:line-through}
+.ped__h{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ped__n{font-family:var(--f-display);font-size:22px;line-height:1}
+.ped__c{font-weight:700;font-size:15.5px;color:var(--brasa)}
+.ped__e{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.ped__t{margin-left:auto;font-family:var(--f-display);font-size:18px}
+.ped__i{font-size:14px;color:var(--ink-2);margin:7px 0 10px;line-height:1.35}
+.ped__a{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ped__hora{margin-left:auto;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.ped .toggle.ok{border-color:var(--ok);color:var(--ok)}
+.ped .toggle.pend{border-color:var(--brasa);color:var(--brasa);background:#33210c}
+.btn.peligro.sm{color:#e88a8a;border-color:#5a2727}
+.kh .kcli{font-weight:700;font-size:16px;color:var(--brasa)}
+.kh .keditada{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:#17130F;background:var(--brasa);border-radius:999px;padding:2px 8px}
 @media (max-width:520px){.chip-role .cambiar{display:none}}
 
 /* ---------- portada / roles ---------- */
@@ -450,6 +488,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
       <small id="miRol">—</small>
     </div>
     <div class="acciones">
+      <button class="chip chip-btn chip-feria" id="chipFeria" title="Cambiar de feria"></button>
       <button class="chip chip-btn chip-role" id="chipRole" title="Cambiar de pantalla"></button>
       <a class="btn ghost sm" href="../">Equipo</a>
       <button class="btn ghost sm" id="btnSalir">Salir</button>
@@ -500,6 +539,10 @@ const S = {
   ordenes:[],                // cola de la feria en curso (sin montos)
   feriaSel:null, ordSel:[],  // lo que mira el administrador (con montos)
   cart:[], cat:"Todo", cartOpen:false,
+  verOrdenes:false,          // caja mirando su lista de pedidos del día
+  editando:null,             // pedido que caja está corrigiendo
+  cliente:"",                // nombre del cliente del pedido en curso
+  soportaCaja:true,          // ¿la base ya tiene la vista de caja?
   adminVista:"ferias", adminSub:"resumen", diaSel:"todos", matrizModo:"unid",
   sonido:lsGet("pot_sonido", true),
   vistos:{}, sheet:null, avance:null
@@ -560,6 +603,7 @@ function mapOrden(o, items){
   return { id:o.id, num:o.numero, ts, dia:o.dia, hora:hhDe(new Date(ts)),
            items:items || [], total:o.total == null ? null : +o.total,
            pago:o.medio_pago, estado:o.estado, nota:o.nota || "",
+           cliente:o.cliente || "", posOk:!!o.pos_ok, editada:o.editada_en || null,
            cajero_id:o.cajero_id, cocinero_id:o.cocinero_id,
            tsPrep:o.iniciada_en, tsListo:o.lista_en, tsEntregado:o.entregada_en };
 }
@@ -588,16 +632,29 @@ function estadoFeria(f){
 const feriasPorEstado = e => S.ferias.filter(f => estadoFeria(f) === e);
 const feriaEnCurso = () => S.ferias.find(f => f.id === S.feriaOp) || null;
 
+/* En qué ferias puede trabajar quien entró.
+   · El equipo: en las de SU turno de hoy, ya publicadas. Si el administrador
+     lo puso en dos ferias el mismo día, salen las dos y él elige.
+   · El administrador: en cualquiera, esté en curso o no. Así puede abrir caja
+     y cocina de una feria que todavía no empieza para probarlas con calma. */
+function feriasOperables(){
+  if (esAdmin()){
+    const rango = f => ({ activa:0, programada:1, terminada:2 })[estadoFeria(f)];
+    return S.ferias.slice().sort((a, b) =>
+      (rango(a) - rango(b)) || ((a.inicio || "") < (b.inicio || "") ? 1 : -1));
+  }
+  const mias = S.turnos.filter(t => t.publicado !== false).map(t => t.feria_id);
+  return S.ferias.filter(f => mias.indexOf(f.id) >= 0);
+}
+
+/* La feria elegida se respeta. Solo se toca si dejó de estar disponible, o si
+   hay una sola opción y no hay nada que preguntar. */
 function ajustarFeriaOp(){
-  // La feria en la que puedes operar es la de TU turno de hoy, y ninguna otra.
-  // El administrador es la excepción: entra a cualquiera que esté en curso,
-  // porque es quien resuelve los problemas del día.
-  const curso = feriasPorEstado("activa").slice().sort((a, b) =>
-    (a.inicio || "") === (b.inicio || "") ? 0 : ((a.inicio || "") < (b.inicio || "") ? 1 : -1));
-  const delTurno = S.turnos.map(t => t.feria_id).find(id => curso.some(f => f.id === id));
-  const id = delTurno || (esAdmin() && curso.length ? curso[0].id : null);
-  if (id !== S.feriaOp){ S.feriaOp = id; return true; }
-  return false;
+  const ops = feriasOperables();
+  if (S.feriaOp && ops.some(f => f.id === S.feriaOp)) return false;
+  const antes = S.feriaOp;
+  S.feriaOp = ops.length === 1 ? ops[0].id : null;
+  return S.feriaOp !== antes;
 }
 /* El permiso para cobrar y para cocinar es el mismo: estar asignado hoy a esta
    feria. No separa por rol a propósito — el equipo rota entre caja y cocina. */
@@ -624,7 +681,7 @@ function recordarSitio(){
   if (!S.listo) return;
   try {
     sessionStorage.setItem(SITIO, JSON.stringify({
-      role:S.role, feriaSel:S.feriaSel, adminVista:S.adminVista,
+      role:S.role, feriaOp:S.feriaOp, feriaSel:S.feriaSel, adminVista:S.adminVista,
       adminSub:S.adminSub, diaSel:S.diaSel, y:window.scrollY, ts:Date.now()
     }));
   } catch(e){}
@@ -659,6 +716,9 @@ async function boot(){
   // comprobar aquí, así que una nota vieja nunca abre algo que ya no te toca.
   const sitio = sitioGuardado();
   if (sitio){
+    if (sitio.feriaOp && feriasOperables().some(f => f.id === sitio.feriaOp)){
+      S.feriaOp = sitio.feriaOp; await refrescarCola();
+    }
     if (sitio.role === "admin" && esAdmin()) S.role = "admin";
     else if ((sitio.role === "caja" || sitio.role === "cocina") && puedoOperar()) S.role = sitio.role;
     if (sitio.feriaSel && S.ferias.some(f => f.id === sitio.feriaSel)) S.feriaSel = sitio.feriaSel;
@@ -733,27 +793,46 @@ async function cargarBase(){
   await refrescarCola();
 }
 
-/* La cola que ven caja y cocina: por las vistas, sin un solo monto. */
+/* ¿El error es "esa vista todavía no existe"? Pasa mientras una migración
+   nueva no llega a producción. No es culpa de quien está en el stand: se apaga
+   esa parte y la pantalla sigue trabajando como antes. */
+function faltaLaTabla(error){
+  const t = ((error && (error.message || error.hint || "")) + " " + ((error && error.code) || "")).toLowerCase();
+  return t.indexOf("schema cache") >= 0 || t.indexOf("does not exist") >= 0 ||
+         t.indexOf("pgrst205") >= 0 || t.indexOf("pgrst202") >= 0 || t.indexOf("42p01") >= 0;
+}
+
+/* La cola del día. Cocina la lee por una vista sin un solo monto; caja por la
+   suya, que sí trae el total —es quien cobra y quien pasa el voucher por el
+   POS— y el estado de cada pedido. */
 async function refrescarCola(){
   const id = S.feriaOp;
   if (!id){ S.ordenes = []; return; }
   const hoy = diaDe(new Date());
-  const { data, error } = await sb.from("cola_feria")
+  const enCaja = () => S.role === "caja" && S.soportaCaja;
+  let r = await sb.from(enCaja() ? "cola_caja" : "cola_feria")
     .select("*").eq("feria_id", id).eq("dia", hoy).order("numero");
-  if (error){ console.warn("[potente] cola", error.message); return; }
+  if (r.error && enCaja() && faltaLaTabla(r.error)){
+    S.soportaCaja = false;
+    r = await sb.from("cola_feria").select("*").eq("feria_id", id).eq("dia", hoy).order("numero");
+  }
+  if (r.error){ console.warn("[potente] cola", r.error.message); return; }
+  const data = r.data || [];
   const ids = data.map(o => o.id);
   let items = [];
   if (ids.length){
-    const r = await sb.from("cola_feria_items").select("*").in("orden_id", ids);
-    items = r.data || [];
+    const ri = await sb.from(enCaja() ? "cola_caja_items" : "cola_feria_items")
+      .select("*").in("orden_id", ids);
+    items = ri.data || [];
   }
   const porOrden = {};
   items.forEach(i => (porOrden[i.orden_id] || (porOrden[i.orden_id] = [])).push(mapItem(i)));
-  const antes = JSON.stringify(S.ordenes.map(o => [o.id, o.estado]));
+  const huella = () => JSON.stringify(S.ordenes.map(o => [o.id, o.estado, o.posOk, o.editada]));
+  const antes = huella();
   S.ordenes = data.map(o => mapOrden(o, porOrden[o.id] || []));
   if (S.role === "cocina") avisarNuevas();
   await refrescarAvance();
-  if (JSON.stringify(S.ordenes.map(o => [o.id, o.estado])) !== antes) render(true);
+  if (huella() !== antes) render(true);
 }
 
 /* Porcentaje hacia el bono. La base devuelve el número ya calculado:
@@ -786,20 +865,56 @@ async function refrescarAdmin(){
 /* ==========================================================================
    ESCRITURAS
    ========================================================================== */
-async function registrarOrden(pago, nota){
-  const f = feriaEnCurso();
-  if (!f) throw new Error("sin feria");
-  const items = S.cart.map(l => ({
+function itemsDelCarrito(){
+  return S.cart.map(l => ({
     sku:l.sku, nombre:l.nombre, categoria:l.catBD || l.cat, cantidad:l.qty, precio:l.precio,
     subtotal:Math.round(l.precio * l.qty * 100) / 100,
     opciones:l.opts || {}, salsas:l.salsas || [], nota:l.nota || ""
   }));
-  const { data, error } = await sb.rpc("crear_orden", {
-    p_feria:f.id, p_bloque:bloqueDeAhora(), p_medio:PAGO_BD[pago], p_nota:nota || "", p_items:items
-  });
+}
+
+async function registrarOrden(pago, nota, cliente){
+  const f = feriaEnCurso();
+  if (!f) throw new Error("sin feria");
+  const items = itemsDelCarrito();
+  const base = { p_feria:f.id, p_bloque:bloqueDeAhora(), p_medio:PAGO_BD[pago], p_nota:nota || "", p_items:items };
+  let { data, error } = await sb.rpc("crear_orden", Object.assign({ p_cliente:cliente || "" }, base));
+  // Si la migración del nombre del cliente todavía no llegó, se cobra igual
+  // por la versión anterior: en plena feria, cobrar es lo que no puede fallar.
+  if (error && faltaLaTabla(error)){
+    S.soportaCaja = false;
+    ({ data, error } = await sb.rpc("crear_orden", base));
+  }
   if (error) throw error;
   refrescarCola();
   return data;
+}
+
+/* Corregir un pedido ya mandado: mismas líneas que el carrito, mismo ticket. */
+async function guardarEdicion(pago, nota, cliente){
+  const e = S.editando;
+  if (!e) throw new Error("sin pedido");
+  const { error } = await sb.rpc("editar_orden", {
+    p_orden:e.id, p_medio:PAGO_BD[pago] || null, p_nota:nota || "",
+    p_cliente:cliente || "", p_items:itemsDelCarrito()
+  });
+  if (error) throw error;
+  await refrescarCola();
+}
+
+async function anularPedido(o, anular){
+  const { error } = await sb.rpc("anular_orden", { p_orden:o.id, p_anular:anular });
+  if (error){ toast(anular ? "No se pudo anular: " + error.message : "No se pudo restaurar."); return; }
+  toast(anular ? "Pedido #" + o.num + " anulado." : "Pedido #" + o.num + " restaurado.");
+  await refrescarCola(); render();
+}
+
+async function marcarPos(o, ok){
+  o.posOk = ok;                       // que se vea al instante; el toque es rápido
+  render();
+  const { error } = await sb.rpc("marcar_pos", { p_orden:o.id, p_ok:ok });
+  if (error){ o.posOk = !ok; render(); toast("No se pudo marcar el POS."); return; }
+  await refrescarCola();
 }
 
 async function cambiarEstado(o, estado){
@@ -875,6 +990,11 @@ function pintarTop(){
   const f = feriaEnCurso();
   $("#miRol").textContent = S.role === "admin" ? "Ventas · administrador"
     : (S.role === "caja" ? "Caja" : "Cocina") + (f ? " · " + f.nombre : "");
+  const chf = $("#chipFeria");
+  chf.classList.toggle("hide", !f);
+  if (f) chf.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">' +
+    '<path d="M4 9h16M5 9V6.5h14V9M6 9v11.5h12V9M10 13h4"/></svg>' +
+    '<b>' + esc(f.nombre) + "</b>" + '<span class="cambiar">Cambiar</span>';
   $("#chipRole").innerHTML =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">' +
     '<rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>' +
@@ -884,6 +1004,7 @@ function pintarTop(){
 }
 
 function vistaGate(){
+  if (!S.feriaOp) return vistaElegirFeria();
   const ic = {
     caja:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M9 6.5h6M8.5 11h2m3 0h2m-7 3.5h2m3 0h2m-7 3.5h7"/></svg>',
     cocina:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11h18M4.5 11a7.5 7.5 0 0 1 15 0M2.5 15h19M6 19h12"/></svg>',
@@ -894,25 +1015,22 @@ function vistaGate(){
   const f = feriaEnCurso();
   const turno = miTurno();
   const puedo = puedoOperar();
-  const hoyHay = feriasPorEstado("activa").length > 0;
+  const otras = feriasOperables().length > 1;
   return '<div class="gate">' +
     '<div class="logo logomark" role="img" aria-label="Potente"></div>' +
     '<div class="kicker">Operación de feria</div>' +
     "<h1>Hola, " + esc((S.yo && S.yo.nombre.split(" ")[0]) || "equipo") + "</h1>" +
     '<p class="lead">' +
       (puedo
-        ? (f ? (turno
-                ? "Hoy trabajas en <b>" + esc(f.nombre) + "</b>, de " +
-                  turno.hora_inicio.slice(0,5) + " a " + turno.hora_fin.slice(0,5) +
-                  ". Puedes usar caja y cocina indistintamente."
-                : "Estás entrando como <b>administrador</b> a <b>" + esc(f.nombre) + "</b>.")
-             : "No hay ninguna feria en curso hoy.")
+        ? (turno
+            ? "Hoy trabajas en <b>" + esc(f.nombre) + "</b>, de " +
+              turno.hora_inicio.slice(0,5) + " a " + turno.hora_fin.slice(0,5) +
+              ". Puedes usar caja y cocina indistintamente."
+            : "Estás entrando como <b>administrador</b> a <b>" + esc(f.nombre) + "</b>.")
         : (turnoSinPublicar()
-            ? "Tienes turno hoy en <b>" + esc(f ? f.nombre : "una feria") + "</b>, pero el administrador <b>todavía no ha publicado los turnos</b>. En cuanto lo haga, esta pantalla se abre sola."
-            : hoyHay
-              ? "Hoy <b>no estás asignado</b> a ninguna feria, así que esta pantalla no se abre. Si te toca cubrir a alguien, el administrador te asigna el turno desde <b>Equipo → Turnos</b> y entras con tu propio usuario."
-              : "No hay ninguna feria en curso hoy. Cuando te toque un turno, esta pantalla se enciende sola.")) +
-    "</p>" +
+            ? "Tienes turno hoy en <b>" + esc(f.nombre) + "</b>, pero el administrador <b>todavía no ha publicado los turnos</b>. En cuanto lo haga, esta pantalla se abre sola."
+            : "Hoy <b>no estás asignado</b> a esta feria, así que caja y cocina no se abren. Si te toca cubrir a alguien, el administrador te asigna el turno desde <b>Equipo → Turnos</b>.")) +
+    "</p>" + avisoPrueba() +
     (puedo ? '<div class="roles">' +
       card("caja", "Caja", "Arma el pedido, cobra y lo manda a cocina.", "Celular") +
       card("cocina", "Cocina", "La cola de preparación, en orden de llegada.", "Tablet") +
@@ -921,7 +1039,47 @@ function vistaGate(){
     : (esAdmin() ? '<div class="roles">' +
         card("admin", "Ventas", "Resumen del día, de la feria y de cada producto.", "Solo administrador") +
       "</div>" : "")) +
+    '<div class="foot">' +
+      (otras ? '<button class="btn ghost sm" data-feria="" style="margin-bottom:14px">← Elegir otra feria</button><br>' : "") +
+      '<a href="../" style="color:var(--ink-3)">← Volver a Equipo</a></div></div>';
+}
+
+/* Con dos ferias en paralelo, lo primero es decir en cuál estás: todo lo demás
+   —la carta, la cola, el bono— cuelga de esa elección. */
+function vistaElegirFeria(){
+  const ops = feriasOperables();
+  const tarjeta = f => {
+    const est = estadoFeria(f);
+    return '<button class="role feriacard" data-feria="' + f.id + '">' +
+      '<span class="rn">' + esc(f.nombre) + "</span>" +
+      '<span class="rd">' + rangoFeria(f) + "</span>" +
+      '<span class="rdev">' + pillEstado(est) + "</span></button>";
+  };
+  return '<div class="gate">' +
+    '<div class="logo logomark" role="img" aria-label="Potente"></div>' +
+    '<div class="kicker">Operación de feria</div>' +
+    "<h1>¿En qué feria estás?</h1>" +
+    '<p class="lead">' +
+      (ops.length
+        ? (esAdmin()
+            ? "Elige la feria con la que vas a trabajar. Como administrador entras a cualquiera, esté en curso o no: así puedes probar caja y cocina antes del día."
+            : "Hoy te toca más de una. Elige en cuál estás para que la caja cobre donde debe.")
+        : "Hoy no estás asignado a ninguna feria. Cuando el administrador publique tus turnos, esta pantalla se enciende sola.") +
+    "</p>" +
+    (ops.length ? '<div class="roles">' + ops.map(tarjeta).join("") + "</div>" : "") +
     '<div class="foot"><a href="../" style="color:var(--ink-3)">← Volver a Equipo</a></div></div>';
+}
+
+/* Si la feria elegida no está en curso, lo que se cobre aquí es de verdad y
+   entra en sus números. Se avisa en grande antes de tocar nada. */
+function avisoPrueba(){
+  const f = feriaEnCurso();
+  if (!f || estadoFeria(f) === "activa") return "";
+  return '<div class="prueba"><b>Esta feria ' +
+    (estadoFeria(f) === "programada" ? "todavía no empieza" : "ya terminó") + '.</b> ' +
+    'Puedes abrir caja y cocina para probarlas, pero cada pedido que cobres queda ' +
+    'guardado en <b>' + esc(f.nombre) + '</b> y suma en su venta. Los pedidos de prueba ' +
+    'anúlalos desde <b>Pedidos de hoy</b> cuando termines.</div>';
 }
 
 function sinFeria(quien){
@@ -1183,6 +1341,7 @@ function render(suave){
   pintarTop();
   const v = $("#view");
   if ((S.role === "caja" || S.role === "cocina") && !puedoOperar()) S.role = null;
+  if (S.role && S.role !== "admin" && !S.feriaOp) S.role = null;
   // Si una pantalla se rompe al dibujarse, antes quedaba la anterior congelada
   // y solo salía un aviso abajo: desde el celular parecía que el botón no hacía
   // nada. Ahora el fallo se ve, se puede salir de él y queda el detalle para
@@ -1259,7 +1418,26 @@ function vistaCaja(){
     '<button class="btn ghost sm" data-editar="' + l.key + '" title="Salsas y nota">Salsas</button>' +
     '<div class="lp num">' + soles(l.precio * l.qty) + "</div></div>").join("");
 
-  return '<div class="wrap caja">' + barraEquipo() +
+  if (S.verOrdenes) return vistaPedidos();
+
+  const hoy = diaDe(new Date());
+  const delDia = S.ordenes.filter(o => o.dia === hoy);
+  const vivos = delDia.filter(o => o.estado !== "anulado");
+  const pendPos = delDia.filter(faltaPos).length;
+  const cabecera = S.soportaCaja
+    ? '<div class="cajahead">' +
+        '<button class="btn ghost sm" data-ped="1">Pedidos de hoy · ' + vivos.length + "</button>" +
+        (pendPos ? '<span class="warnpill">' + pendPos +
+          (pendPos === 1 ? " sin pasar por POS" : " sin pasar por POS") + "</span>" : "") +
+      "</div>"
+    : "";
+  const editando = S.editando
+    ? '<div class="editbar"><b>Corrigiendo el pedido #' + S.editando.num + ".</b> " +
+      "Cambia lo que haga falta y guarda: el ticket sigue siendo el mismo." +
+      '<button class="btn ghost sm" data-caned="1" style="margin-left:auto">Cancelar</button></div>'
+    : "";
+
+  return '<div class="wrap caja">' + barraEquipo() + avisoPrueba() + cabecera + editando +
     '<div class="cats">' + cats.map(c => '<button class="cat" data-cat="' + esc(c) + '" aria-pressed="' + (S.cat === c) + '">' + esc(c) + "</button>").join("") + "</div>" +
     '<div class="grid">' + prods + "</div>" +
     '<div class="foot">Feria: ' + esc(f.nombre) + " · Pedidos de hoy: " + S.ordenes.filter(o => o.dia === diaDe(new Date()) && o.estado !== "anulado").length + "</div>" +
@@ -1270,9 +1448,89 @@ function vistaCaja(){
         '<button class="cart-sum" id="toggleCart"' + (n ? "" : " disabled") + '>' +
           '<span class="cs1">' + (n ? n + (n === 1 ? " ítem" : " ítems") + (S.cartOpen ? " · ocultar" : " · ver detalle") : "Pedido vacío") + "</span>" +
           '<span class="cs2 num">' + soles(tot) + "</span></button>" +
-        (n ? '<button class="btn ghost sm" id="vaciar">Vaciar</button>' : "") +
-        '<button class="btn primary" id="cobrar"' + (n ? "" : " disabled") + ">Cobrar</button>" +
+        (n ? '<button class="btn ghost sm" id="vaciar">' + (S.editando ? "Cancelar" : "Vaciar") + "</button>" : "") +
+        '<button class="btn primary" id="cobrar"' + (n ? "" : " disabled") + ">" +
+          (S.editando ? "Guardar cambios" : "Cobrar") + "</button>" +
       "</div></div>";
+}
+
+/* TODO pedido pasa por el POS, se haya cobrado como se haya cobrado: el POS
+   tiene Yape, Plin, efectivo y tarjeta, y es donde queda el registro. Caja
+   cobra rápido y lo pasa cuando puede, así que la casilla está en todos. */
+const faltaPos = o => o.estado !== "anulado" && !o.posOk;
+
+/* Lo que caja mandó hoy. Antes, al enviar el pedido a cocina, caja lo perdía
+   de vista y un error solo lo arreglaba el administrador. Aquí lo ve, lo
+   corrige, lo anula y marca lo que ya pasó por el POS. */
+function vistaPedidos(){
+  const f = feriaEnCurso();
+  const hoy = diaDe(new Date());
+  const os = S.ordenes.filter(o => o.dia === hoy).slice().sort((a, b) => b.num - a.num);
+  const vivos = os.filter(o => o.estado !== "anulado");
+  const pend = vivos.filter(faltaPos);
+  const suma = vivos.every(o => o.total != null)
+    ? vivos.reduce((t, o) => t + o.total, 0) : null;
+
+  return '<div class="wrap caja">' +
+    '<div class="sec-h" style="margin:16px 0 0"><h2>Pedidos de hoy</h2>' +
+      '<span class="sub">' + diaLargo(hoy) + " · " + esc(f ? f.nombre : "") + " · " +
+      vivos.length + (vivos.length === 1 ? " pedido" : " pedidos") +
+      (suma != null ? " · " + soles(suma) : "") + "</span>" +
+      '<span style="flex:1"></span>' +
+      '<button class="btn primary sm" data-ped="0">Volver a la carta</button></div>' +
+    (pend.length
+      ? '<div class="cajahead"><span class="warnpill">' + pend.length +
+        (pend.length === 1 ? " pedido sin pasar por POS: " : " pedidos sin pasar por POS: ") +
+        pend.map(o => "#" + o.num).join(", ") + "</span></div>"
+      : vivos.length
+        ? '<div class="cajahead"><span class="warnpill" style="border-color:#24603a;background:#0f2a1a;color:#7ee0a0">' +
+          "Todo pasado por POS ✓</span></div>"
+        : "") +
+    '<div class="peds">' +
+    (os.length ? os.map(filaPedido).join("")
+               : '<div class="card" style="padding:26px;text-align:center;color:var(--ink-3)">Todavía no has cobrado nada hoy.</div>') +
+    "</div></div>";
+}
+
+function filaPedido(o){
+  const pg = pagoDe(o.pago);
+  const anulado = o.estado === "anulado";
+  const puedeCorregir = !anulado && o.estado !== "entregado";
+  return '<article class="ped' + (anulado ? " anul" : "") + '">' +
+    '<div class="ped__h"><span class="ped__n num">#' + o.num + "</span>" +
+      (o.cliente ? '<span class="ped__c">' + esc(o.cliente) + "</span>" : "") +
+      '<span class="pill"><span class="sw" style="background:' + pg.color + '"></span>' + esc(pg.corto) + "</span>" +
+      '<span class="ped__e">' + esc(anulado ? "Anulada" : (ESTADOS[o.estado] || o.estado)) + "</span>" +
+      (o.editada ? '<span class="keditada">corregida</span>' : "") +
+      (o.total != null ? '<span class="ped__t num">' + soles(o.total) + "</span>" : "") + "</div>" +
+    '<div class="ped__i">' +
+      esc(o.items.map(i => i.qty + "× " + i.nombre + (i.detalle ? " (" + i.detalle + ")" : "")).join(", ")) +
+      (o.nota ? " · ✎ " + esc(o.nota) : "") + "</div>" +
+    '<div class="ped__a">' +
+      (anulado ? ""
+        : '<button class="toggle ' + (o.posOk ? "ok" : "pend") + '" data-pos="' + o.id + "|" + (o.posOk ? "no" : "si") + '">' +
+          (o.posOk ? "POS ✓" : "Pasar por POS") + "</button>") +
+      (anulado
+        ? '<button class="btn ghost sm" data-anu="' + o.id + '|no">Restaurar</button>'
+        : (puedeCorregir ? '<button class="btn ghost sm" data-edi="' + o.id + '">Corregir</button>' : "") +
+          '<button class="btn ghost sm peligro" data-anu="' + o.id + '|si">Anular</button>') +
+      '<span class="ped__hora">' + horaDe(new Date(o.ts)) + "</span>" +
+    "</div></article>";
+}
+
+/* Corregir = volver a armar el pedido en el carrito. Se trabaja igual que
+   cobrando, y al guardar se reemplazan sus líneas conservando el ticket. */
+function abrirCorreccion(o){
+  S.cart = o.items.map(i => {
+    const base = CARTA.find(x => x.sku === i.sku) || {};
+    return { key:claveLinea(i.sku, i.opts, i.salsas, i.nota), sku:i.sku, nombre:i.nombre,
+             cat:nombreCat(i.cat), catBD:base.catBD || i.cat,
+             precio: i.precio != null ? i.precio : precioDe(i.sku),
+             qty:i.qty, opts:i.opts || {}, salsas:i.salsas || [], nota:i.nota || "" };
+  });
+  S.editando = { id:o.id, num:o.num, pago:o.pago, cliente:o.cliente || "", nota:o.nota || "" };
+  S.verOrdenes = false; S.cartOpen = true; S.cat = "Todo";
+  render();
 }
 
 /* ---------- avance del equipo hacia el bono (sin cifras) ---------- */
@@ -1355,7 +1613,8 @@ function kcard(o, est){
   const pg = pagoDe(o.pago);
   return '<article class="kcard s-' + est + (nuevo ? " nuevo" : "") + '">' +
     '<div class="kh"><span class="kn num">#' + o.num + "</span>" +
-      (o.renumerada ? '<span class="pill" style="color:var(--warn);border-color:var(--warn)">renumerado</span>' : "") +
+      (o.cliente ? '<span class="kcli">' + esc(o.cliente) + "</span>" : "") +
+      (o.editada ? '<span class="keditada">corregida</span>' : "") +
       '<span class="pill"><span class="sw" style="background:' + pg.color + '"></span>' + esc(pg.corto) + "</span>" +
       '<span class="kt num" data-espera="' + esc(o.ts) + '">' + espera(o.ts) + "</span></div>" +
     '<div class="kitems">' + items + "</div>" +
@@ -1954,11 +2213,17 @@ function pintarModal(){
   }
   else if (s.t === "cobro"){
     const tot = totalCarrito();
-    html = "<h3>Cobrar " + soles(tot) + '</h3><div class="sh-sub">' + itemsCarrito() + " ítems</div>" +
+    const ed = S.editando;
+    html = "<h3>" + (ed ? "Corregir el pedido #" + ed.num : "Cobrar " + soles(tot)) + "</h3>" +
+      '<div class="sh-sub">' + itemsCarrito() + " ítems" + (ed ? " · nuevo total " + soles(tot) : "") + "</div>" +
       '<div style="margin:-8px 0 16px;border-top:1px solid var(--line)">' +
       S.cart.map(l => '<div class="line" style="padding:7px 0"><span class="ln"><b>' + l.qty + "× " + esc(l.nombre) + "</b>" +
         (resumenLinea(l) ? "<span>" + esc(resumenLinea(l)) + "</span>" : "") + "</span>" +
         '<span class="lp num">' + soles(l.precio * l.qty) + "</span></div>").join("") + "</div>" +
+      '<label style="display:block;margin-bottom:16px">' +
+        '<span class="lbl" style="display:block;margin-bottom:7px">Nombre del cliente ' +
+        '<span style="text-transform:none;letter-spacing:0;color:var(--ink-3)">· para llamarlo cuando esté listo</span></span>' +
+        '<input id="cliente" type="text" placeholder="Carlos" value="' + esc(s.cliente || "") + '" style="width:100%"></label>' +
       '<span class="lbl" style="display:block;margin-bottom:8px">¿Con qué pagó?</span><div class="pays">' +
       PAGOS.map(p => '<button class="pay" data-pay="' + p.id + '" aria-pressed="' + (s.pago === p.id) + '" style="color:' + p.color + '">' +
         '<span class="sw" style="background:' + p.color + '"></span><span style="color:var(--ink)">' + esc(p.nombre) +
@@ -1967,11 +2232,12 @@ function pintarModal(){
       '<input id="nota" type="text" placeholder="Nota general del pedido (opcional)" value="' + esc(s.nota || "") + '" style="width:100%;margin-bottom:14px">' +
       '<div style="display:flex;gap:10px"><button class="btn ghost" data-cerrar-sheet="1" style="flex:1">Volver</button>' +
       '<button class="btn primary" id="confirmar" style="flex:2"' + (s.pago && !s.enviando ? "" : " disabled") + ">" +
-      (s.enviando ? "Enviando…" : "Registrar y mandar a cocina") + "</button></div>";
+      (s.enviando ? "Guardando…" : ed ? "Guardar los cambios" : "Registrar y mandar a cocina") + "</button></div>";
   }
   else if (s.t === "ticket"){
     html = '<div class="ticket-ok"><div class="tn num">#' + s.num + '</div><div class="tt">Pedido en cocina</div>' +
-      '<div class="td">' + soles(s.total) + " · " + esc(pagoDe(s.pago).nombre) + "</div></div>" +
+      '<div class="td">' + soles(s.total) + " · " + esc(pagoDe(s.pago).nombre) +
+        (s.cliente ? " · " + esc(s.cliente) : "") + "</div></div>" +
       '<button class="btn primary" data-cerrar-sheet="1" style="width:100%;margin-top:16px">Siguiente cliente</button>';
   }
   else if (s.t === "confirm"){
@@ -2007,7 +2273,7 @@ const cerrarSheet = () => { S.sheet = null; pintarModal(); };
 document.addEventListener("click", ev => { manejarClick(ev).catch(err => {
   console.error("[potente]", err); toast("Algo falló al tocar ese botón. Vuelve a intentarlo."); }); });
 async function manejarClick(ev){
-  const t = ev.target.closest("[data-rol],[data-cat],[data-add],[data-q],[data-opt],[data-salsa],[data-qs],[data-editar],[data-pay],[data-est],[data-tab],[data-bajar],[data-matriz],[data-anular],[data-dia],[data-sub],[data-volver],[data-verferia],[data-precio],[data-activo],[data-cerrar-sheet],[data-bg],button");
+  const t = ev.target.closest("[data-feria],[data-ped],[data-edi],[data-anu],[data-pos],[data-caned],[data-rol],[data-cat],[data-add],[data-q],[data-opt],[data-salsa],[data-qs],[data-editar],[data-pay],[data-est],[data-tab],[data-bajar],[data-matriz],[data-anular],[data-dia],[data-sub],[data-volver],[data-verferia],[data-precio],[data-activo],[data-cerrar-sheet],[data-bg],button");
   if (!t) return;
   const g = a => t.getAttribute(a);
 
@@ -2019,11 +2285,53 @@ async function manejarClick(ev){
     if (r === "admin" && !esAdmin()) return;
     if ((r === "caja" || r === "cocina") && !puedoOperar()) return;
     S.role = r || null; S.cart = []; S.cartOpen = false;
+    S.editando = null; S.verOrdenes = false;
     if (r === "admin") refrescarAdmin();
     if (r === "cocina") S.ordenes.forEach(o => S.vistos[o.id] = 1);
+    render();
+    if (r === "caja" || r === "cocina") await refrescarCola();
     return render();
   }
   if (t.id === "chipRole") { S.role = null; S.sheet = null; return render(); }
+  if (t.id === "chipFeria"){ S.feriaOp = null; S.role = null; S.sheet = null; S.cart = []; S.editando = null; return render(); }
+
+  /* --- elegir feria --- */
+  if (t.hasAttribute("data-feria")){
+    const id = g("data-feria") || null;
+    if (id && !feriasOperables().some(f => f.id === id)) return;
+    S.feriaOp = id; S.role = null; S.cart = []; S.cartOpen = false;
+    S.editando = null; S.verOrdenes = false; S.ordenes = [];
+    render();
+    if (id) await refrescarCola();
+    return render();
+  }
+
+  /* --- pedidos del día (caja) --- */
+  if (t.hasAttribute("data-ped")){
+    S.verOrdenes = g("data-ped") === "1";
+    if (S.verOrdenes) await refrescarCola();
+    return render();
+  }
+  if (t.hasAttribute("data-caned")){ S.editando = null; S.cart = []; S.cartOpen = false; return render(); }
+  if (t.hasAttribute("data-edi")){
+    const o = S.ordenes.find(x => x.id === g("data-edi"));
+    if (o) abrirCorreccion(o);
+    return;
+  }
+  if (t.hasAttribute("data-pos")){
+    const [id, ok] = g("data-pos").split("|");
+    const o = S.ordenes.find(x => x.id === id);
+    if (o) await marcarPos(o, ok === "si");
+    return;
+  }
+  if (t.hasAttribute("data-anu")){
+    const [id, si] = g("data-anu").split("|");
+    const o = S.ordenes.find(x => x.id === id); if (!o) return;
+    if (si !== "si") return anularPedido(o, false);
+    return confirmar("Anular el pedido #" + o.num,
+      "Sale de la cola de cocina y de la venta del día. Puedes restaurarlo después desde esta misma lista.",
+      "Anular", async () => { cerrarSheet(); await anularPedido(o, true); });
+  }
   if (t.id === "btnSalir"){ await sb.auth.signOut(); location.replace("../"); return; }
 
   /* --- caja --- */
@@ -2040,8 +2348,12 @@ async function manejarClick(ev){
   }
   if (t.hasAttribute("data-q")){ const [k, d] = g("data-q").split("|"); return cambiarQty(k, +d); }
   if (t.id === "toggleCart"){ S.cartOpen = !S.cartOpen; return render(); }
-  if (t.id === "vaciar"){ S.cart = []; S.cartOpen = false; return render(); }
-  if (t.id === "cobrar"){ S.sheet = { t:"cobro", pago:null, nota:"" }; return pintarModal(); }
+  if (t.id === "vaciar"){ S.cart = []; S.cartOpen = false; S.editando = null; return render(); }
+  if (t.id === "cobrar"){
+    const ed = S.editando;
+    S.sheet = { t:"cobro", pago: ed ? ed.pago : null, nota: ed ? ed.nota : "", cliente: ed ? ed.cliente : "" };
+    return pintarModal();
+  }
   if (t.hasAttribute("data-opt")){
     const [id, val] = g("data-opt").split("|");
     S.sheet.opts[id] = val; return pintarModal();
@@ -2071,16 +2383,27 @@ async function manejarClick(ev){
     const s = S.sheet; if (!s.pago || s.enviando) return;
     s.enviando = true; pintarModal();
     const total = totalCarrito();
+    const nota = ($("#nota") && $("#nota").value) || s.nota || "";
+    const cliente = ($("#cliente") && $("#cliente").value) || s.cliente || "";
     try {
-      const num = await registrarOrden(s.pago, ($("#nota") && $("#nota").value) || s.nota);
+      if (S.editando){
+        const num = S.editando.num;
+        await guardarEdicion(s.pago, nota, cliente);
+        S.cart = []; S.cartOpen = false; S.editando = null; S.sheet = null; S.verOrdenes = true;
+        beep(760, .1);
+        toast("Pedido #" + num + " corregido. Cocina ya lo ve cambiado.");
+        return render();
+      }
+      const num = await registrarOrden(s.pago, nota, cliente);
       S.cart = []; S.cartOpen = false;
-      S.sheet = { t:"ticket", num, total, pago:s.pago };
+      S.sheet = { t:"ticket", num, total, pago:s.pago, cliente };
       beep(760, .1); setTimeout(() => beep(1020, .12), 110);
       render();
       setTimeout(() => { if (S.sheet && S.sheet.t === "ticket" && S.sheet.num === num) cerrarSheet(); }, 5000);
     } catch(e){
       s.enviando = false; pintarModal();
-      toast("No se pudo registrar el pedido. Revisa la conexión e inténtalo otra vez.");
+      toast(S.editando ? "No se pudo guardar la corrección: " + (e.message || "")
+                       : "No se pudo registrar el pedido. Revisa la conexión e inténtalo otra vez.");
       console.error(e);
     }
     return;
@@ -2140,6 +2463,7 @@ document.addEventListener("keydown", ev => {
 });
 document.addEventListener("input", ev => {
   if (S.sheet && (ev.target.id === "nota" || ev.target.id === "notaLinea")) S.sheet.nota = ev.target.value;
+  if (S.sheet && ev.target.id === "cliente") S.sheet.cliente = ev.target.value;
   if (S.p0Draft && ev.target.id === "p0")     S.p0Draft.punto0  = ev.target.value;
   if (S.p0Draft && ev.target.id === "p0bono") S.p0Draft.bonoPct = ev.target.value;
 });
