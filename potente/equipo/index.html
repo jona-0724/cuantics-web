@@ -708,6 +708,7 @@ let cacheBloques = []
 let cacheDisp = []
 let cacheAsig = []
 let cachePerfiles = []
+let ordenDisp = null     // orden de las filas de disponibilidad mientras la feria está abierta
 let verTodoElEquipo = false   // desplegables de turno: solo disponibles, o todos
 let misMarcas = {}       // bloque_id → estado, solo del usuario actual
 let miEnvio = false      // ¿ya subió su disponibilidad de la feria abierta?
@@ -1524,6 +1525,7 @@ async function abrirFeriaAdmin(f){
   if (e.error && faltaLaTabla(e.error)) soportaEnvios = false
   cacheEnvios = e.data || []
 
+  ordenDisp = null
   pintarDisponibilidad()
   pintarTurnos()
 }
@@ -1707,10 +1709,17 @@ function pintarDisponibilidad(){
     if (pa && pb) return pa - pb                       // por orden de envío
     if (pa) return -1
     if (pb) return 1
-    if (a.completa !== b.completa) return a.completa ? -1 : 1
-    if (b.hechos !== a.hechos) return b.hechos - a.hechos   // los más avanzados antes
     return a.p.nombre.localeCompare(b.p.nombre)
   })
+
+  // El orden se fija al abrir la feria y no se toca mientras siga en pantalla:
+  // si cada clic recolocara la fila, quien está editando la perdería de vista.
+  // El sello de Enviada y su número siguen al día aunque la fila no se mueva.
+  if (ordenDisp) {
+    const sitio = id => { const i = ordenDisp.indexOf(id); return i < 0 ? ordenDisp.length : i }
+    filas.sort((a, b) => sitio(a.p.id) - sitio(b.p.id))
+  }
+  ordenDisp = filas.map(f => f.p.id)
 
   pendientes = {
     sinEnviar: filas.filter(f => !f.enviada).map(f => f.p.nombre),
