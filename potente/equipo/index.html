@@ -2098,6 +2098,14 @@ function refrescarCabeceraFeria(){
 const BLOQUE_REPETIDO = 'Ya hay un bloque ese día con ese mismo horario. Cambia la fecha o la hora.'
 const bloqueRepetido = error => error.code === '23505'
 
+// Las únicas etiquetas posibles, y la clase de bloque que es cada una.
+const ETIQUETAS_BLOQUE = {
+  'Preparación': { tipo: 'dk_prep',     condicional: false },
+  'Despacho':    { tipo: 'dk_despacho', condicional: true  },
+  'Mañana':      { tipo: 'feria',       condicional: false },
+  'Tarde':       { tipo: 'feria',       condicional: false }
+}
+
 const ordenBloque = b => `${b.fecha} ${hhmm(b.hora_inicio)} ${hhmm(b.hora_fin)}`
 
 /* Devuelve los bloques a su orden cronológico después de editar uno. Espera a
@@ -2151,25 +2159,43 @@ function pintarEditorBloques(){
     const fFecha  = campo('date', b.fecha, '150px')
     const fIni    = campo('time', hhmm(b.hora_inicio), '110px')
     const fFin    = campo('time', hhmm(b.hora_fin), '110px')
-    const fEt     = campo('text', b.etiqueta || '', '150px', { placeholder: 'Etiqueta' })
     const fCupos  = campo('number', b.personas_necesarias, '80px', { min: 1, max: 20 })
+
+    // La etiqueta es una lista cerrada. Una etiqueta vieja que no esté en ella
+    // se sigue mostrando hasta que se cambie, para no alterar el bloque a escondidas.
+    const fEt = document.createElement('select')
+    fEt.style.cssText = 'width:150px;padding:11px 12px;font-size:15px'
+    fEt.setAttribute('aria-label', 'Etiqueta')
+    const etiquetas = Object.keys(ETIQUETAS_BLOQUE)
+    if (!etiquetas.includes(b.etiqueta)) etiquetas.unshift(b.etiqueta || '')
+    etiquetas.forEach(e => fEt.add(new Option(e || '—', e)))
+    fEt.value = b.etiqueta || ''
 
     const guardar = async () => {
       if (fFin.value <= fIni.value) return decir($('#avisoBloques'), 'La hora de fin debe ser posterior a la de inicio.', true)
       decir($('#avisoBloques'), 'Guardando…')
       const cambios = {
         fecha: fFecha.value, hora_inicio: fIni.value, hora_fin: fFin.value,
-        etiqueta: fEt.value.trim() || null,
+        etiqueta: fEt.value || null,
         personas_necesarias: Number(fCupos.value) || 1
       }
+      // Cambiar la etiqueta cambia también qué clase de bloque es.
+      const cambiaEtiqueta = cambios.etiqueta !== (b.etiqueta || null)
+      if (cambiaEtiqueta) Object.assign(cambios, ETIQUETAS_BLOQUE[cambios.etiqueta])
       const { error } = await sb.from('bloques').update(cambios).eq('id', b.id)
       if (error) {
         // No se guardó: la fila vuelve a mostrar lo que sigue en la base.
         fFecha.value = b.fecha; fIni.value = hhmm(b.hora_inicio); fFin.value = hhmm(b.hora_fin)
+        fEt.value = b.etiqueta || ''
         return decir($('#avisoBloques'), bloqueRepetido(error) ? BLOQUE_REPETIDO : error.message, true)
       }
       Object.assign(b, cambios)
       decirYborrar($('#avisoBloques'), 'Guardado ✓', 1800)
+      if (cambiaEtiqueta) {
+        // Los sellos y el color de la fila dependen del tipo: se repinta todo.
+        pintarEditorBloques(); pintarDisponibilidad(); pintarTurnos()
+        return $(`#editorBloques [data-bloque="${b.id}"] select`)?.focus()
+      }
       reordenarBloques(fila)
     }
     ;[fFecha, fIni, fFin, fEt, fCupos].forEach(i => { i.onchange = guardar; fila.appendChild(i) })
@@ -2223,7 +2249,8 @@ $('#btnNuevoBloque').onclick = async () => {
   decir($('#avisoBloques'), 'Creando…')
   const { error } = await sb.from('bloques').insert({
     feria_id: feriaSel.id, ...hueco,
-    etiqueta: 'Nuevo bloque', tipo: 'feria', condicional: false, personas_necesarias: 3
+    etiqueta: hueco.hora_inicio < '17:00' ? 'Mañana' : 'Tarde',
+    tipo: 'feria', condicional: false, personas_necesarias: 3
   })
   if (error) return decir($('#avisoBloques'), bloqueRepetido(error) ? BLOQUE_REPETIDO : error.message, true)
   await recargarBloques()
