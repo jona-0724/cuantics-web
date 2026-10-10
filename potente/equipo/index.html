@@ -2094,6 +2094,43 @@ function refrescarCabeceraFeria(){
 }
 
 /* ---------- editor de bloques ---------- */
+// La base no admite dos bloques de la misma feria con igual día y horario.
+const BLOQUE_REPETIDO = 'Ya hay un bloque ese día con ese mismo horario. Cambia la fecha o la hora.'
+const bloqueRepetido = error => error.code === '23505'
+
+const ordenBloque = b => `${b.fecha} ${hhmm(b.hora_inicio)} ${hhmm(b.hora_fin)}`
+
+/* Devuelve los bloques a su orden cronológico después de editar uno. Espera a
+   que el cursor salga de la fila: mientras se teclea una fecha pasa por valores
+   a medias, y mover la fila en ese momento se la quitaría de las manos. */
+function reordenarBloques(fila){
+  if (fila.contains(document.activeElement)) return
+  const antes = cacheBloques.map(b => b.id).join()
+  cacheBloques.sort((x, y) => ordenBloque(x).localeCompare(ordenBloque(y)))
+  if (cacheBloques.map(b => b.id).join() === antes) return
+
+  // Si ya pasó a otra fila, el cursor se queda en el mismo campo tras repintar.
+  const activa = document.activeElement?.closest?.('#editorBloques [data-bloque]')
+  const foco = activa && { id: activa.dataset.bloque, n: [...activa.children].indexOf(document.activeElement) }
+  pintarEditorBloques(); pintarDisponibilidad(); pintarTurnos()
+  if (foco) $(`#editorBloques [data-bloque="${foco.id}"]`)?.children[foco.n]?.focus()
+  else $(`#editorBloques [data-bloque="${fila.dataset.bloque}"]`)?.scrollIntoView({ block: 'nearest' })
+}
+
+/* Primer horario libre para un bloque nuevo: 10:00–16:00 del primer día y, si
+   ya está tomado, una hora más tarde cada vez; luego los días siguientes. */
+function huecoParaBloque(){
+  const ocupado = new Set(cacheBloques.map(ordenBloque))
+  const dos = n => String(n).padStart(2, '0')
+  for (const dia of diasEntre(feriaSel.fecha_inicio, feriaSel.fecha_fin)) {
+    for (let h = 10; h <= 17; h++) {
+      const hueco = { fecha: dia, hora_inicio: `${dos(h)}:00`, hora_fin: `${dos(h + 6)}:00` }
+      if (!ocupado.has(ordenBloque(hueco))) return hueco
+    }
+  }
+  return null
+}
+
 function pintarEditorBloques(){
   const cont = $('#editorBloques'); cont.innerHTML = ''
   if (!cacheBloques.length) { cont.innerHTML = `<div class="vacio">Esta feria no tiene bloques.</div>`; return }
@@ -2101,6 +2138,7 @@ function pintarEditorBloques(){
   cacheBloques.forEach(b => {
     const fila = document.createElement('div')
     fila.className = 'cand' + (esDk(b) ? ' puesto' : '')
+    fila.dataset.bloque = b.id
     if (esDk(b)) fila.style.borderColor = 'var(--dk)'
 
     const campo = (tipo, valor, ancho, attrs = {}) => {
@@ -2125,11 +2163,18 @@ function pintarEditorBloques(){
         personas_necesarias: Number(fCupos.value) || 1
       }
       const { error } = await sb.from('bloques').update(cambios).eq('id', b.id)
-      if (error) return decir($('#avisoBloques'), error.message, true)
+      if (error) {
+        // No se guardó: la fila vuelve a mostrar lo que sigue en la base.
+        fFecha.value = b.fecha; fIni.value = hhmm(b.hora_inicio); fFin.value = hhmm(b.hora_fin)
+        return decir($('#avisoBloques'), bloqueRepetido(error) ? BLOQUE_REPETIDO : error.message, true)
+      }
       Object.assign(b, cambios)
       decirYborrar($('#avisoBloques'), 'Guardado ✓', 1800)
+      reordenarBloques(fila)
     }
     ;[fFecha, fIni, fFin, fEt, fCupos].forEach(i => { i.onchange = guardar; fila.appendChild(i) })
+    // El foco aún no llegó a su destino cuando salta focusout: se mira un instante después.
+    fila.addEventListener('focusout', () => setTimeout(() => reordenarBloques(fila)))
 
     if (esDk(b)) {
       const s = document.createElement('span')
@@ -2173,13 +2218,14 @@ function pintarEditorBloques(){
 
 $('#btnNuevoBloque').onclick = async () => {
   if (!feriaSel) return
+  const hueco = huecoParaBloque()
+  if (!hueco) return decir($('#avisoBloques'), 'No queda un horario libre para el bloque nuevo. Ajusta o borra alguno de los que ya hay.', true)
   decir($('#avisoBloques'), 'Creando…')
   const { error } = await sb.from('bloques').insert({
-    feria_id: feriaSel.id, fecha: feriaSel.fecha_inicio,
-    hora_inicio: '10:00', hora_fin: '16:00',
+    feria_id: feriaSel.id, ...hueco,
     etiqueta: 'Nuevo bloque', tipo: 'feria', condicional: false, personas_necesarias: 3
   })
-  if (error) return decir($('#avisoBloques'), error.message, true)
+  if (error) return decir($('#avisoBloques'), bloqueRepetido(error) ? BLOQUE_REPETIDO : error.message, true)
   await recargarBloques()
   decir($('#avisoBloques'), 'Bloque creado. Ajústale la fecha y la hora.')
   pintarEditorBloques(); pintarDisponibilidad(); pintarTurnos()
