@@ -1006,10 +1006,19 @@ $('#btnSalir').onclick = async () => { await sb.auth.signOut(); location.reload(
    ========================================================================== */
 let recuperando = /type=(recovery|invite)/.test(window.location.hash)
 
+/* Supabase avisa SIGNED_IN no solo al entrar: también cada vez que la pestaña
+   vuelve a estar a la vista y revalida la sesión. Si cada aviso arrancara la
+   app, la pantalla se recargaría sola al volver de otra pestaña. Solo se
+   arranca cuando quien entra no es quien ya está dentro. */
+let usuarioDentro = null
+
 sb.auth.onAuthStateChange((evento, sesion) => {
   if (evento === 'PASSWORD_RECOVERY') { recuperando = true; return verFormulario('clave') }
-  if (evento === 'SIGNED_IN' && !recuperando) arrancarApp()
-  if (evento === 'SIGNED_OUT') verFormulario('entrar')
+  if (evento === 'SIGNED_IN' && !recuperando && sesion?.user?.id !== usuarioDentro) {
+    usuarioDentro = sesion?.user?.id ?? null
+    arrancarApp()
+  }
+  if (evento === 'SIGNED_OUT') { usuarioDentro = null; verFormulario('entrar') }
 })
 
 ;(async function inicio(){
@@ -1017,6 +1026,8 @@ sb.auth.onAuthStateChange((evento, sesion) => {
   const { data:{ session } } = await sb.auth.getSession()
   if (recuperando) return verFormulario('clave')
   if (!session) return verFormulario('entrar')
+  if (session.user.id === usuarioDentro) return   // ya lo arrancó el aviso de arriba
+  usuarioDentro = session.user.id
   arrancarApp()
 })()
 
