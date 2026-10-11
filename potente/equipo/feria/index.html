@@ -100,6 +100,11 @@ button{cursor:pointer;border:0;background:none}
 .feriacard{min-height:0;gap:8px}
 .feriacard .rn{font-size:22px}
 .feriacard .rdev{margin-top:4px}
+.grupo-ferias + .grupo-ferias{margin-top:30px}
+.grupo-ferias .gt{display:flex;align-items:center;gap:12px;font-size:12.5px;letter-spacing:.22em;
+  text-transform:uppercase;font-weight:600;color:var(--ink-2);margin-bottom:12px}
+.grupo-ferias .gt::after{content:"";flex:1;height:1px;background:currentColor;opacity:.25}
+.grupo-ferias.pasadas .feriacard{opacity:.7}
 .prueba{border:1px solid #6a4a1c;background:linear-gradient(150deg,#33210c,var(--panel) 70%);
   border-radius:12px;padding:13px 15px;margin:0 0 22px;font-size:14px;color:var(--ink-2);line-height:1.45}
 .prueba b{color:var(--brasa)}
@@ -1079,6 +1084,15 @@ function vistaElegirFeria(){
       '<span class="rd">' + rangoFeria(f) + "</span>" +
       '<span class="rdev">' + pillEstado(est) + "</span></button>";
   };
+  // Cada estado en su propio bloque: lo terminado no se mezcla con lo que viene.
+  const grupos = [["activa", "En curso"], ["programada", "Programadas"], ["terminada", "Terminadas"]]
+    .map(([est, titulo]) => {
+      const fs = ops.filter(f => estadoFeria(f) === est);
+      return fs.length
+        ? '<div class="grupo-ferias' + (est === "terminada" ? " pasadas" : "") + '"><div class="gt">' + titulo +
+          "</div>" + '<div class="roles">' + fs.map(tarjeta).join("") + "</div></div>"
+        : "";
+    }).join("");
   return '<div class="gate">' +
     '<div class="logo logomark" role="img" aria-label="Potente"></div>' +
     '<div class="kicker">Operación de feria</div>' +
@@ -1090,7 +1104,7 @@ function vistaElegirFeria(){
             : "Hoy te toca más de una. Elige en cuál estás para que la caja cobre donde debe.")
         : "Hoy no estás asignado a ninguna feria. Cuando el administrador publique tus turnos, esta pantalla se enciende sola.") +
     "</p>" +
-    (ops.length ? '<div class="roles">' + ops.map(tarjeta).join("") + "</div>" : "") +
+    grupos +
     '<div class="foot"><a href="../" style="color:var(--ink-3)">← Volver a Equipo</a></div></div>';
 }
 
