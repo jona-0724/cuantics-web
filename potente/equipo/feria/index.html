@@ -834,6 +834,9 @@ async function boot(){
     S.adminVista = "feria"; S.adminSub = "resumen"; S.diaSel = "todos";
     refrescarAdmin();
   }
+  // El pedido de la dirección vale una sola vez. Si se quedara ahí, cada vez que
+  // se actualiza la página volvería a mandar a Ventas, estés donde estés.
+  if (pedida) history.replaceState(null, "", location.pathname);
 
   render();
   if (sitio && sitio.y){
