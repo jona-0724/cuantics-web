@@ -425,6 +425,44 @@ select:hover{border-color:var(--ink-3)}
 .p0-edit .unidad input{-moz-appearance:textfield;appearance:textfield}
 .p0-edit .unidad input::-webkit-inner-spin-button,
 .p0-edit .unidad input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+
+/* ---------- inventario de cierre ----------
+   Se llena de pie, al final del día y con una mano: botones grandes, una
+   fila por insumo y nada que obligue a escribir si no se quiere. */
+.inv{max-width:720px;margin:0 auto;padding-bottom:120px}
+.inv .panel > h3{font-size:19px}
+.inv-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.inv-row.pri{border-top:0}
+.inv-n{flex:1;min-width:0}
+.inv-n b{display:block;font-size:16px;font-weight:600}
+.inv-n span{font-size:12.5px;color:var(--ink-3)}
+.inv-step{display:flex;align-items:center;gap:6px;flex:none}
+.inv-step button{width:44px;height:44px;border-radius:11px;background:var(--panel-3);border:1px solid var(--line-2);
+  font-size:23px;line-height:1;color:var(--ink);display:grid;place-items:center}
+.inv-step button:active{background:var(--line)}
+.inv-step input{width:74px;height:44px;text-align:center;font-size:18px;font-weight:700;
+  font-variant-numeric:tabular-nums;-moz-appearance:textfield;appearance:textfield}
+.inv-step input::-webkit-inner-spin-button,.inv-step input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.inv-step input.puesto{border-color:var(--fuego)}
+.inv-row.sal{flex-wrap:wrap;gap:8px}
+.inv-row.sal .inv-n{flex-basis:100%}
+.inv-niv{display:flex;gap:5px;flex:1}
+.inv-niv button{flex:1;height:44px;border-radius:10px;border:1px solid var(--line-2);font-weight:700;font-size:14px;color:var(--ink-2)}
+.inv-niv button[aria-pressed="true"]{background:var(--fuego);border-color:var(--fuego);color:#17130F}
+.inv textarea{width:100%;min-height:120px;background:var(--panel-2);border:1px solid var(--line-2);border-radius:10px;
+  padding:10px 12px;font:inherit;font-size:15px;color:var(--ink);resize:vertical}
+.inv-aviso{margin-top:14px;padding:12px 14px;border-radius:11px;border:1px solid #6a4a1c;background:#33210c;font-size:14px;color:var(--ink-2)}
+.inv-bar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(23,19,15,.97);backdrop-filter:blur(12px);
+  border-top:1px solid var(--line-2);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.inv-bar > div{max-width:720px;margin:0 auto;display:flex;gap:12px;align-items:center}
+.inv-bar .st{flex:1;font-size:13px;line-height:1.35;color:var(--ink-2)}
+.inv-t{width:100%;border-collapse:collapse;font-size:14px}
+.inv-t th,.inv-t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+.inv-t th:first-child,.inv-t td:first-child{text-align:left}
+.inv-t th{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.inv-t td small{color:var(--ink-3)}
+.inv-t tr.g td{padding-top:16px;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--fuego)}
+.inv-t td.cero{color:var(--bad);font-weight:700}
 .p0-foot .mut{color:var(--ink-3)}
 .colw .tot{text-align:center;font-family:var(--f-display);font-size:14px;margin-bottom:5px;font-variant-numeric:tabular-nums}
 .stack{display:flex;flex-direction:column-reverse;gap:2px;border-radius:5px 5px 0 0;overflow:hidden}
@@ -582,7 +620,9 @@ const S = {
   soportaCaja:true,          // ¿la base ya tiene la vista de caja?
   adminVista:"ferias", adminSub:"resumen", diaSel:"todos", matrizModo:"unid",
   sonido:lsGet("pot_sonido", true),
-  vistos:{}, sheet:null, avance:null
+  vistos:{}, sheet:null, avance:null,
+  inv:null,                  // inventario de cierre que se está llenando hoy
+  invAdmin:null              // inventarios de la feria que mira el administrador
 };
 const esAdmin = () => !!(S.yo && S.yo.rol === "admin");
 
@@ -761,12 +801,13 @@ async function boot(){
       S.feriaOp = sitio.feriaOp; await refrescarCola();
     }
     if (sitio.role === "admin" && esAdmin()) S.role = "admin";
-    else if ((sitio.role === "caja" || sitio.role === "cocina") && puedoOperar()) S.role = sitio.role;
+    else if ((sitio.role === "caja" || sitio.role === "cocina" || sitio.role === "inventario") && puedoOperar()) S.role = sitio.role;
     if (sitio.feriaSel && S.ferias.some(f => f.id === sitio.feriaSel)) S.feriaSel = sitio.feriaSel;
     if (sitio.adminVista) S.adminVista = sitio.adminVista;
     if (sitio.adminSub)   S.adminSub   = sitio.adminSub;
     if (sitio.diaSel)     S.diaSel     = sitio.diaSel;
     if (S.role === "cocina") S.ordenes.forEach(o => S.vistos[o.id] = 1);
+    if (S.role === "inventario") cargarInventario();
     if (S.role === "admin" && S.adminVista === "feria") await refrescarAdmin();
   }
 
@@ -900,6 +941,7 @@ async function refrescarAdmin(){
   const porOrden = {};
   items.forEach(i => (porOrden[i.orden_id] || (porOrden[i.orden_id] = [])).push(mapItem(i)));
   S.ordSel = data.map(o => mapOrden(o, porOrden[o.id] || []));
+  if (S.adminSub === "inventario") return cargarInvAdmin();
   render(true);
 }
 
@@ -1030,7 +1072,7 @@ function pintarTop(){
   $("#miNombre").textContent = (S.yo && (S.yo.nombre || "")) || "—";
   const f = feriaEnCurso();
   $("#miRol").textContent = S.role === "admin" ? "Ventas · administrador"
-    : (S.role === "caja" ? "Caja" : "Cocina") + (f ? " · " + f.nombre : "");
+    : (S.role === "caja" ? "Caja" : S.role === "cocina" ? "Cocina" : "Inventario") + (f ? " · " + f.nombre : "");
   const chf = $("#chipFeria");
   chf.classList.toggle("hide", !f);
   if (f) chf.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">' +
@@ -1040,7 +1082,7 @@ function pintarTop(){
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">' +
     '<rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>' +
     '<rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>' +
-    (S.role === "caja" ? "Caja" : S.role === "cocina" ? "Cocina" : "Ventas") +
+    (S.role === "caja" ? "Caja" : S.role === "cocina" ? "Cocina" : S.role === "inventario" ? "Inventario" : "Ventas") +
     '<span class="cambiar">Cambiar</span>';
 }
 
@@ -1049,7 +1091,8 @@ function vistaGate(){
   const ic = {
     caja:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M9 6.5h6M8.5 11h2m3 0h2m-7 3.5h2m3 0h2m-7 3.5h7"/></svg>',
     cocina:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11h18M4.5 11a7.5 7.5 0 0 1 15 0M2.5 15h19M6 19h12"/></svg>',
-    admin:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 20.5h18M6 20.5V12m5 8.5V6.5m5 14v-6"/></svg>'
+    admin:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 20.5h18M6 20.5V12m5 8.5V6.5m5 14v-6"/></svg>',
+    inventario:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3.5 8 12 3.5 20.5 8v8L12 20.5 3.5 16V8Z"/><path d="M3.5 8 12 12.5 20.5 8M12 12.5v8"/></svg>'
   };
   const card = (r, n, d, dev) =>
     '<button class="role" data-rol="' + r + '">' + ic[r] + '<span class="rn">' + n + '</span><span class="rd">' + d + '</span><span class="rdev">' + dev + "</span></button>";
@@ -1075,6 +1118,7 @@ function vistaGate(){
     (puedo ? '<div class="roles">' +
       card("caja", "Caja", "Arma el pedido, cobra y lo manda a cocina.", "Celular") +
       card("cocina", "Cocina", "La cola de preparación, en orden de llegada.", "Tablet") +
+      card("inventario", "Inventario", "Lo que queda al cerrar el día, para saber qué reponer mañana.", "Al cierre") +
       (esAdmin() ? card("admin", "Ventas", "Resumen del día, de la feria y de cada producto.", "Solo administrador") : "") +
     "</div>"
     : (esAdmin() ? '<div class="roles">' +
@@ -1393,7 +1437,7 @@ function render(suave){
   const y = window.scrollY;
   pintarTop();
   const v = $("#view");
-  if ((S.role === "caja" || S.role === "cocina") && !puedoOperar()) S.role = null;
+  if ((S.role === "caja" || S.role === "cocina" || S.role === "inventario") && !puedoOperar()) S.role = null;
   if (S.role && S.role !== "admin" && !S.feriaOp) S.role = null;
   // Si una pantalla se rompe al dibujarse, antes quedaba la anterior congelada
   // y solo salía un aviso abajo: desde el celular parecía que el botón no hacía
@@ -1410,6 +1454,7 @@ function vistaActual(){
   if (!S.role) return vistaGate();
   if (S.role === "caja")   return vistaCaja();
   if (S.role === "cocina") return vistaCocina();
+  if (S.role === "inventario") return vistaInventario();
   return vistaAdmin();
 }
 function pantallaError(e){
@@ -1616,6 +1661,214 @@ const TRAMOS = [
   { hasta:1e9, cara:"\u{1F3C6}", txt:"¡Bono alcanzado!" }
 ];
 let ultimoBono = null;
+
+/* ==========================  INVENTARIO DE CIERRE  ==========================
+   Al cerrar cada día de feria el equipo anota lo que queda. Con eso el
+   administrador decide qué llevar al día siguiente. Hay un solo inventario
+   por feria y por día: lo llena quien cierra, y cualquiera del turno puede
+   corregirlo después.
+
+   La lista de insumos vive aquí y no en la base: cambiarla es editar estas
+   líneas. Lo que se guarda es {cant, nivel, repo} con el id de cada insumo,
+   así que agregar uno nuevo no rompe los inventarios ya guardados. */
+const INV_GRUPOS = [
+  { titulo:"Insumos", sub:"Lo que queda al cerrar. Puedes poner medios: 2 tapers y medio es 2.5.", items:[
+    ["hotdog", "Hot dog", "bolsas"], ["chorizo", "Chorizo", "bolsas"],
+    ["carne", "Carne", "tapers"], ["lechuga", "Lechuga", "tapers"], ["tomate", "Tomate", "tapers"],
+    ["pan", "Pan", "bolsas"], ["chicha", "Chicha", "bolsas"], ["maracuya", "Maracuyá", "bolsas"],
+    ["cheddar", "Queso cheddar", "paquetes"], ["mantequilla", "Mantequilla", "unidades"], ["aceite", "Aceite", "botellas"] ] },
+  { titulo:"Descartables", sub:"Paquetes que quedan, abiertos o cerrados.", items:[
+    ["cajas", "Cajas de comida", "paquetes"], ["servilletas", "Servilletas", "paquetes"], ["tenedores", "Tenedores", "paquetes"],
+    ["vasos12", "Vasos 12 oz", "paquetes"], ["vasos9", "Vasos 9 oz", "paquetes"] ] }
+];
+const INV_SALSAS  = [["mayonesa", "Mayonesa"], ["mostaza", "Mostaza"], ["ketchup", "Ketchup"],
+                     ["aji", "Ají"], ["tartara", "Tártara"], ["bbq", "Barbecue"]];
+const INV_NIVELES = [["lleno", "Lleno"], ["3/4", "¾"], ["medio", "Medio"], ["1/4", "¼"], ["vacio", "Vacío"]];
+
+const invVacio = () => ({ cant:{}, nivel:{}, repo:{} });
+const invClave = (feria, dia) => "pot_inv_" + feria + "_" + dia;
+const invTotal = () => INV_GRUPOS.reduce((n, gr) => n + gr.items.length, 0) + INV_SALSAS.length * 2;
+function invLlenas(d){
+  let n = 0;
+  INV_GRUPOS.forEach(gr => gr.items.forEach(it => { if (d.cant[it[0]] != null) n++; }));
+  INV_SALSAS.forEach(sa => { if (d.nivel[sa[0]]) n++; if (d.repo[sa[0]] != null) n++; });
+  return n;
+}
+
+/* Trae lo guardado hoy para esta feria. Si en este celular quedó algo a medio
+   llenar y sin guardar, manda eso: no se le borra a nadie lo que ya anotó. */
+async function cargarInventario(){
+  const feria = S.feriaOp, dia = diaDe(new Date());
+  if (!feria) return;
+  if (S.inv && S.inv.feria === feria && S.inv.dia === dia && !S.inv.cargando) return;
+  const inv = { feria, dia, datos:invVacio(), nota:"", guardado:null, sucio:false, soporta:true, cargando:true, enviando:false };
+  S.inv = inv;
+  const { data, error } = await sb.from("inventarios").select("*").eq("feria_id", feria).eq("fecha", dia).maybeSingle();
+  if (S.inv !== inv) return;
+  inv.cargando = false;
+  if (error){
+    if (faltaLaTabla(error)) inv.soporta = false;
+    else console.warn("[potente] inventario", error.message);
+  }
+  if (data){
+    inv.datos = Object.assign(invVacio(), data.datos || {});
+    inv.nota = data.nota || "";
+    inv.guardado = { por:data.por_nombre || "", cuando:data.actualizado_en };
+  }
+  const borrador = lsGet(invClave(feria, dia), null);
+  if (borrador && borrador.datos){
+    inv.datos = Object.assign(invVacio(), borrador.datos);
+    inv.nota = borrador.nota || "";
+    inv.sucio = true;
+  }
+  render();
+}
+
+/* Cada cambio queda anotado en el celular al instante: si la pestaña se
+   recarga o se va la señal antes de guardar, no se pierde lo llenado. */
+function invTocar(){
+  const i = S.inv;
+  i.sucio = true;
+  lsSet(invClave(i.feria, i.dia), { datos:i.datos, nota:i.nota });
+}
+
+async function guardarInventario(){
+  const i = S.inv;
+  if (!i || i.enviando || !i.soporta) return;
+  i.enviando = true; render();
+  const { error } = await sb.rpc("guardar_inventario", { p_feria:i.feria, p_datos:i.datos, p_nota:i.nota.trim() || null });
+  i.enviando = false;
+  if (error){
+    if (faltaLaTabla(error)) i.soporta = false;
+    else toast("No se pudo guardar: " + error.message);
+    return render();
+  }
+  i.sucio = false;
+  i.guardado = { por:(S.yo && S.yo.nombre) || "", cuando:new Date().toISOString() };
+  try { localStorage.removeItem(invClave(i.feria, i.dia)); } catch(e){}
+  toast("Inventario guardado. ¡Gracias!");
+  render();
+}
+
+function invEstadoTxt(){
+  const i = S.inv, llenas = invLlenas(i.datos), total = invTotal();
+  const avance = llenas >= total ? "Todo lleno" : "Llevas " + llenas + " de " + total;
+  if (i.sucio) return avance + " · tienes cambios sin guardar";
+  if (i.guardado) return avance + " · guardado" + (i.guardado.por ? " por " + i.guardado.por.split(" ")[0] : "") +
+    " a las " + horaDe(new Date(i.guardado.cuando));
+  return avance + " · todavía no se ha guardado hoy";
+}
+/* Mientras se escribe en una casilla la pantalla no se redibuja (se perdería
+   el cursor), así que la línea de estado se actualiza a mano. */
+function invPintarEstado(){ const e = $("#invEstado"); if (e) e.textContent = invEstadoTxt(); }
+
+function invPaso(grupo, id, nombre, unidad, primera){
+  const v = S.inv.datos[grupo][id];
+  return '<div class="inv-row' + (primera ? " pri" : "") + '"><div class="inv-n"><b>' + nombre + "</b><span>" + unidad + "</span></div>" +
+    '<div class="inv-step">' +
+      '<button data-invq="' + grupo + ":" + id + ':-0.5" aria-label="Medio menos de ' + nombre + '">−</button>' +
+      '<input type="number" inputmode="decimal" min="0" step="0.5" placeholder="—" aria-label="' + nombre + ", " + unidad + '"' +
+        ' data-inv="' + grupo + ":" + id + '" value="' + (v == null ? "" : v) + '"' + (v == null ? "" : ' class="puesto"') + ">" +
+      '<button data-invq="' + grupo + ":" + id + ':0.5" aria-label="Medio más de ' + nombre + '">+</button>' +
+    "</div></div>";
+}
+
+function vistaInventario(){
+  const f = feriaEnCurso();
+  if (!f) return sinFeria("aquí se anota lo que queda al cierre");
+  const i = S.inv;
+  if (!i || i.cargando) return '<div class="wrap"><div class="empty">Cargando el inventario de hoy…</div></div>';
+
+  const grupos = INV_GRUPOS.map(gr =>
+    '<div class="panel"><h3>' + gr.titulo + '</h3><div class="ph">' + gr.sub + "</div>" +
+    gr.items.map((it, n) => invPaso("cant", it[0], it[1], it[2], n === 0)).join("") + "</div>").join("");
+
+  const chisguetes = '<div class="panel"><h3>Salsas en el stand</h3>' +
+    '<div class="ph">Cómo quedó cada chisguete al cerrar.</div>' +
+    INV_SALSAS.map((sa, n) =>
+      '<div class="inv-row sal' + (n === 0 ? " pri" : "") + '"><div class="inv-n"><b>' + sa[1] + '</b></div><div class="inv-niv">' +
+      INV_NIVELES.map(nv => '<button data-invniv="' + sa[0] + ":" + nv[0] + '" aria-pressed="' +
+        (i.datos.nivel[sa[0]] === nv[0]) + '">' + nv[1] + "</button>").join("") +
+      "</div></div>").join("") + "</div>";
+
+  const reposicion = '<div class="panel"><h3>Reposición de salsas</h3>' +
+    '<div class="ph">Cuántas bolsas de reserva se usaron hoy para rellenar. Si no se usó ninguna, pon 0.</div>' +
+    INV_SALSAS.map((sa, n) => invPaso("repo", sa[0], sa[1], "bolsas usadas hoy", n === 0)).join("") + "</div>";
+
+  const libre = '<div class="panel"><h3>¿Falta algo más?</h3>' +
+    '<div class="ph">Otros insumos que se acabaron o están por acabarse, y lo que recomiendes llevar mañana.</div>' +
+    '<textarea id="invNota" placeholder="Ej.: se acabó el papel toalla. Llevar más hielo, hoy no alcanzó.">' + esc(i.nota) + "</textarea></div>";
+
+  return '<div class="wrap inv">' +
+    '<div class="sec-h" style="margin:16px 0 0"><h2>Inventario de cierre</h2><span class="sub">' +
+      diaLargo(i.dia) + " · " + esc(f.nombre) + "</span></div>" +
+    (i.soporta ? "" : '<div class="inv-aviso"><b>Todavía no se puede guardar.</b> Falta activar el inventario en la base de datos: avísale al administrador. Lo que llenes queda anotado en este celular mientras tanto.</div>') +
+    grupos + chisguetes + reposicion + libre +
+    '<div class="inv-bar"><div><span class="st" id="invEstado">' + esc(invEstadoTxt()) + "</span>" +
+      '<button class="btn primary" id="invGuardar"' + (i.enviando || !i.soporta ? " disabled" : "") + ">" +
+      (i.enviando ? "Guardando…" : "Guardar inventario") + "</button></div></div></div>";
+}
+
+/* ---------- lo que ve el administrador ---------- */
+async function cargarInvAdmin(){
+  const id = S.feriaSel;
+  if (!id || !esAdmin()) return;
+  const { data, error } = await sb.from("inventarios").select("*").eq("feria_id", id).order("fecha");
+  if (id !== S.feriaSel) return;
+  S.invAdmin = error ? { falta:faltaLaTabla(error), error:error.message } : { filas:data || [] };
+  render(true);
+}
+
+/* Un día por columna: así se ve de un vistazo cómo fue bajando cada insumo. */
+function tabInventario(){
+  const a = S.invAdmin;
+  if (!a) return '<div class="panel"><div class="empty">Cargando inventarios…</div></div>';
+  if (a.falta) return '<div class="panel"><h3>Inventario de cierre</h3><div class="ph">Todavía no está activado en la base de datos. ' +
+    "Hay que ejecutar en Supabase la migración <b>inventario_cierre</b>; después de eso el equipo ya puede guardarlo.</div></div>";
+  if (a.error) return '<div class="panel"><div class="empty">No se pudo leer el inventario: ' + esc(a.error) + "</div></div>";
+  if (!a.filas.length) return '<div class="panel"><div class="empty"><div class="big">Sin inventarios todavía</div>' +
+    "El equipo lo llena al cierre de cada día, desde la tarjeta <b>Inventario</b>.</div></div>";
+
+  const dias = a.filas;
+  const dato = (d, grupo, id) => ((d.datos || {})[grupo] || {})[id];
+  const celdaNum = v => v == null ? "<td>—</td>" : '<td class="num' + (+v === 0 ? " cero" : "") + '">' + v + "</td>";
+  const nivel = v => { const n = INV_NIVELES.find(x => x[0] === v); return n ? n[1] : "—"; };
+  const titulo = t => '<tr class="g"><td colspan="' + (dias.length + 1) + '">' + t + "</td></tr>";
+
+  let filas = "";
+  INV_GRUPOS.forEach(gr => {
+    filas += titulo(gr.titulo);
+    gr.items.forEach(it => {
+      filas += "<tr><td>" + it[1] + " <small>" + it[2] + "</small></td>" + dias.map(d => celdaNum(dato(d, "cant", it[0]))).join("") + "</tr>";
+    });
+  });
+  filas += titulo("Salsas en el stand · cómo quedó el chisguete");
+  INV_SALSAS.forEach(sa => {
+    filas += "<tr><td>" + sa[1] + "</td>" + dias.map(d => {
+      const v = dato(d, "nivel", sa[0]);
+      return '<td class="' + (v === "vacio" ? "cero" : "") + '">' + nivel(v) + "</td>";
+    }).join("") + "</tr>";
+  });
+  filas += titulo("Reposición de salsas · bolsas de reserva usadas");
+  INV_SALSAS.forEach(sa => {
+    filas += "<tr><td>" + sa[1] + "</td>" + dias.map(d => {
+      const v = dato(d, "repo", sa[0]);
+      return v == null ? "<td>—</td>" : '<td class="num">' + v + "</td>";
+    }).join("") + "</tr>";
+  });
+
+  const notas = dias.map(d =>
+    '<div class="panel"><h3>' + diaLargo(d.fecha) + '</h3><div class="ph">Guardado' +
+      (d.por_nombre ? " por " + esc(d.por_nombre) : "") + " · " + horaDe(new Date(d.actualizado_en)) + "</div>" +
+      (d.nota ? '<div style="white-space:pre-wrap">' + esc(d.nota) + "</div>"
+              : '<div style="color:var(--ink-3)">Sin comentarios ni pedidos extra.</div>') + "</div>").join("");
+
+  return '<div class="panel"><h3>Lo que quedó al cierre</h3>' +
+    '<div class="ph">Un día por columna. En rojo, lo que quedó en cero o vacío. La raya es una casilla que no llenaron.</div>' +
+    '<div style="overflow-x:auto"><table class="inv-t"><thead><tr><th>Insumo</th>' +
+      dias.map(d => "<th>" + diaLargo(d.fecha) + "</th>").join("") + "</tr></thead><tbody>" + filas + "</tbody></table></div></div>" +
+    '<div class="sec-h"><h2>Comentarios del equipo</h2><span class="sub">Lo que pidieron o recomendaron cada día</span></div>' + notas;
+}
 
 /* ---------- COCINA ---------- */
 function vistaCocina(){
@@ -1860,7 +2113,8 @@ function vistaAdmin(){
   if (!S.listo) return '<div class="wrap"><div class="empty">Cargando ventas…</div></div>';
   let body;
   if (S.adminVista === "feria"){
-    body = cabeceraFeria() + (S.adminSub === "ordenes" ? tabOrdenes() : S.adminSub === "cocina" ? tabCocina() : tabResumen());
+    body = cabeceraFeria() + (S.adminSub === "ordenes" ? tabOrdenes() : S.adminSub === "cocina" ? tabCocina()
+      : S.adminSub === "inventario" ? tabInventario() : tabResumen());
   } else {
     const tabs = [["ferias","Ferias"],["carta","Carta y PIN"]];
     body = '<div class="tabs" role="tablist">' + tabs.map(t =>
@@ -1883,6 +2137,7 @@ function cabeceraFeria(){
       '<button class="tab" role="tab" data-sub="resumen" aria-selected="' + (S.adminSub === "resumen") + '">Resumen</button>' +
       '<button class="tab" role="tab" data-sub="cocina" aria-selected="' + (S.adminSub === "cocina") + '">Cocina</button>' +
       '<button class="tab" role="tab" data-sub="ordenes" aria-selected="' + (S.adminSub === "ordenes") + '">Órdenes</button>' +
+      '<button class="tab" role="tab" data-sub="inventario" aria-selected="' + (S.adminSub === "inventario") + '">Inventario</button>' +
     "</div>";
 }
 
@@ -2403,15 +2658,31 @@ async function manejarClick(ev){
   if (t.hasAttribute("data-rol")){
     const r = g("data-rol");
     if (r === "admin" && !esAdmin()) return;
-    if ((r === "caja" || r === "cocina") && !puedoOperar()) return;
+    if ((r === "caja" || r === "cocina" || r === "inventario") && !puedoOperar()) return;
     S.role = r || null; S.cart = []; S.cartOpen = false; S.reemplazando = null; S.verEntregados = false;
     S.editando = null; S.verOrdenes = false;
     if (r === "admin") refrescarAdmin();
     if (r === "cocina") S.ordenes.forEach(o => S.vistos[o.id] = 1);
     render();
     if (r === "caja" || r === "cocina") await refrescarCola();
+    if (r === "inventario") await cargarInventario();
     return render();
   }
+
+  /* --- inventario de cierre --- */
+  if (t.hasAttribute("data-invq") && S.inv){
+    const [grupo, k, d] = g("data-invq").split(":");
+    const o = S.inv.datos[grupo];
+    o[k] = Math.round(Math.max(0, (+o[k] || 0) + (+d)) * 100) / 100;
+    invTocar(); return render();
+  }
+  if (t.hasAttribute("data-invniv") && S.inv){
+    const [k, n] = g("data-invniv").split(":");
+    if (S.inv.datos.nivel[k] === n) delete S.inv.datos.nivel[k]; else S.inv.datos.nivel[k] = n;
+    invTocar(); return render();
+  }
+  if (t.id === "invGuardar") return guardarInventario();
+
   if (t.id === "chipRole") { S.role = null; S.sheet = null; return render(); }
   if (t.id === "chipFeria"){ S.feriaOp = null; S.role = null; S.sheet = null; S.cart = []; S.editando = null; S.reemplazando = null; return render(); }
 
@@ -2578,11 +2849,15 @@ async function manejarClick(ev){
 
   /* --- admin --- */
   if (t.hasAttribute("data-tab")){ S.adminVista = g("data-tab"); return render(); }
-  if (t.hasAttribute("data-sub")){ S.adminSub = g("data-sub"); return render(); }
+  if (t.hasAttribute("data-sub")){
+    S.adminSub = g("data-sub");
+    if (S.adminSub === "inventario") cargarInvAdmin();
+    return render();
+  }
   if (t.hasAttribute("data-volver")){ S.adminVista = "ferias"; return render(); }
   if (t.hasAttribute("data-verferia")){
     S.feriaSel = g("data-verferia"); S.diaSel = "todos"; S.adminVista = "feria"; S.adminSub = "resumen";
-    S.ordSel = []; render(); return refrescarAdmin();
+    S.ordSel = []; S.invAdmin = null; render(); return refrescarAdmin();
   }
   if (t.hasAttribute("data-dia")){ S.diaSel = g("data-dia"); return render(); }
   if (t.hasAttribute("data-matriz")){ S.matrizModo = g("data-matriz"); return render(); }
@@ -2626,6 +2901,14 @@ document.addEventListener("input", ev => {
   if (ev.target.id === "clienteCaja") S.cliente = ev.target.value;
   if (S.p0Draft && ev.target.id === "p0")     S.p0Draft.punto0  = ev.target.value;
   if (S.p0Draft && ev.target.id === "p0bono") S.p0Draft.bonoPct = ev.target.value;
+  const campoInv = S.inv && ev.target.getAttribute && ev.target.getAttribute("data-inv");
+  if (campoInv){
+    const [grupo, k] = campoInv.split(":");
+    const v = ev.target.value;
+    if (v === "") delete S.inv.datos[grupo][k]; else S.inv.datos[grupo][k] = Math.max(0, +v || 0);
+    invTocar(); invPintarEstado();
+  }
+  if (S.inv && ev.target.id === "invNota"){ S.inv.nota = ev.target.value; invTocar(); invPintarEstado(); }
 });
 
 /* tooltip de gráficos */
