@@ -621,7 +621,9 @@ const S = {
   adminVista:"ferias", adminSub:"resumen", diaSel:"todos", matrizModo:"unid",
   sonido:lsGet("pot_sonido", true),
   vistos:{}, sheet:null, avance:null,
-  inv:null,                  // inventario de cierre que se está llenando hoy
+  inv:null,                  // inventario de cierre que se está llenando
+  invDia:null,               // de qué día es ese inventario
+  invFerias:[],              // ferias recientes donde trabajé: puedo completar su inventario
   invAdmin:null              // inventarios de la feria que mira el administrador
 };
 const esAdmin = () => !!(S.yo && S.yo.rol === "admin");
@@ -730,9 +732,21 @@ function feriasOperables(){
 
 /* La feria elegida se respeta. Solo se toca si dejó de estar disponible, o si
    hay una sola opción y no hay nada que preguntar. */
+/* Ferias recientes donde trabajé y hoy no me toca. Ahí no se cobra ni se
+   cocina, pero sí se puede llenar o corregir el inventario de cierre: a veces
+   se olvida, y el último día no hay un "mañana" con turno para acordarse. */
+function feriasInventario(){
+  if (esAdmin()) return [];
+  const ops = feriasOperables();
+  return S.ferias.filter(f => S.invFerias.indexOf(f.id) >= 0 && !ops.some(o => o.id === f.id))
+    .sort((a, b) => (b.inicio || "").localeCompare(a.inicio || ""));
+}
+const feriasEntrables = () => feriasOperables().concat(feriasInventario());
+function puedoInventario(){ return puedoOperar() || S.invFerias.indexOf(S.feriaOp) >= 0; }
+
 function ajustarFeriaOp(){
   const ops = feriasOperables();
-  if (S.feriaOp && ops.some(f => f.id === S.feriaOp)) return false;
+  if (S.feriaOp && feriasEntrables().some(f => f.id === S.feriaOp)) return false;
   const antes = S.feriaOp;
   S.feriaOp = ops.length === 1 ? ops[0].id : null;
   return S.feriaOp !== antes;
@@ -797,11 +811,12 @@ async function boot(){
   // comprobar aquí, así que una nota vieja nunca abre algo que ya no te toca.
   const sitio = sitioGuardado();
   if (sitio){
-    if (sitio.feriaOp && feriasOperables().some(f => f.id === sitio.feriaOp)){
+    if (sitio.feriaOp && feriasEntrables().some(f => f.id === sitio.feriaOp)){
       S.feriaOp = sitio.feriaOp; await refrescarCola();
     }
     if (sitio.role === "admin" && esAdmin()) S.role = "admin";
-    else if ((sitio.role === "caja" || sitio.role === "cocina" || sitio.role === "inventario") && puedoOperar()) S.role = sitio.role;
+    else if ((sitio.role === "caja" || sitio.role === "cocina") && puedoOperar()) S.role = sitio.role;
+    else if (sitio.role === "inventario" && puedoInventario()) S.role = sitio.role;
     if (sitio.feriaSel && S.ferias.some(f => f.id === sitio.feriaSel)) S.feriaSel = sitio.feriaSel;
     if (sitio.adminVista) S.adminVista = sitio.adminVista;
     if (sitio.adminSub)   S.adminSub   = sitio.adminSub;
@@ -859,11 +874,14 @@ function avisoDuro(txt){
 }
 
 async function cargarBase(){
-  const [prod, fer, turno] = await Promise.all([
+  const [prod, fer, turno, inv] = await Promise.all([
     sb.from("productos").select("*").order("posicion"),
     sb.from("ferias").select("*").neq("estado", "borrador").order("fecha_inicio", { ascending:false }),
-    sb.rpc("mi_turno_hoy")
+    sb.rpc("mi_turno_hoy"),
+    sb.rpc("mis_ferias_inventario")
   ]);
+  // Si la base todavía no tiene esta función, simplemente no hay ferias pasadas que ofrecer.
+  S.invFerias = inv.error ? [] : (inv.data || []).map(x => (x && x.feria_id) || x);
   if (prod.error) throw prod.error;
   S.productos = prod.data.map(mapProducto);
   armarCarta(S.productos);
@@ -1099,7 +1117,7 @@ function vistaGate(){
   const f = feriaEnCurso();
   const turno = miTurno();
   const puedo = puedoOperar();
-  const otras = feriasOperables().length > 1;
+  const otras = feriasEntrables().length > 1;
   return '<div class="gate">' +
     '<div class="logo logomark" role="img" aria-label="Potente"></div>' +
     '<div class="kicker">Operación de feria</div>' +
@@ -1113,7 +1131,9 @@ function vistaGate(){
             : "Estás entrando como <b>administrador</b> a <b>" + esc(f.nombre) + "</b>.")
         : (turnoSinPublicar()
             ? "Tienes turno hoy en <b>" + esc(f.nombre) + "</b>, pero el administrador <b>todavía no ha publicado los turnos</b>. En cuanto lo haga, esta pantalla se abre sola."
-            : "Hoy <b>no estás asignado</b> a esta feria, así que caja y cocina no se abren. Si te toca cubrir a alguien, el administrador te asigna el turno desde <b>Equipo → Turnos</b>.")) +
+            : (puedoInventario()
+                ? "Hoy no tienes turno en <b>" + esc(f.nombre) + "</b>, así que caja y cocina no se abren. Lo que sí puedes es llenar o corregir el <b>inventario de cierre</b> de esta feria."
+                : "Hoy <b>no estás asignado</b> a esta feria, así que caja y cocina no se abren. Si te toca cubrir a alguien, el administrador te asigna el turno desde <b>Equipo → Turnos</b>."))) +
     "</p>" + avisoPrueba() +
     (puedo ? '<div class="roles">' +
       card("caja", "Caja", "Arma el pedido, cobra y lo manda a cocina.", "Celular") +
@@ -1123,6 +1143,9 @@ function vistaGate(){
     "</div>"
     : (esAdmin() ? '<div class="roles">' +
         card("admin", "Ventas", "Resumen del día, de la feria y de cada producto.", "Solo administrador") +
+      "</div>"
+      : puedoInventario() ? '<div class="roles">' +
+        card("inventario", "Inventario", "Lo que quedó al cerrar cada día de esta feria.", "Llenar o corregir") +
       "</div>" : "")) +
     '<div class="foot">' +
       (otras ? '<button class="btn ghost sm" data-feria="" style="margin-bottom:14px">← Elegir otra feria</button><br>' : "") +
@@ -1149,6 +1172,11 @@ function vistaElegirFeria(){
           "</div>" + '<div class="roles">' + fs.map(tarjeta).join("") + "</div></div>"
         : "";
     }).join("");
+  const pasadas = feriasInventario();
+  const pendientes = pasadas.length
+    ? '<div class="grupo-ferias"><div class="gt">¿Faltó el inventario de cierre?</div>' +
+      '<div class="roles">' + pasadas.map(tarjeta).join("") + "</div></div>"
+    : "";
   return '<div class="gate">' +
     '<div class="logo logomark" role="img" aria-label="Potente"></div>' +
     '<div class="kicker">Operación de feria</div>' +
@@ -1158,9 +1186,10 @@ function vistaElegirFeria(){
         ? (esAdmin()
             ? "Elige la feria con la que vas a trabajar. Como administrador entras a cualquiera, esté en curso o no: así puedes probar caja y cocina antes del día."
             : "Hoy te toca más de una. Elige en cuál estás para que la caja cobre donde debe.")
-        : "Hoy no estás asignado a ninguna feria. Cuando el administrador publique tus turnos, esta pantalla se enciende sola.") +
+        : "Hoy no estás asignado a ninguna feria. Cuando el administrador publique tus turnos, esta pantalla se enciende sola." +
+          (pasadas.length ? " Mientras tanto, puedes llenar o corregir el inventario de cierre de una feria reciente." : "")) +
     "</p>" +
-    grupos +
+    grupos + pendientes +
     '<div class="foot"><a href="../" style="color:var(--ink-3)">← Volver a Equipo</a></div></div>';
 }
 
@@ -1169,6 +1198,8 @@ function vistaElegirFeria(){
 function avisoPrueba(){
   const f = feriaEnCurso();
   if (!f || estadoFeria(f) === "activa") return "";
+  // Quien entró solo a completar el inventario no puede cobrar: el aviso no es para él.
+  if (!puedoOperar()) return "";
   return '<div class="prueba"><b>Esta feria ' +
     (estadoFeria(f) === "programada" ? "todavía no empieza" : "ya terminó") + '.</b> ' +
     'Puedes abrir caja y cocina para probarlas, pero cada pedido que cobres queda ' +
@@ -1437,7 +1468,8 @@ function render(suave){
   const y = window.scrollY;
   pintarTop();
   const v = $("#view");
-  if ((S.role === "caja" || S.role === "cocina" || S.role === "inventario") && !puedoOperar()) S.role = null;
+  if ((S.role === "caja" || S.role === "cocina") && !puedoOperar()) S.role = null;
+  if (S.role === "inventario" && !puedoInventario()) S.role = null;
   if (S.role && S.role !== "admin" && !S.feriaOp) S.role = null;
   // Si una pantalla se rompe al dibujarse, antes quedaba la anterior congelada
   // y solo salía un aviso abajo: desde el celular parecía que el botón no hacía
@@ -1682,7 +1714,7 @@ const INV_GRUPOS = [
     ["vasos12", "Vasos 12 oz", "paquetes"], ["vasos9", "Vasos 9 oz", "paquetes"] ] }
 ];
 const INV_SALSAS  = [["mayonesa", "Mayonesa"], ["mostaza", "Mostaza"], ["ketchup", "Ketchup"],
-                     ["aji", "Ají"], ["tartara", "Tártara"], ["bbq", "Barbecue"]];
+                     ["aji", "Ají"], ["tartara", "Tártara"], ["hamburguesa", "Salsa hamburguesa"]];
 const INV_NIVELES = [["lleno", "Lleno"], ["3/4", "¾"], ["medio", "Medio"], ["1/4", "¼"], ["vacio", "Vacío"]];
 
 const invVacio = () => ({ cant:{}, nivel:{}, repo:{} });
@@ -1695,11 +1727,32 @@ function invLlenas(d){
   return n;
 }
 
-/* Trae lo guardado hoy para esta feria. Si en este celular quedó algo a medio
-   llenar y sin guardar, manda eso: no se le borra a nadie lo que ya anotó. */
+/* Los días de los que se puede llenar inventario: cada día de la feria hasta
+   hoy. Si la feria aún no empieza (el administrador probando), solo hoy. */
+function invDias(){
+  const f = feriaEnCurso(), hoy = diaDe(new Date());
+  if (!f || !f.inicio) return [hoy];
+  const out = [];
+  const [a, m, d] = f.inicio.split("-").map(Number);
+  const cur = new Date(Date.UTC(a, m - 1, d, 12));
+  for (let n = 0; n < 60; n++){
+    const iso = cur.toISOString().slice(0, 10);
+    if (iso > hoy || (f.fin && iso > f.fin)) break;
+    out.push(iso);
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return out.length ? out : [hoy];
+}
+
+/* Trae lo guardado de ese día para esta feria. Si en este celular quedó algo a
+   medio llenar y sin guardar, manda eso: no se le borra a nadie lo que anotó. */
 async function cargarInventario(){
-  const feria = S.feriaOp, dia = diaDe(new Date());
+  const feria = S.feriaOp;
   if (!feria) return;
+  // Por defecto el día de hoy; si hoy ya no es día de feria, el último que hubo.
+  const dias = invDias(), hoy = diaDe(new Date());
+  if (!S.invDia || dias.indexOf(S.invDia) < 0) S.invDia = dias.indexOf(hoy) >= 0 ? hoy : dias[dias.length - 1];
+  const dia = S.invDia;
   if (S.inv && S.inv.feria === feria && S.inv.dia === dia && !S.inv.cargando) return;
   const inv = { feria, dia, datos:invVacio(), nota:"", guardado:null, sucio:false, soporta:true, cargando:true, enviando:false };
   S.inv = inv;
@@ -1736,7 +1789,11 @@ async function guardarInventario(){
   const i = S.inv;
   if (!i || i.enviando || !i.soporta) return;
   i.enviando = true; render();
-  const { error } = await sb.rpc("guardar_inventario", { p_feria:i.feria, p_datos:i.datos, p_nota:i.nota.trim() || null });
+  const nota = i.nota.trim() || null;
+  let { error } = await sb.rpc("guardar_inventario", { p_feria:i.feria, p_fecha:i.dia, p_datos:i.datos, p_nota:nota });
+  // Si la base aún tiene solo la versión que guarda "hoy", sirve para el día de hoy.
+  if (error && faltaLaTabla(error) && i.dia === diaDe(new Date()))
+    ({ error } = await sb.rpc("guardar_inventario", { p_feria:i.feria, p_datos:i.datos, p_nota:nota }));
   i.enviando = false;
   if (error){
     if (faltaLaTabla(error)) i.soporta = false;
@@ -1756,7 +1813,7 @@ function invEstadoTxt(){
   if (i.sucio) return avance + " · tienes cambios sin guardar";
   if (i.guardado) return avance + " · guardado" + (i.guardado.por ? " por " + i.guardado.por.split(" ")[0] : "") +
     " a las " + horaDe(new Date(i.guardado.cuando));
-  return avance + " · todavía no se ha guardado hoy";
+  return avance + " · todavía no se ha guardado";
 }
 /* Mientras se escribe en una casilla la pantalla no se redibuja (se perdería
    el cursor), así que la línea de estado se actualiza a mano. */
@@ -1777,7 +1834,15 @@ function vistaInventario(){
   const f = feriaEnCurso();
   if (!f) return sinFeria("aquí se anota lo que queda al cierre");
   const i = S.inv;
-  if (!i || i.cargando) return '<div class="wrap"><div class="empty">Cargando el inventario de hoy…</div></div>';
+  if (!i || i.cargando) return '<div class="wrap"><div class="empty">Cargando el inventario…</div></div>';
+
+  // Un botón por día de feria: se puede volver a un día anterior a llenarlo o corregirlo.
+  const hoy = diaDe(new Date()), dias = invDias();
+  const selDia = dias.length > 1
+    ? '<div class="tabs" role="tablist" style="padding-top:10px">' + dias.map(d =>
+        '<button class="tab" role="tab" data-invdia="' + d + '" aria-selected="' + (d === i.dia) + '">' +
+        diaLargo(d) + (d === hoy ? " · hoy" : "") + "</button>").join("") + "</div>"
+    : "";
 
   const grupos = INV_GRUPOS.map(gr =>
     '<div class="panel"><h3>' + gr.titulo + '</h3><div class="ph">' + gr.sub + "</div>" +
@@ -1792,16 +1857,17 @@ function vistaInventario(){
       "</div></div>").join("") + "</div>";
 
   const reposicion = '<div class="panel"><h3>Reposición de salsas</h3>' +
-    '<div class="ph">Cuántas bolsas de reserva se usaron hoy para rellenar. Si no se usó ninguna, pon 0.</div>' +
-    INV_SALSAS.map((sa, n) => invPaso("repo", sa[0], sa[1], "bolsas usadas hoy", n === 0)).join("") + "</div>";
+    '<div class="ph">Cuántas bolsas de reserva se usaron ese día para rellenar. Si no se usó ninguna, pon 0.</div>' +
+    INV_SALSAS.map((sa, n) => invPaso("repo", sa[0], sa[1], "bolsas usadas", n === 0)).join("") + "</div>";
 
   const libre = '<div class="panel"><h3>¿Falta algo más?</h3>' +
-    '<div class="ph">Otros insumos que se acabaron o están por acabarse, y lo que recomiendes llevar mañana.</div>' +
+    '<div class="ph">Otros insumos que se acabaron o están por acabarse, y lo que recomiendes llevar.</div>' +
     '<textarea id="invNota" placeholder="Ej.: se acabó el papel toalla. Llevar más hielo, hoy no alcanzó.">' + esc(i.nota) + "</textarea></div>";
 
   return '<div class="wrap inv">' +
     '<div class="sec-h" style="margin:16px 0 0"><h2>Inventario de cierre</h2><span class="sub">' +
-      diaLargo(i.dia) + " · " + esc(f.nombre) + "</span></div>" +
+      diaLargo(i.dia) + (i.dia === hoy ? " · hoy" : "") + " · " + esc(f.nombre) + "</span></div>" +
+    selDia +
     (i.soporta ? "" : '<div class="inv-aviso"><b>Todavía no se puede guardar.</b> Falta activar el inventario en la base de datos: avísale al administrador. Lo que llenes queda anotado en este celular mientras tanto.</div>') +
     grupos + chisguetes + reposicion + libre +
     '<div class="inv-bar"><div><span class="st" id="invEstado">' + esc(invEstadoTxt()) + "</span>" +
@@ -2658,7 +2724,8 @@ async function manejarClick(ev){
   if (t.hasAttribute("data-rol")){
     const r = g("data-rol");
     if (r === "admin" && !esAdmin()) return;
-    if ((r === "caja" || r === "cocina" || r === "inventario") && !puedoOperar()) return;
+    if ((r === "caja" || r === "cocina") && !puedoOperar()) return;
+    if (r === "inventario" && !puedoInventario()) return;
     S.role = r || null; S.cart = []; S.cartOpen = false; S.reemplazando = null; S.verEntregados = false;
     S.editando = null; S.verOrdenes = false;
     if (r === "admin") refrescarAdmin();
@@ -2681,16 +2748,21 @@ async function manejarClick(ev){
     if (S.inv.datos.nivel[k] === n) delete S.inv.datos.nivel[k]; else S.inv.datos.nivel[k] = n;
     invTocar(); return render();
   }
+  if (t.hasAttribute("data-invdia")){
+    S.invDia = g("data-invdia");
+    await cargarInventario();
+    return render();
+  }
   if (t.id === "invGuardar") return guardarInventario();
 
   if (t.id === "chipRole") { S.role = null; S.sheet = null; return render(); }
-  if (t.id === "chipFeria"){ S.feriaOp = null; S.role = null; S.sheet = null; S.cart = []; S.editando = null; S.reemplazando = null; return render(); }
+  if (t.id === "chipFeria"){ S.feriaOp = null; S.invDia = null; S.role = null; S.sheet = null; S.cart = []; S.editando = null; S.reemplazando = null; return render(); }
 
   /* --- elegir feria --- */
   if (t.hasAttribute("data-feria")){
     const id = g("data-feria") || null;
-    if (id && !feriasOperables().some(f => f.id === id)) return;
-    S.feriaOp = id; S.role = null; S.cart = []; S.cartOpen = false; S.reemplazando = null; S.verEntregados = false;
+    if (id && !feriasEntrables().some(f => f.id === id)) return;
+    S.feriaOp = id; S.invDia = null; S.role = null; S.cart = []; S.cartOpen = false; S.reemplazando = null; S.verEntregados = false;
     S.editando = null; S.verOrdenes = false; S.ordenes = [];
     render();
     if (id) await refrescarCola();
