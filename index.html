@@ -636,7 +636,7 @@ footer{border-top:1px solid var(--line);padding-block:34px;font-size:13px;color:
         <h2>Cuéntanos qué parte del camino te falta.</h2>
         <p>Veinte minutos para revisar tu arquitectura y ver dónde se pierde el dato. Sin presentación de producto.</p>
         <div class="cta-row">
-          <a class="btn solid" href="mailto:info@cuantics.com">info@cuantics.com</a>
+          <a class="btn solid" id="btn-mail" href="mailto:info@cuantics.com?subject=Revisi%C3%B3n%20de%20arquitectura%20-%2020%20minutos">info@cuantics.com</a>
           <a class="btn ghost" href="#">LinkedIn</a>
         </div>
       </div>
@@ -671,6 +671,17 @@ footer{border-top:1px solid var(--line);padding-block:34px;font-size:13px;color:
     var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.12});
     document.querySelectorAll('.reveal').forEach(function(el,i){el.style.transitionDelay=((i%4)*70)+'ms';io.observe(el)});
   }else{document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in')})}
+  // El enlace abre la app de correo; en un PC sin app no pasa nada, así que
+  // además se copia la dirección y se avisa en el propio botón.
+  var bM=document.getElementById('btn-mail'),mail=bM.textContent,tM;
+  bM.addEventListener('click',function(){
+    if(!navigator.clipboard)return;
+    navigator.clipboard.writeText(mail).then(function(){
+      bM.style.minWidth=bM.offsetWidth+'px';bM.style.textAlign='center';
+      bM.textContent='Correo copiado ✓';
+      clearTimeout(tM);tM=setTimeout(function(){bM.textContent=mail},2500);
+    },function(){});
+  });
 })();
 </script>
 </body>
