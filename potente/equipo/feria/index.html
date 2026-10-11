@@ -1895,8 +1895,12 @@ function tabInventario(){
   if (a.falta) return '<div class="panel"><h3>Inventario de cierre</h3><div class="ph">Todavía no está activado en la base de datos. ' +
     "Hay que ejecutar en Supabase la migración <b>inventario_cierre</b>; después de eso el equipo ya puede guardarlo.</div></div>";
   if (a.error) return '<div class="panel"><div class="empty">No se pudo leer el inventario: ' + esc(a.error) + "</div></div>";
+  // Esta pestaña es para mirar. Llenar se hace en la pantalla del equipo: el
+  // botón lleva directo, sin tener que salir de Ventas a buscar la tarjeta.
+  const irALlenar = (dia, txt) => '<button class="btn sm" data-irinv="' + (dia || "") + '">' + txt + "</button>";
   if (!a.filas.length) return '<div class="panel"><div class="empty"><div class="big">Sin inventarios todavía</div>' +
-    "El equipo lo llena al cierre de cada día, desde la tarjeta <b>Inventario</b>.</div></div>";
+    "<p>Aquí se <b>consulta</b> lo que el equipo anotó al cierre de cada día. Todavía nadie guardó ninguno en esta feria.</p>" +
+    irALlenar("", "Llenar el inventario") + "</div></div>";
 
   const dias = a.filas;
   const dato = (d, grupo, id) => ((d.datos || {})[grupo] || {})[id];
@@ -1927,12 +1931,14 @@ function tabInventario(){
   });
 
   const notas = dias.map(d =>
-    '<div class="panel"><h3>' + diaLargo(d.fecha) + '</h3><div class="ph">Guardado' +
+    '<div class="panel"><div style="float:right">' + irALlenar(d.fecha, "Corregir este día") + "</div>" +
+    "<h3>" + diaLargo(d.fecha) + '</h3><div class="ph">Guardado' +
       (d.por_nombre ? " por " + esc(d.por_nombre) : "") + " · " + horaDe(new Date(d.actualizado_en)) + "</div>" +
       (d.nota ? '<div style="white-space:pre-wrap">' + esc(d.nota) + "</div>"
               : '<div style="color:var(--ink-3)">Sin comentarios ni pedidos extra.</div>') + "</div>").join("");
 
-  return '<div class="panel"><h3>Lo que quedó al cierre</h3>' +
+  return '<div class="panel"><div style="float:right">' + irALlenar("", "Llenar o corregir") + "</div>" +
+    "<h3>Lo que quedó al cierre</h3>" +
     '<div class="ph">Un día por columna. En rojo, lo que quedó en cero o vacío. La raya es una casilla que no llenaron.</div>' +
     '<div style="overflow-x:auto"><table class="inv-t"><thead><tr><th>Insumo</th>' +
       dias.map(d => "<th>" + diaLargo(d.fecha) + "</th>").join("") + "</tr></thead><tbody>" + filas + "</tbody></table></div></div>" +
@@ -2757,6 +2763,14 @@ async function manejarClick(ev){
     return render();
   }
   if (t.id === "invGuardar") return guardarInventario();
+  // Desde Ventas → Inventario: abre la pantalla de llenado de esa misma feria.
+  if (t.hasAttribute("data-irinv") && esAdmin() && S.feriaSel){
+    S.feriaOp = S.feriaSel; S.invDia = g("data-irinv") || null; S.role = "inventario";
+    render();
+    await cargarInventario();
+    window.scrollTo(0, 0);
+    return render();
+  }
 
   if (t.id === "chipRole") { S.role = null; S.sheet = null; return render(); }
   if (t.id === "chipFeria"){ S.feriaOp = null; S.invDia = null; S.role = null; S.sheet = null; S.cart = []; S.editando = null; S.reemplazando = null; return render(); }
