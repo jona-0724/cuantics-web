@@ -413,6 +413,18 @@ select:hover{border-color:var(--ink-3)}
 .p0-foot b{color:var(--ink);font-weight:600;margin-left:4px}
 .p0-edit{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
 .p0-edit input{width:150px}
+/* La unidad va dentro de la casilla, pegada al número: S/ delante, % detrás. */
+.p0-edit .unidad{position:relative;display:block;width:150px}
+.p0-edit .unidad b{position:absolute;top:50%;transform:translateY(-50%);pointer-events:none;
+  font-weight:700;font-size:15px;color:var(--fuego)}
+.p0-edit .unidad.pre b{left:12px}
+.p0-edit .unidad.pre input{padding-left:38px}
+.p0-edit .unidad.suf b{right:12px}
+.p0-edit .unidad.suf{width:104px}
+.p0-edit .unidad.suf input{width:100%;padding-right:34px}
+.p0-edit .unidad input{-moz-appearance:textfield;appearance:textfield}
+.p0-edit .unidad input::-webkit-inner-spin-button,
+.p0-edit .unidad input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .p0-foot .mut{color:var(--ink-3)}
 .colw .tot{text-align:center;font-family:var(--f-display);font-size:14px;margin-bottom:5px;font-variant-numeric:tabular-nums}
 .stack{display:flex;flex-direction:column-reverse;gap:2px;border-radius:5px 5px 0 0;overflow:hidden}
@@ -1992,11 +2004,12 @@ function panelPunto0(a){
   const vendido = a.porDia.reduce((t, d) => t + d.total, 0);
   const ordenes = a.porDia.reduce((t, d) => t + d.n, 0);
   const editor = '<div class="p0-edit">' +
-    '<label><span class="lbl" style="display:block;margin-bottom:5px">Punto 0 de esta feria (S/)</span>' +
-    '<input id="p0" type="number" min="0" step="10" value="' + esc(dP0.punto0) + '" placeholder="0.00"></label>' +
-    '<label><span class="lbl" style="display:block;margin-bottom:5px">Bono del equipo al superar</span>' +
-    '<input id="p0bono" type="number" min="0" step="5" value="' + esc(dP0.bonoPct) + '" placeholder="50"></label>' +
-    '<span class="lbl" style="align-self:end;padding-bottom:11px">% sobre el punto 0</span>' +
+    '<label><span class="lbl" style="display:block;margin-bottom:5px">Punto 0 de esta feria</span>' +
+    '<span class="unidad pre"><b>S/</b>' +
+    '<input id="p0" type="number" min="0" step="10" value="' + esc(dP0.punto0) + '" placeholder="0.00"></span></label>' +
+    '<label><span class="lbl" style="display:block;margin-bottom:5px">Bono al superar el punto 0</span>' +
+    '<span class="unidad suf">' +
+    '<input id="p0bono" type="number" min="0" step="5" value="' + esc(dP0.bonoPct) + '" placeholder="50"><b>%</b></span></label>' +
     '<button class="toggle" id="p0Ver" aria-pressed="' + dP0.ver + '" style="align-self:end;padding:10px 13px">' +
       (dP0.ver ? "El equipo ve su avance" : "Oculto para el equipo") + "</button>" +
     '<button class="btn sm" id="p0Guardar" style="align-self:end">Guardar</button></div>';
