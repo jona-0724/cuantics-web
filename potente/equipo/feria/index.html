@@ -660,11 +660,15 @@ const feriaEnCurso = () => S.ferias.find(f => f.id === S.feriaOp) || null;
 function feriasOperables(){
   if (esAdmin()){
     const rango = f => ({ activa:0, programada:1, terminada:2 })[estadoFeria(f)];
+    // Lo que está en curso, luego lo que viene de la más próxima a la más lejana,
+    // y al final lo ya terminado, de lo más reciente hacia atrás.
     return S.ferias.slice().sort((a, b) =>
-      (rango(a) - rango(b)) || ((a.inicio || "") < (b.inicio || "") ? 1 : -1));
+      (rango(a) - rango(b)) ||
+      (a.inicio || "").localeCompare(b.inicio || "") * (rango(a) === 2 ? -1 : 1));
   }
   const mias = S.turnos.filter(t => t.publicado !== false).map(t => t.feria_id);
-  return S.ferias.filter(f => mias.indexOf(f.id) >= 0);
+  return S.ferias.filter(f => mias.indexOf(f.id) >= 0)
+    .sort((a, b) => (a.inicio || "").localeCompare(b.inicio || ""));
 }
 
 /* La feria elegida se respeta. Solo se toca si dejó de estar disponible, o si
