@@ -1,0 +1,17 @@
+/* MiPlata — páginas legales (términos y privacidad) */
+:root{--fondo:#EEF7F1;--superficie:#fff;--tinta:#0B3324;--suave:#557566;--linea:#CFE3D7;--menta:#1FAE6A;--bosque:#0A3324;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--fondo:#0A3324;--superficie:#0F4230;--tinta:#F1F5EF;--suave:#A9C3B4;--linea:#1E5C43;--menta:#3DD68C;color-scheme:dark}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--fondo);color:var(--tinta);font:17px/1.7 "Plus Jakarta Sans",system-ui,sans-serif}
+a{color:var(--menta);font-weight:700}
+.cab{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:var(--bosque)}
+.marca{font:800 24px "Poppins",sans-serif;color:#F1F5EF;text-decoration:none}.marca span{color:#3DD68C}
+.ir{color:#F1F5EF;border:1.5px solid #1E5C43;border-radius:999px;padding:6px 14px;font-size:15px;text-decoration:none}
+.doc{max-width:720px;margin:0 auto;padding:36px 20px 48px}
+.doc h1{font:800 clamp(28px,5vw,40px)/1.15 "Poppins",sans-serif;margin-bottom:6px}
+.fecha{color:var(--suave);font-size:14px;margin-bottom:22px}
+.doc h2{font:700 20px "Poppins",sans-serif;margin:28px 0 8px}
+.doc p,.doc li{max-width:68ch}
+.doc p+p{margin-top:10px}
+.doc ul{padding-left:22px;display:grid;gap:6px;margin-top:6px}
+.pie{text-align:center;color:var(--suave);font-size:14px;padding:24px 16px;border-top:1px solid var(--linea)}

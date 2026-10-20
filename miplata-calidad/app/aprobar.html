@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es-PE">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0A3324">
+<title>Revisar pago · MiPlata</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+<link rel="stylesheet" href="estilo-v1.css">
+<style>
+  .revisar{padding:24px 20px 40px;gap:16px}
+  .resumen-pago{background:var(--superficie);border:1px solid var(--linea);border-radius:22px;padding:6px 16px}
+  .resumen-pago .dato b{text-align:right;word-break:break-word}
+  .foto-pago{width:100%;border-radius:16px;border:1px solid var(--linea);background:var(--superficie)}
+  .alerta-plin{padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--oro) 22%,transparent);font-size:15px}
+  .estado{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding-top:30px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="barra-sup"><div class="logo" style="--t:34px;--fs:22px"><b>Mi<span>Plata</span></b></div></div>
+  <main class="pantalla seccion revisar" id="contenido"><div class="cargando">Cargando el pago…</div></main>
+</div>
+<script src="config.js"></script>
+<script>
+(function () {
+  'use strict';
+  const FN = window.MIPLATA_CONFIG.SUPABASE_URL + '/functions/v1/aprobar-pago';
+  const q = new URLSearchParams(location.search);
+  const t = q.get('t'), accionInicial = q.get('a') === 'rechazar' ? 'rechazar' : 'aprobar';
+  const $c = document.getElementById('contenido');
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const soles = n => Number(n || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const estado = (icono, titulo, texto) => { $c.innerHTML = `<div class="estado"><div class="sobre-grande" aria-hidden="true">${icono}</div><h1>${titulo}</h1><p>${texto}</p></div>`; };
+  const OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+  async function cargar() {
+    if (!t) return estado(X, 'Enlace incompleto', 'Abre el botón directamente desde el correo.');
+    let r;
+    try { r = await (await fetch(FN + '?t=' + encodeURIComponent(t))).json(); }
+    catch (e) { return estado(X, 'Sin conexión', 'Revisa tu internet y vuelve a abrir el enlace.'); }
+    if (!r.ok) return estado(X, 'No se puede abrir', esc(r.error));
+    const p = r.pago;
+    if (p.estado !== 'pendiente') return estado(p.estado === 'aprobado' ? OK : X, p.estado === 'aprobado' ? 'Este pago ya fue aprobado' : 'Este pago ya fue rechazado', `${esc(p.nombre)} (${esc(p.correo)}).`);
+    let accion = accionInicial;
+    function pintar() {
+      $c.innerHTML = `
+        <h1>${accion === 'aprobar' ? 'Aprobar y habilitar' : 'Rechazar pago'}</h1>
+        <div class="resumen-pago">
+          <div class="dato"><span>Cliente</span><b>${esc(p.nombre)}</b></div>
+          <div class="dato"><span>Correo</span><b>${esc(p.correo)}</b></div>
+          ${p.telefono ? `<div class="dato"><span>Celular</span><b>${esc(p.telefono)}</b></div>` : ''}
+          <div class="dato"><span>Monto</span><b class="cifra">S/ ${soles(p.monto)}</b></div>
+          <div class="dato"><span>N° de operación</span><b class="cifra">${esc(p.nro_operacion || 'No lo escribió')}</b></div>
+          <div class="dato"><span>Código en el mensaje</span><b class="cifra">${esc(p.codigo_ref || '')}</b></div>
+          <div class="dato"><span>Enviado</span><b>${new Date(p.creado_en).toLocaleString('es-PE')}</b></div>
+        </div>
+        ${p.foto ? `<img class="foto-pago" src="${esc(p.foto)}" alt="Foto del comprobante">` : ''}
+        ${accion === 'aprobar'
+          ? `<p class="alerta-plin">Confirma en tu app de Plin que entró <b>S/ ${soles(p.monto)}</b>${p.nro_operacion ? ' con la operación <b>' + esc(p.nro_operacion) + '</b>' : ''}. Al aprobar, se le suman 12 meses y le llega el correo de cuenta habilitada.</p>
+             <button class="btn" id="si">Sí, aprobar y habilitar</button>
+             <button class="btn sec" id="cambiar">Mejor rechazar</button>`
+          : `<div class="campo"><label for="nota">Motivo (le llega por correo)</label><input class="entrada" id="nota" maxlength="200" placeholder="Ej.: no encontramos ese número de operación"></div>
+             <button class="btn peligro" id="si">Rechazar y avisarle</button>
+             <button class="btn sec" id="cambiar">Mejor aprobar</button>`}
+        <div id="msg" role="status" aria-live="polite"></div>`;
+      document.getElementById('cambiar').onclick = () => { accion = accion === 'aprobar' ? 'rechazar' : 'aprobar'; pintar(); };
+      document.getElementById('si').onclick = async ev => {
+        ev.target.disabled = true; ev.target.textContent = 'Procesando…';
+        try {
+          const res = await (await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ t, accion, nota: (document.getElementById('nota') || {}).value || null }) })).json();
+          if (!res.ok) throw new Error(res.error);
+          if (accion === 'aprobar') estado(OK, '¡Cuenta habilitada!', `${esc(p.nombre)} ya puede usar MiPlata por 12 meses. Le enviamos el correo de confirmación.`);
+          else estado(X, 'Pago rechazado', `Le avisamos a ${esc(p.nombre)} por correo para que revise su comprobante.`);
+        } catch (e) {
+          ev.target.disabled = false; ev.target.textContent = accion === 'aprobar' ? 'Sí, aprobar y habilitar' : 'Rechazar y avisarle';
+          document.getElementById('msg').innerHTML = `<p class="mensaje error">${esc(e.message || e)}</p>`;
+        }
+      };
+    }
+    pintar();
+  }
+  cargar();
+})();
+</script>
+</body>
+</html>
