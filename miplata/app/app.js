@@ -485,8 +485,9 @@
   function principal() {
     const pest = E.pestana === 'activar' || E.pestana === 'admin' ? 'cuenta' : E.pestana;
     $app.innerHTML = `<main class="pantalla" id="contenido"></main>
-      <nav class="pestanas" role="tablist"><button type="button" class="nav-logo logo-inicio" data-inicio aria-label="Ir al inicio: Movimientos">${logo(36, 24)}</button>${Object.keys(NOMBRES).map(k => `<button type="button" role="tab" data-p="${k}" aria-selected="${pest === k}">${ICONOS[k]}${NOMBRES[k]}</button>`).join('')}</nav>`;
+      <nav class="pestanas" role="tablist"><button type="button" class="nav-logo logo-inicio" data-inicio aria-label="Ir al inicio: Movimientos">${logo(36, 24)}</button>${Object.keys(NOMBRES).map(k => `<button type="button" role="tab" data-p="${k}" aria-selected="${pest === k}">${ICONOS[k]}${NOMBRES[k]}</button>`).join('')}${instalada() || E.demo ? '' : `<button type="button" class="nav-instalar" id="nav-instalar">${svg('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M12 7v5M9.5 9.5 12 12l2.5-2.5"/>')}Instalar app</button>`}</nav>`;
     $app.querySelectorAll('.pestanas button[data-p]').forEach(b => b.onclick = () => { E.pestana = b.dataset.p; principal(); });
+    document.getElementById('nav-instalar')?.addEventListener('click', instalarApp);
     ({ movimientos: vistaMovimientos, resumen: vistaResumen, espacio: vistaEspacio, cuenta: vistaCuenta, activar: vistaActivar, admin: vistaAdmin })[E.pestana]();
     window.scrollTo(0, 0);
   }
@@ -562,6 +563,7 @@
         ${ingresos ? `<p class="ing">${esGrupo() ? 'Entraron' : 'Te entraron'} <b>S/ ${soles(ingresos)}</b></p>` : ''}</div>
       ${esGrupo() ? filaMiembros() : ''}
       ${avisosAcceso()}
+      ${tarjetaInstalar()}
       <div class="lista" id="lista">${lista || `<div class="vacio"><b>Aún no hay movimientos${esMesActual ? ' este mes' : ''}</b>${esMesActual ? (acceso ? 'Toca el micrófono o escribe abajo, por ejemplo: <i>8 soles en Tambo con Yape</i>.' : '') : ''}</div>`}</div>
       <div class="zona-voz">
         <button type="button" class="mic" id="b-mic" aria-label="Hablar para registrar" ${acceso ? '' : 'disabled'}>${IC.mic}</button>
@@ -584,6 +586,7 @@
     document.getElementById('m-elegir').onclick = elegirMes;
     $c.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => irA(b.dataset.ir));
     $c.querySelectorAll('.fila').forEach(b => b.onclick = () => abrirCompletar(E.movs.find(m => m.id === b.dataset.id)));
+    conectarInstalar($c);
     document.getElementById('f-reg').onsubmit = ev => { ev.preventDefault(); registrarTexto(document.getElementById('t-reg').value, 'texto'); };
     document.getElementById('b-mic').onclick = () => {
       if (C.FLAGS.voz) return tocarMic();
@@ -2038,6 +2041,28 @@
   }
 
   // ---------------- Instalar en la pantalla de inicio (F10) ----------------
+  // Invitación a instalar, a la vista en Movimientos (se puede cerrar: vuelve a los 14 días)
+  const INSTALAR_KEY = 'miplata.instalar.cerrado';
+  function tarjetaInstalar() {
+    if (instalada() || E.demo) return '';
+    try { const t = Number(localStorage.getItem(INSTALAR_KEY) || 0); if (t && Date.now() - t < 14 * 864e5) return ''; } catch (e) {}
+    const movil = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+    return `<div class="tarjeta-instalar" id="t-instalar">
+      <span class="ti-ico" aria-hidden="true">${movil ? svg('<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/>') : svg('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M12 7v5M9.5 9.5 12 12l2.5-2.5"/>')}</span>
+      <span class="ti-txt"><b>Ten MiPlata a un toque</b><small>Instálala en tu ${movil ? 'celular' : 'compu'}: se abre como app.</small></span>
+      <button type="button" class="btn mini" id="ti-si">Instalar</button>
+      <button type="button" class="ti-cerrar" id="ti-no" aria-label="Ahora no">${svg('<path d="M6 6l12 12M18 6 6 18"/>', 'width="18" height="18" stroke-width="2.4"')}</button>
+    </div>`;
+  }
+  function conectarInstalar(raiz) {
+    raiz.querySelector('#ti-si')?.addEventListener('click', instalarApp);
+    raiz.querySelector('#ti-no')?.addEventListener('click', () => {
+      try { localStorage.setItem(INSTALAR_KEY, String(Date.now())); } catch (e) {}
+      document.getElementById('t-instalar')?.remove();
+    });
+  }
+  window.addEventListener('appinstalled', () => { document.getElementById('t-instalar')?.remove(); document.getElementById('nav-instalar')?.remove(); });
+
   function instalada() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
   async function instalarApp() {
     const aviso = window.__instalarMiPlata;
@@ -2045,7 +2070,7 @@
       aviso.prompt();
       const r = await aviso.userChoice.catch(() => ({}));
       window.__instalarMiPlata = null;
-      if (r.outcome === 'accepted') { toast('Listo: MiPlata está en tu pantalla de inicio'); vistaCuenta(); }
+      if (r.outcome === 'accepted') { toast('Listo: MiPlata está en tu pantalla de inicio'); principal(); }
       return;
     }
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
