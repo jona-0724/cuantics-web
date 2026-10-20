@@ -52,6 +52,19 @@
   function esPalabraNumero(w) {
     return w in J.UNIDADES || w in J.DECENAS || w in J.CENTENAS || w === 'mil';
   }
+  // "dos diegos" → 20 soles, "una gamba" → 100 soles, "medio palo" → 500 soles
+  function aplicarApodos(toks) {
+    const M = J.MULTIPLICADORES || {};
+    const out = [];
+    for (let i = 0; i < toks.length; i++) {
+      const k = toks[i], sig = toks[i + 1];
+      if (sig && M[sig.t] && k.n !== undefined) { out.push({ ...k, t: String(k.n * M[sig.t]), n: k.n * M[sig.t] }, { t: 'soles', o: sig.o }); i++; continue; }
+      if (sig && M[sig.t] && (k.t === 'medio' || k.t === 'media')) { out.push({ t: String(M[sig.t] / 2), o: k.o, n: M[sig.t] / 2 }, { t: 'soles', o: sig.o }); i++; continue; }
+      out.push(k);
+    }
+    return out;
+  }
+
   function convertirNumeros(toks) {
     const out = [];
     for (let i = 0; i < toks.length; i++) {
@@ -84,7 +97,7 @@
       // "un/una" suelto es artículo, salvo que venga moneda, china o céntimos
       const sig = toks[j] && toks[j].t;
       if (usadas.length === 1 && (usadas[0] === 'un' || usadas[0] === 'una' || usadas[0] === 'uno') &&
-          !(sig && (MONEDA.has(sig) || CHINA.has(sig) || CENT.has(sig)))) {
+          !(sig && (MONEDA.has(sig) || CHINA.has(sig) || CENT.has(sig) || (J.MULTIPLICADORES || {})[sig]))) {
         out.push(toks[i]); continue;
       }
       out.push({ t: usadas.join(' '), o: usadas.join(' '), n: total + actual, palabras: true });
@@ -258,7 +271,7 @@
       medio_id: null, medio_tipo: null, preguntar_medio: false, categoria_sugerida: null, texto: String(texto || '').trim() };
     if (!res.texto) { res.motivo = 'vacio'; return res; }
 
-    const toks = convertirNumeros(tokenizar(res.texto));
+    const toks = aplicarApodos(convertirNumeros(tokenizar(res.texto)));
     const plano = toks.map(k => k.t).join(' ');
     const bloq = new Set();
 
@@ -342,5 +355,5 @@
     return res;
   }
 
-  g.MiPlataInterprete = { interpretar, lugarNorm, normalizar: norm, capitalizar, _tokens: t => convertirNumeros(tokenizar(t)) };
+  g.MiPlataInterprete = { interpretar, lugarNorm, normalizar: norm, capitalizar, _tokens: t => aplicarApodos(convertirNumeros(tokenizar(t))) };
 })(typeof window !== 'undefined' ? window : globalThis);

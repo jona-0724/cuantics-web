@@ -713,7 +713,7 @@
       if (E.demo) throw new Error('En el demo la voz no se envía. Escribe la frase para probar.');
       const ext = /mp4/.test(audio.type) ? 'm4a' : /ogg/.test(audio.type) ? 'ogg' : 'webm';
       const f = new FormData(); f.append('audio', audio, 'audio.' + ext);
-      const pista = [...new Set([...Object.values(E.aprendidos || {}), ...(E.misLugares || []), ...E.medios.map(x => x.nombre)])].join(', ').slice(0, 400);
+      const pista = [...new Set([...Object.values(E.aprendidos || {}), ...(E.misLugares || []), ...E.medios.map(x => x.nombre)])].join(', ').slice(0, 250);
       if (pista) f.append('pista', pista);
       const { data: s } = await sb.auth.getSession();
       const r = await fetch(C.SUPABASE_URL + '/functions/v1/transcribir', {

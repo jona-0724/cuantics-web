@@ -7,6 +7,9 @@
   // Palabras que significan "soles"
   const MONEDA = ['sol', 'soles', 'luca', 'lucas', 'luka', 'lukas', 'mango', 'mangos', 'lempira', 'lempiras'];
 
+  // Billetes con apodo: multiplican al número que va delante ("dos diegos" = 20 soles, "una gamba" = 100, "un palo" = 1,000)
+  const MULTIPLICADORES = { diego: 10, diegos: 10, gamba: 100, gambas: 100, palo: 1000, palos: 1000 };
+
   // Céntimos (se suman como /100 cuando aparecen tras un monto)
   const CENTIMOS = ['centimo', 'centimos', 'centavo', 'centavos', 'cents'];
 
@@ -34,14 +37,15 @@
     /\b(me han|me ha) (yapeado|depositado|pagado|transferido|abonado)\b/,
     /\b(cobre|recibi|gane|ingreso|ingresaron|entraron|entro)\b/,
     /\b(sueldo|quincena|gratificacion|grati|cts|aguinaldo|propina recibida)\b/,
-    /\b(vendi|venta|ventas)\b/
+    /\b(vendi|venta|ventas)\b/,
+    /\b(cachuelo|me cayo|me pagaron la chamba|cobre la chamba)\b/
   ];
 
   // Medios de pago genéricos: palabra dicha → tipo y nombre sugerido
   const MEDIOS_GENERICOS = [
-    { tipo: 'yape', palabras: ['yape', 'yapee', 'yapie', 'yapeo', 'yapear', 'yapeado', 'yapeando', 'yapearon', 'yapiaron', 'yapeaste'] },
-    { tipo: 'plin', palabras: ['plin', 'plinee', 'plinie', 'plineo', 'plinear', 'plinearon'] },
-    { tipo: 'efectivo', palabras: ['efectivo', 'cash', 'sencillo', 'billete', 'contado', 'cache'] },
+    { tipo: 'yape', palabras: ['yape', 'yapee', 'yapie', 'yapeo', 'yapear', 'yapeado', 'yapeando', 'yapearon', 'yapiaron', 'yapeaste', 'yapeame', 'llape', 'llapee', 'llapie', 'llapeo', 'yapé'] },
+    { tipo: 'plin', palabras: ['plin', 'plinee', 'plinie', 'plineo', 'plinear', 'plinearon', 'pline', 'plineaste', 'plinie'] },
+    { tipo: 'efectivo', palabras: ['efectivo', 'cash', 'sencillo', 'billete', 'contado', 'cache', 'en mano', 'en fisico', 'monedas'] },
     { tipo: 'debito', palabras: ['debito'] },
     { tipo: 'credito', palabras: ['credito'] },
     { tipo: 'transferencia', palabras: ['transferencia', 'transferi', 'deposite', 'depositaron', 'transfirieron'] },
@@ -127,28 +131,41 @@
     ['Claro', 'hogar', ['claro']],
     ['Entel', 'hogar', ['entel']],
     ['Bitel', 'hogar', ['bitel']],
-    ['Veterinaria', 'mascotas', ['veterinaria', 'veterinario']]
+    ['Veterinaria', 'mascotas', ['veterinaria', 'veterinario']],
+    ['Tienda', 'mercado', ['tienda', 'tiendita', 'la tienda']],
+    ['Minimarket', 'mercado', ['minimarket', 'market']],
+    ['Mercado', 'mercado', ['paradita', 'la paradita']],
+    ['Pollada', 'restaurantes', ['pollada']],
+    ['Juguería', 'restaurantes', ['jugueria']],
+    ['Cevichería', 'restaurantes', ['cevicheria']],
+    ['Colectivo', 'transporte', ['colectivo']],
+    ['Mototaxi', 'transporte', ['motito', 'mototaxista']],
+    ['RENIEC', 'otros', ['reniec']],
+    ['SUNAT', 'banco', ['sunat']],
+    ['SAT', 'banco', ['sat']],
+    ['Banco de la Nación', 'banco', ['banco de la nacion']]
   ].map(([nombre, categoria, alias]) => ({ nombre, categoria, alias }));
 
   // Palabras sueltas que ayudan a sugerir categoría (no son lugar)
   const PISTAS_CATEGORIA = {
     mercado: ['frutas', 'fruta', 'verduras', 'carne', 'carnes', 'pollo', 'pescado', 'pan', 'leche', 'huevos', 'arroz', 'abarrotes', 'viveres', 'compras', 'gaseosa', 'agua mineral'],
-    restaurantes: ['almuerzo', 'desayuno', 'cena', 'lonche', 'cafe', 'ceviche', 'hamburguesa', 'pizza', 'helado', 'comida', 'cerveza', 'chela', 'chelas'],
+    restaurantes: ['almuerzo', 'desayuno', 'cena', 'lonche', 'cafe', 'ceviche', 'hamburguesa', 'pizza', 'helado', 'comida', 'cerveza', 'chela', 'chelas',
+      'salchipapa', 'anticuchos', 'anticucho', 'chicharron', 'tamal', 'tamales', 'juane', 'emoliente', 'jugo', 'caldo', 'sanguche', 'sandwich', 'combinado', 'causa', 'lomo saltado', 'cuarto de pollo', 'pollito', 'chaufa', 'aeropuerto', 'tallarin'],
     delivery: ['delivery'],
-    transporte: ['pasaje', 'pasajes', 'peaje', 'estacionamiento', 'cochera', 'colectivo', 'bus'],
+    transporte: ['pasaje', 'pasajes', 'peaje', 'estacionamiento', 'cochera', 'colectivo', 'bus', 'carrera', 'jale', 'micro', 'cobrador'],
     combustible: ['gasolina', 'petroleo', 'diesel', 'gas vehicular', 'glp', 'combustible'],
-    hogar: ['luz', 'agua', 'gas', 'internet', 'cable', 'celular', 'recibo', 'limpieza', 'detergente'],
+    hogar: ['luz', 'agua', 'gas', 'internet', 'cable', 'celular', 'recibo', 'limpieza', 'detergente', 'recarga', 'recargas', 'saldo', 'balon de gas', 'balon'],
     alquiler: ['alquiler', 'renta', 'mantenimiento del edificio', 'arbitrios'],
     salud: ['pastillas', 'medicina', 'medicinas', 'doctor', 'consulta', 'clinica', 'dentista', 'analisis'],
     educacion: ['colegio', 'pension', 'universidad', 'curso', 'libros', 'utiles', 'matricula'],
-    entretenimiento: ['entradas', 'concierto', 'juego', 'partido', 'discoteca', 'fiesta'],
+    entretenimiento: ['entradas', 'concierto', 'juego', 'partido', 'discoteca', 'fiesta', 'tono', 'juerga', 'cumpleanos del pata', 'pichanga', 'karaoke'],
     ropa: ['ropa', 'zapatillas', 'zapatos', 'polo', 'pantalon', 'peluqueria', 'corte', 'barberia'],
     ferreteria: ['clavos', 'pintura', 'tornillos', 'herramienta', 'gasfitero', 'electricista'],
     viajes: ['pasaje aereo', 'vuelo', 'hotel', 'hostal', 'viaje'],
     banco: ['cuota', 'prestamo', 'deuda', 'tarjeta de credito', 'interes', 'comision'],
     suscripciones: ['suscripcion', 'membresia', 'plan'],
     mascotas: ['perro', 'gato', 'croquetas', 'mascota'],
-    regalos: ['regalo', 'cumpleanos', 'cumple', 'donacion', 'ofrenda']
+    regalos: ['regalo', 'cumpleanos', 'cumple', 'donacion', 'ofrenda', 'propina', 'colecta', 'chanchita', 'yunza']
   };
 
   const CATEGORIAS_GASTO = [
@@ -183,10 +200,10 @@
   const MESES = { enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5, julio: 6, agosto: 7, setiembre: 8, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11 };
 
   // Palabras de relleno que no son lugar ni detalle
-  const RELLENO = ['gaste', 'gasto', 'gastos', 'gastar', 'compre', 'compra', 'pague', 'pago', 'pagado', 'pagada', 'pagando', 'con', 'en', 'de', 'del', 'el', 'la', 'los', 'las', 'un', 'una', 'por', 'para', 'al', 'a', 'y', 'mi', 'me', 'hoy', 'ayer', 'anteayer', 'antier', 'nomas', 'no', 'mas', 'total', 'fue', 'fueron', 'son', 'que', 'tarjeta', 'registra', 'registrar', 'anota', 'apunta', 'ponle', 'pon', 'eh', 'este', 'osea', 'o', 'sea', 'ya'];
+  const RELLENO = ['gaste', 'gasto', 'gastos', 'gastar', 'compre', 'compra', 'pague', 'pago', 'pagado', 'pagada', 'pagando', 'con', 'en', 'de', 'del', 'el', 'la', 'los', 'las', 'un', 'una', 'por', 'para', 'al', 'a', 'y', 'mi', 'me', 'hoy', 'ayer', 'anteayer', 'antier', 'nomas', 'no', 'mas', 'total', 'fue', 'fueron', 'son', 'que', 'tarjeta', 'registra', 'registrar', 'anota', 'apunta', 'ponle', 'pon', 'eh', 'este', 'osea', 'o', 'sea', 'ya', 'le', 'les', 'di', 'dio', 'dimos', 'pase', 'pasé', 'mande', 'mandé', 'pata', 'patas', 'causa', 'brother', 'bro', 'pe', 'pues', 'oe', 'oye'];
 
   g.MiPlataJerga = {
-    MONEDA, CENTIMOS, CHINA, UNIDADES, DECENAS, CENTENAS, INGRESO, MEDIOS_GENERICOS, MEDIOS_SUGERIDOS,
+    MONEDA, MULTIPLICADORES, CENTIMOS, CHINA, UNIDADES, DECENAS, CENTENAS, INGRESO, MEDIOS_GENERICOS, MEDIOS_SUGERIDOS,
     LUGARES, PISTAS_CATEGORIA, CATEGORIAS_GASTO, CATEGORIAS_INGRESO, DIAS, MESES, RELLENO
   };
 })(typeof window !== 'undefined' ? window : globalThis);
