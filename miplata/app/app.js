@@ -2125,15 +2125,15 @@
           <li>
             <h2>Paga con el QR</h2>
             <div class="comprobante">
-              <img src="../img/qr-plin-codigo.png" alt="Código QR de Plin para pagar a Jonathan Ortiz" class="qr">
+              <img src="../img/qr-plin-codigo.png" alt="Código QR para pagar a Cuantics S.A.C." class="qr">
               <div class="comp-datos">
                 <p class="comp-monto"><small>Monto exacto</small><b class="cifra">S/ ${soles(precio.monto)}</b></p>
                 <p class="comp-ref"><small>Escribe en el mensaje del pago</small><b>${MENSAJE_PAGO}</b>
                   <button type="button" class="copiar" id="p-copiar" aria-label="Copiar ${MENSAJE_PAGO}">${IC.copiar}</button></p>
               </div>
             </div>
-            <a class="btn sec" href="../img/qr-plin.jpg" download="MiPlata-QR-Plin.jpg">${svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>')}Guardar QR en mi celular</a>
-            <p class="nota">Escanéalo con Plin, Yape o la app de tu banco. ¿Estás en el celular? Guarda el QR y ábrelo en tu app con "Pagar desde galería". El pago le llega a Jonathan Ortiz (MiPlata).</p>
+            <a class="btn sec" href="../img/qr-plin.jpg" download="MiPlata-QR-pago.jpg">${svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>')}Guardar QR en mi celular</a>
+            <p class="nota">Escanéalo con Plin, Yape o la app de tu banco. ¿Estás en el celular? Guarda el QR y ábrelo en tu app con "Pagar desde galería". El pago le llega a Cuantics S.A.C., la empresa de MiPlata.</p>
           </li>
           <li>
             <h2>Envía tu comprobante</h2>
