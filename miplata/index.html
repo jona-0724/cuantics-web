@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="es-PE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MiPlata · Anota tus gastos hablando</title>
+<meta name="description" content="Dile a MiPlata cuánto gastaste y dónde, y ella arma tu cuenta del mes: en qué, dónde y con qué pagaste. Prueba gratis 30 días. Luego S/ 5 al mes.">
+<meta name="theme-color" content="#0A3324">
+<link rel="icon" type="image/png" sizes="32x32" href="app/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png">
+<meta property="og:title" content="MiPlata · Anota tus gastos hablando">
+<meta property="og:description" content="Dilo y queda anotado. Sabe a dónde se va tu plata cada mes. Prueba gratis 30 días.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cuantics.pe/miplata/">
+<meta property="og:locale" content="es_PE">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bosque:#0A3324; --bosque-2:#0F4A33; --bosque-3:#082A1D; --menta:#3DD68C; --menta-honda:#1FAE6A;
+  --oro:#F5C542; --crema:#F1F5EF; --crema-suave:#A9C3B4;
+  --fondo:#EEF7F1; --superficie:#FFFFFF; --tinta:#0B3324; --tinta-suave:#557566; --linea:#CFE3D7; --primario:#137A4A; --azul:#2A63B8;
+  --f-display:"Poppins",system-ui,sans-serif; --f-texto:"Plus Jakarta Sans",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="claro"]){
+  --fondo:#0A3324; --superficie:#0F4230; --tinta:#F1F5EF; --tinta-suave:#A9C3B4; --linea:#1E5C43; --primario:#3DD68C; --azul:#7DB8FF; color-scheme:dark;}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--fondo);color:var(--tinta);font:17px/1.6 var(--f-texto);overflow-x:hidden}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--oro);outline-offset:3px;border-radius:8px}
+.envoltura{max-width:1120px;margin:0 auto;padding:0 20px}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:-.01em;line-height:1.15}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:16px 28px;font:600 17px var(--f-display);text-decoration:none;background:var(--menta);color:#06291B;box-shadow:0 8px 24px rgba(61,214,140,.35)}
+.btn.contorno{background:none;color:inherit;border:2px solid currentColor;box-shadow:none;opacity:.9}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo svg{width:44px;height:44px}
+.logo b{font:800 26px/1 var(--f-display);color:var(--crema)}
+.logo b span{color:var(--menta)}
+
+/* ---------- héroe ---------- */
+.heroe{background:var(--bosque);color:var(--crema);position:relative;overflow:hidden}
+.heroe::before,.heroe::after{content:"";position:absolute;border-radius:50%;background:var(--bosque-2);pointer-events:none}
+.heroe::before{width:640px;height:640px;right:-220px;top:-300px}
+.heroe::after{width:520px;height:520px;left:-300px;bottom:-320px}
+.cabecera{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+.cabecera nav{display:flex;gap:18px;align-items:center;font-size:15px}
+.cabecera nav a{text-decoration:none;color:var(--crema-suave)}
+.cabecera nav a:hover{color:var(--crema)}
+.cabecera .entrar{border:1.5px solid var(--bosque-2);background:rgba(255,255,255,.04);padding:8px 16px;border-radius:999px;color:var(--crema)}
+.cabecera .entrar.con-sesion{display:inline-flex;align-items:center;gap:8px;background:var(--menta);border-color:var(--menta);color:#06291B;font-weight:700;padding:5px 16px 5px 5px}
+.cabecera .entrar .ini{width:28px;height:28px;border-radius:50%;background:var(--bosque);color:var(--menta);display:grid;place-items:center;font:800 13px var(--f-display)}
+.heroe-grid{position:relative;z-index:2;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:36px 0 80px}
+.heroe h1{font-size:clamp(40px,6.4vw,72px);font-weight:800;max-width:11ch}
+.heroe .bajada{font-size:clamp(17px,1.6vw,20px);color:var(--crema-suave);max-width:36ch;margin:20px 0 30px}
+.heroe .acciones{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.heroe .nota{font-size:15px;color:var(--crema-suave);margin-top:14px}
+
+/* teléfono */
+.telefono{position:relative;width:100%;aspect-ratio:9/18.5;border-radius:44px;background:var(--bosque-3);border:10px solid #062016;box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 1px rgba(61,214,140,.25);padding:22px 16px;display:flex;flex-direction:column;gap:12px}
+.telefono .t-cab{display:flex;align-items:center;gap:8px;font:800 18px var(--f-display)}
+.telefono .t-cab svg{width:28px;height:28px}
+.telefono .t-cab span{color:var(--menta)}
+.t-saldo{background:var(--bosque-2);border-radius:20px;padding:14px 16px}
+.t-saldo small{color:var(--crema-suave);font-size:13px}
+.t-saldo b{display:block;font:700 30px/1.1 var(--f-display)}
+.t-saldo b i{font-style:normal;font-size:17px;color:var(--crema-suave);margin-right:3px}
+.t-lista{background:var(--bosque-2);border-radius:18px;padding:2px 14px;font-size:14px}
+.t-fila{display:grid;grid-template-columns:1fr auto;padding:10px 0;border-bottom:1px solid rgba(61,214,140,.15)}
+.t-fila:last-child{border-bottom:0}
+.t-fila strong{font-weight:700}
+.t-fila em{font-style:normal;font:600 15px var(--f-display);text-align:right}
+.t-fila small{color:var(--crema-suave);font-size:12px}
+.t-fila.nueva{background:rgba(61,214,140,.16);margin:0 -14px;padding:10px 14px;border-radius:12px}
+.t-voz{margin-top:auto;display:flex;align-items:center;gap:10px;background:var(--bosque-2);border-radius:999px;padding:8px}
+.t-voz .mic{width:44px;height:44px;border-radius:50%;background:var(--menta);display:grid;place-items:center;box-shadow:0 0 0 5px rgba(61,214,140,.22)}
+.t-voz .mic svg{width:22px;height:22px}
+.t-voz span{font-size:14px;color:var(--crema-suave)}
+.escena{position:relative;width:min(330px,86vw);margin:0 auto}
+.burbuja{position:absolute;left:-28%;top:42%;max-width:230px;background:var(--crema);color:var(--bosque);border-radius:22px 22px 22px 6px;padding:12px 16px;font:600 16px/1.35 var(--f-texto);box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.moneda-flot{position:absolute;right:-30px;top:-22px;width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFE38A,#F5C542 55%,#C98F16);display:grid;place-items:center;font:800 26px var(--f-display);color:#8F5F06;box-shadow:0 12px 30px rgba(0,0,0,.35);transform:rotate(-12deg)}
+@media (prefers-reduced-motion:no-preference){
+  .burbuja{animation:entra .6s .3s both cubic-bezier(.2,.8,.2,1)}
+  .t-fila.nueva{animation:entra .5s 1.3s both cubic-bezier(.2,.8,.2,1)}
+  @keyframes entra{from{opacity:0;transform:translateY(14px) scale(.96)}}
+}
+
+/* ---------- secciones ---------- */
+section.bloque{padding:88px 0}
+.bloque h2{font-size:clamp(30px,4vw,44px);max-width:20ch}
+.bloque .intro{color:var(--tinta-suave);font-size:18px;max-width:52ch;margin-top:14px}
+
+/* pasos (es una secuencia real) */
+.pasos{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:44px;counter-reset:paso}
+.paso{position:relative;padding-top:64px}
+.paso::before{counter-increment:paso;content:counter(paso);position:absolute;top:0;left:0;width:48px;height:48px;border-radius:50%;background:var(--menta);color:#06291B;display:grid;place-items:center;font:800 22px var(--f-display)}
+.paso h3{font-size:22px;margin-bottom:8px}
+.paso p{color:var(--tinta-suave)}
+.paso .ejemplo{display:inline-block;margin-top:12px;background:var(--superficie);border:1px solid var(--linea);border-radius:14px;padding:8px 12px;font-size:15px;color:var(--tinta)}
+
+/* jerga */
+.jerga{background:var(--bosque);color:var(--crema);border-radius:36px;padding:56px clamp(24px,5vw,64px);position:relative;overflow:hidden}
+.jerga::after{content:"";position:absolute;width:360px;height:360px;border-radius:50%;background:var(--bosque-2);right:-120px;bottom:-180px}
+.jerga h2{color:var(--crema)}
+.jerga .intro{color:var(--crema-suave)}
+.frases{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.frase{background:var(--bosque-2);border:1px solid rgba(61,214,140,.3);border-radius:18px;padding:12px 16px}
+.frase q{font-weight:700;quotes:"“" "”"}
+.frase span{display:block;font-size:14px;color:var(--menta);margin-top:2px}
+
+/* beneficios */
+.beneficios{display:grid;grid-template-columns:repeat(2,1fr);gap:28px 48px;margin-top:44px}
+.beneficio{display:grid;grid-template-columns:52px 1fr;gap:16px;align-items:start}
+.beneficio .ico{width:52px;height:52px;border-radius:16px;background:color-mix(in srgb,var(--menta) 18%,transparent);color:var(--primario);display:grid;place-items:center}
+.beneficio .ico svg{width:26px;height:26px}
+.beneficio h3{font-size:20px;margin-bottom:4px}
+.beneficio p{color:var(--tinta-suave)}
+
+/* precio */
+.precio{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.tarifa{background:var(--superficie);border:2px solid var(--menta);border-radius:32px;padding:36px;position:relative;box-shadow:0 20px 60px rgba(8,50,32,.12)}
+.tarifa .cinta{position:absolute;top:-16px;left:32px;background:var(--oro);color:#5A3A00;font:700 14px var(--f-display);padding:6px 14px;border-radius:999px}
+.tarifa .monto{font:800 clamp(56px,8vw,84px)/1 var(--f-display);letter-spacing:-.02em;margin:10px 0 2px}
+.tarifa .monto small{font-size:.36em;font-weight:600;color:var(--tinta-suave)}
+.tarifa .total{color:var(--tinta-suave)}
+.tarifa ul{list-style:none;margin:22px 0 28px;display:grid;gap:10px}
+.tarifa li{display:flex;gap:10px}
+.tarifa li::before{content:"✓";color:var(--primario);font-weight:800}
+.tarifa .btn{width:100%}
+.cupos{margin-top:14px;font-size:15px;color:var(--tinta-suave);text-align:center}
+.cupos b{color:var(--tinta)}
+.cuentas{display:grid;gap:18px}
+.cuenta-linea{display:flex;gap:14px;align-items:baseline;border-bottom:1px solid var(--linea);padding-bottom:16px}
+.cuenta-linea b{font:800 30px var(--f-display);min-width:4.6ch;color:var(--primario)}
+.cuenta-linea p{color:var(--tinta-suave)}
+.cuenta-linea p strong{color:var(--tinta);font-weight:700}
+
+/* preguntas */
+.preguntas{margin-top:36px;max-width:780px}
+details{border-bottom:1px solid var(--linea);padding:18px 0}
+summary{cursor:pointer;font:600 19px var(--f-display);list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--primario);font-size:24px;line-height:1}
+details[open] summary::after{content:"−"}
+details p{color:var(--tinta-suave);margin-top:10px;max-width:64ch}
+
+/* cierre */
+.cierre{background:var(--bosque);color:var(--crema);text-align:center;padding:96px 0;position:relative;overflow:hidden}
+.cierre::before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:var(--bosque-2);left:50%;top:-360px;transform:translateX(-50%)}
+.cierre h2{position:relative;font-size:clamp(34px,5vw,56px);max-width:16ch;margin:0 auto 18px}
+.cierre p{position:relative;color:var(--crema-suave);margin-bottom:28px}
+.cierre .btn{position:relative}
+footer{background:var(--bosque-3);color:var(--crema-suave);font-size:14px;padding:28px 0}
+footer .envoltura{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between}
+footer nav{display:flex;gap:18px}
+
+/* ---------- reporte de ejemplo (gancho) ---------- */
+.reporte-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:48px;align-items:start;margin-top:8px}
+.reporte-txt{position:sticky;top:24px}
+.puntos{list-style:none;display:grid;gap:14px;margin:28px 0 30px}
+.puntos li{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start}
+.puntos li::before{content:"";width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--menta) 22%,transparent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231FAE6A' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/15px no-repeat}
+.puntos b{display:block;font:600 17px var(--f-display)}
+.puntos span{color:var(--tinta-suave);font-size:15px}
+.selector{display:inline-grid;grid-template-columns:1fr 1fr;background:var(--superficie);border:1.5px solid var(--linea);border-radius:999px;padding:4px;margin-bottom:14px}
+.selector button{border:0;background:none;color:var(--tinta);font:600 15px var(--f-display);padding:10px 20px;border-radius:999px;cursor:pointer}
+.selector button[aria-selected="true"]{background:var(--bosque);color:var(--crema)}
+.rep-nota{color:var(--tinta-suave);font-size:15px;min-height:3em;margin-bottom:16px}
+.papel{background:#fff;color:#0A3324;border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(8,50,32,.22),0 0 0 1px rgba(10,51,36,.06);font:12px/1.5 var(--f-texto)}
+.p-cab{background:#0A3324;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 24px;position:relative;overflow:hidden}
+.p-cab::after{content:"";position:absolute;right:-60px;top:-80px;width:200px;height:200px;border-radius:50%;background:#0F4A33}
+.p-cab .p-marca{display:flex;align-items:center;gap:8px;position:relative;z-index:1;font:800 19px var(--f-display)}
+.p-cab .p-marca svg{width:30px;height:30px}.p-cab .p-marca span{color:#3DD68C}
+.p-cab .p-der{text-align:right;position:relative;z-index:1}
+.p-cab .p-der small{display:block;color:#9FD9BC;font-size:10px}
+.p-cab .p-der b{display:block;font:700 15px/1.25 var(--f-display)}
+.p-cab .p-der i{font-style:normal;color:#CFE9DC;font-size:11px}
+.p-cuerpo{padding:4px 24px 24px}
+.p-heroe{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;align-items:center;margin:16px 0 4px}
+.p-heroe .et{color:#557566;font-size:11px}
+.p-heroe .grande{font:800 34px/1.05 var(--f-display);letter-spacing:-.02em;margin:2px 0 6px}
+.p-heroe .p-frase{font-size:12px}
+.p-kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.p-kpi{background:#F1F7F3;border-radius:10px;padding:7px 10px}
+.p-kpi small{display:block;color:#557566;font-size:9.5px}
+.p-kpi b{font:700 13px var(--f-display)}
+.p-kpi.pos b{color:#0F7A4A}
+.papel h4{font:700 13px var(--f-display);margin:18px 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+.papel h4 small{font:500 10px var(--f-texto);color:#557566}
+.p-cats{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center}
+.p-cats svg{width:150px;height:150px;display:block}
+.papel table{width:100%;border-collapse:collapse}
+.papel td{padding:4px 3px;border-bottom:1px solid #DCEAE1;vertical-align:middle;font-size:11px}
+.papel td.nom{white-space:nowrap}
+.papel td i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.papel td.bc{width:30%}.papel td.bc span{display:block;height:7px;border-radius:0 4px 4px 0}
+.papel td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.papel td.pc{color:#557566;width:40px}
+.p-cols svg{width:100%;height:auto;display:block}
+.p-nota{color:#557566;font-size:10.5px;margin-top:4px}.p-nota b{color:#0A3324}
+.p-dos{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:860px){
+  .reporte-grid{grid-template-columns:1fr;gap:20px}
+  .reporte-txt{position:static}
+  .puntos{margin:20px 0 4px}
+}
+@media (max-width:560px){
+  .p-heroe,.p-dos{grid-template-columns:1fr}
+  .p-cats{grid-template-columns:1fr;justify-items:center}
+  .p-cuerpo{padding:4px 16px 20px}.p-cab{padding:16px}
+}
+
+@media (max-width:860px){
+  .heroe-grid{grid-template-columns:1fr;padding-bottom:64px}
+  .heroe h1{max-width:13ch}
+  .burbuja{left:-6px;top:auto;bottom:24%;max-width:200px;font-size:15px}
+  .moneda-flot{right:-8px;top:-18px;width:64px;height:64px;font-size:21px}
+  .pasos,.beneficios,.precio{grid-template-columns:1fr}
+  .cabecera nav a:not(.entrar){display:none}
+  section.bloque{padding:64px 0}
+}
+</style>
+</head>
+<body>
+
+<!-- Logo reutilizable -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="lg-anillo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5BE3A0"/><stop offset="1" stop-color="#1FAE6A"/></linearGradient>
+    <linearGradient id="lg-billetera" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#CDEFD9"/></linearGradient>
+    <symbol id="logo" viewBox="0 0 64 64">
+      <path d="M55.3 43.6A26 26 0 1 1 52.2 15.3" fill="none" stroke="url(#lg-anillo)" stroke-width="5.5" stroke-linecap="round"/>
+      <path d="M56.6 29.2l-7.3 9.6h14.4z" fill="#3DD68C"/>
+      <rect x="21" y="15.5" width="20" height="11" rx="2.5" fill="#3DD68C" transform="rotate(-14 31 21)"/>
+      <rect x="23.5" y="17.6" width="12" height="2" rx="1" fill="#1FAE6A" transform="rotate(-14 31 21)"/>
+      <rect x="15" y="23" width="30" height="21" rx="6" fill="url(#lg-billetera)"/>
+      <rect x="35" y="29" width="12" height="9" rx="4.5" fill="#0F4A33"/>
+      <circle cx="40.5" cy="33.5" r="2" fill="#FFFFFF"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="heroe">
+  <div class="envoltura">
+    <div class="cabecera">
+      <a class="logo" href="./" aria-label="MiPlata, inicio"><svg><use href="#logo"/></svg><b>Mi<span>Plata</span></b></a>
+      <nav>
+        <a href="#como">Cómo funciona</a>
+        <a href="#precio">Precio</a>
+        <a href="#preguntas">Preguntas</a>
+        <a class="entrar" id="nav-entrar" href="app/?ingresar">Ingresar</a>
+      </nav>
+    </div>
+
+    <div class="heroe-grid">
+      <div>
+        <h1>Dilo y queda anotado.</h1>
+        <p class="bajada">Cuando pagas en el mercado, en la bodega o en Plaza Vea, dile a MiPlata cuánto gastaste. Ella arma tu cuenta del mes: en qué, dónde y con qué pagaste.</p>
+        <div class="acciones">
+          <a class="btn" id="cta-heroe" href="app/">Probar gratis 30 días</a>
+          <a class="btn contorno" href="#como">Ver cómo funciona</a>
+        </div>
+        <p class="nota" id="nota-heroe">Sin tarjeta. Solo tu nombre y tu correo.</p>
+      </div>
+
+      <div class="escena">
+        <div class="telefono" aria-label="Ejemplo de la app: dices 'doce lucas con china en el mercado, yapeé' y se anota S/ 12.50 en Mercado con Yape" role="img">
+          <div class="t-cab"><svg aria-hidden="true"><use href="#logo"/></svg><b>Mi<span>Plata</span></b></div>
+          <div class="t-saldo"><small>Gastaste este mes</small><b><i>S/</i>1,284.50</b></div>
+          <div class="t-lista">
+            <div class="t-fila nueva"><div><strong>Mercado</strong><br><small>Hoy, recién anotado</small></div><div><em>12.50</em><br><small>Yape</small></div></div>
+            <div class="t-fila"><div><strong>Tambo</strong><br><small>Mercado y alimentos</small></div><div><em>8.00</em><br><small>Yape</small></div></div>
+            <div class="t-fila"><div><strong>Plaza Vea</strong><br><small>Mercado y alimentos</small></div><div><em>250.00</em><br><small>BCP débito</small></div></div>
+            <div class="t-fila"><div><strong>Taxi</strong><br><small>Transporte</small></div><div><em>15.00</em><br><small>Efectivo</small></div></div>
+          </div>
+          <div class="t-voz"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="#06291B" stroke-width="2.4" stroke-linecap="round"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="#06291B"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/></svg></span><span>Toca y habla…</span></div>
+        </div>
+        <p class="burbuja" aria-hidden="true">“Doce lucas con china en el mercado, yapeé”</p>
+        <span class="moneda-flot" aria-hidden="true">S/</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="bloque" id="como">
+    <div class="envoltura">
+      <h2>Anotar un gasto te toma 5 segundos</h2>
+      <p class="intro">No tienes que abrir un Excel ni llenar formularios. Hablas como siempre y MiPlata entiende.</p>
+      <div class="pasos">
+        <div class="paso">
+          <h3>Toca el micrófono y habla</h3>
+          <p>En la caja, en el mercado o saliendo del taxi. También puedes escribirlo.</p>
+          <span class="ejemplo">“Ocho soles en Tambo con Yape”</span>
+        </div>
+        <div class="paso">
+          <h3>MiPlata lo anota sola</h3>
+          <p>Saca el monto, el lugar, la fecha y con qué pagaste. Si algo no va, lo corriges con un toque.</p>
+          <span class="ejemplo">S/ 8.00 en Tambo, hoy, con Yape</span>
+        </div>
+        <div class="paso">
+          <h3>Ves a dónde se va tu plata</h3>
+          <p>Gráficos del mes por categoría, lugar y medio de pago. Sin sacar cuentas.</p>
+          <span class="ejemplo">Mercado 46%, Transporte 20%…</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque" style="padding-top:0">
+    <div class="envoltura">
+      <div class="jerga">
+        <h2>Habla como hablas</h2>
+        <p class="intro">MiPlata entiende cómo hablamos en el Perú. No necesitas decir las cosas de una forma especial.</p>
+        <div class="frases">
+          <p class="frase"><q>Doce lucas con china</q><span>S/ 12.50</span></p>
+          <p class="frase"><q>Una china de caramelos</q><span>S/ 0.50</span></p>
+          <p class="frase"><q>Dos con veinte de pan</q><span>S/ 2.20</span></p>
+          <p class="frase"><q>Me yapearon 50</q><span>Ingreso de S/ 50 por Yape</span></p>
+          <p class="frase"><q>Ayer 60 soles en Metro</q><span>Anotado con la fecha de ayer</span></p>
+          <p class="frase"><q>Pagué con la Ripley</q><span>Tu tarjeta Ripley</span></p>
+          <p class="frase"><q>Me depositaron el sueldo</q><span>Ingreso: sueldo</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque" id="reporte" style="padding-top:24px">
+    <div class="envoltura reporte-grid">
+      <div class="reporte-txt">
+        <h2>Tu mes, explicado en una hoja</h2>
+        <p class="intro">MiPlata arma tu reporte sola. Lo ves en la app y lo descargas en PDF para guardarlo o compartirlo, o en Excel para trabajarlo.</p>
+        <ul class="puntos">
+          <li><div><b>Cuánto gastaste y cuánto te quedó</b><span>En grande, para verlo de un vistazo.</span></div></li>
+          <li><div><b>En qué se fue tu plata</b><span>Cada categoría con su color, su monto y su porcentaje.</span></div></li>
+          <li><div><b>Cuándo y con qué pagaste</b><span>Los días que más gastaste y cuánto salió de cada tarjeta o de Yape.</span></div></li>
+        </ul>
+      </div>
+      <div>
+        <div class="selector" role="tablist" aria-label="Ejemplo de reporte">
+          <button type="button" role="tab" aria-selected="true" aria-controls="papel" data-rep="personal">Para ti</button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="papel" data-rep="empresa">Para tu empresa</button>
+        </div>
+        <p class="rep-nota" id="rep-nota"></p>
+        <div class="papel" id="papel" role="tabpanel" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque" style="padding-top:24px">
+    <div class="envoltura">
+      <h2>Todo lo que necesitas para ordenar tu plata</h2>
+      <div class="beneficios">
+        <div class="beneficio"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l7 4"/></svg></span>
+          <div><h3>Sabes en qué se va tu plata</h3><p>Mira cuánto se fue en mercado, comida, transporte o casa, y en qué lugares gastas más.</p></div></div>
+        <div class="beneficio"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg></span>
+          <div><h3>Tus tarjetas con tus nombres</h3><p>Efectivo, Yape, Plin, BCP, Interbank, Ripley o “la del sueldo”. Las llamas como tú quieras.</p></div></div>
+        <div class="beneficio"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg></span>
+          <div><h3>Topes que te avisan</h3><p>Ponle un límite a tu tarjeta o al delivery. “Con débito llevas S/ 320 de S/ 500.”</p></div></div>
+        <div class="beneficio"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
+          <div><h3>Gastos e ingresos</h3><p>Anota también lo que te entra: sueldo, ventas o “me yapearon”. Así ves tu balance real.</p></div></div>
+        <div class="beneficio"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="12" cy="12" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/></svg></span>
+          <div><h3>Foto de la boleta</h3><p>¿Te dieron boleta? Tómale una foto y MiPlata lee el total por ti.</p></div></div>
+        <div class="beneficio"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></span>
+          <div><h3>Llévatelo a Excel o PDF</h3><p>Descarga tus movimientos cuando quieras, para tu control o para compartirlo.</p></div></div>
+        <div class="beneficio"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg></span>
+          <div><h3>En familia o con tu empresa</h3><p>Crea un grupo como "Familia Quispe" o "Piedras SAC - Centro de costo 12" y agrega a los miembros con su correo. Todos anotan, todos ven a dónde se va la plata común.</p></div></div>
+        <div class="beneficio"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><path d="M14 17h6M17 14v6"/></svg></span>
+          <div><h3>Tus categorías, a tu manera</h3><p>Agrega, renombra o quita categorías y elige su color. "Gasolina del carro", "Colegio de los chicos": como tú lo llames.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque" id="precio" style="background:color-mix(in srgb,var(--menta) 8%,transparent)">
+    <div class="envoltura precio">
+      <div>
+        <h2>Lo que pagas, sin letra chica</h2>
+        <p class="intro">Menos que un menú al mes. Y antes de pagar, lo usas gratis.</p>
+        <div class="cuentas" style="margin-top:30px">
+          <div class="cuenta-linea"><b>S/ 0</b><p>los primeros 30 días. Sin tarjeta. Si no te convence, no pagas nada.</p></div>
+          <div class="cuenta-linea"><b>S/ 5</b><p><strong>al mes por persona. Ni una china al día.</strong> Pagas una sola vez al año (S/ 60) por Yape o Plin y la usas sola, en familia o con tu empresa. No hay cobros automáticos: tú decides si renuevas.</p></div>
+          <div class="cuenta-linea"><b>S/ 10</b><p>al mes (S/ 120 al año) es lo que costará cuando se acaben los cupos con precio de lanzamiento.</p></div>
+        </div>
+      </div>
+      <div class="tarifa">
+        <span class="cinta">Precio de lanzamiento</span>
+        <p>Por solo</p>
+        <p class="monto">S/ 5 <small>al mes</small></p>
+        <p class="total">Pago anual de S/ 60. Cuando se acaben los cupos de lanzamiento, el precio sube a S/ 10 al mes (S/ 120 al año).</p>
+        <ul>
+          <li>30 días gratis, sin tarjeta</li>
+          <li>Anota hablando, escribiendo o con foto</li>
+          <li>Úsala sola, en familia o con tu empresa</li>
+          <li>Gráficos, topes y exportación</li>
+          <li>Tus datos siempre son tuyos, aunque no renueves</li>
+        </ul>
+        <a class="btn" href="app/?activar">Asegurar mi precio de lanzamiento</a>
+        <p class="cupos" id="cupos" hidden>Quedan <b id="cupos-n"></b> cupos con precio de lanzamiento</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque" id="preguntas">
+    <div class="envoltura">
+      <h2>Preguntas frecuentes</h2>
+      <div class="preguntas">
+        <details><summary>¿Necesito tarjeta para la prueba gratis?</summary><p>No. Solo pedimos tu nombre, tu correo y una contraseña. El celular es opcional.</p></details>
+        <details><summary>¿Cómo pago cuando termine la prueba?</summary><p>Escaneas nuestro QR con Plin, Yape o la app de tu banco y pagas S/ 60 por todo el año (precio de lanzamiento). En la app nos envías el número de operación o la foto del comprobante, y te llega un correo cuando tu cuenta queda habilitada.</p></details>
+        <details><summary>¿Puedo usarla en familia o con mi empresa?</summary><p>Sí. Crea un grupo (familia o empresa) y agrega a los miembros con su correo, o compárteles un código por WhatsApp. Cada persona tiene su propia cuenta de S/ 5 al mes y su espacio personal, que nadie más ve. En el grupo, todos ven los gastos del grupo y quién registró cada uno.</p></details>
+        <details><summary>¿Qué pasa si no pago?</summary><p>Tus datos no se borran. Puedes seguir viéndolos y descargarlos en Excel o PDF. Solo se pausa el registro de movimientos nuevos.</p></details>
+        <details><summary>¿Mis datos están seguros?</summary><p>Tu espacio personal solo lo ves tú, ni siquiera el administrador de un grupo al que pertenezcas. No te pedimos claves del banco ni acceso a tus cuentas. Tus audios se convierten en texto y no se guardan.</p></details>
+        <details><summary>¿Funciona en iPhone y Android?</summary><p>Sí. Se abre desde el navegador y puedes agregarla a la pantalla de inicio de tu celular para usarla como una app. También funciona en tu computadora.</p></details>
+        <details><summary>¿Y si me equivoco o no me entiende?</summary><p>Cada vez que anotas algo puedes deshacerlo o corregirlo con un toque: monto, fecha, lugar, categoría o medio de pago.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="cierre">
+    <div class="envoltura">
+      <h2>Este mes, sabe a dónde se va tu plata</h2>
+      <p>30 días gratis. Sin tarjeta.</p>
+      <a class="btn" id="cta-cierre" href="app/">Probar MiPlata gratis</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="envoltura">
+    <p>MiPlata es un producto de <a href="/">CUANTICS</a>. Lima, Perú.</p>
+    <nav><a href="terminos.html">Términos</a><a href="privacidad.html">Privacidad</a><a href="mailto:info@cuantics.com">Contacto</a></nav>
+  </div>
+</footer>
+
+<script>
+  // Cupos con precio de lanzamiento (función pública de solo lectura en Supabase)
+  (async () => {
+    try {
+      const r = await fetch('https://wxdgfxrplrbhwbbouzsk.supabase.co/rest/v1/rpc/cupos_fundador', {
+        method: 'POST', body: '{}',
+        headers: { apikey: 'sb_publishable_JVx2anQlT7zWca-EPMwezQ_v6UdzTd8', 'Content-Type': 'application/json' }
+      });
+      const n = await r.json();
+      if (r.ok && typeof n === 'number' && n > 0) {
+        document.getElementById('cupos-n').textContent = n;
+        document.getElementById('cupos').hidden = false;
+      }
+    } catch (e) {}
+  })();
+</script>
+<script>
+  // Reporte de ejemplo: mismo diseño que el PDF que descarga la app (datos inventados)
+  (() => {
+    const COL = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#8a9690'];
+    const EJ = {
+      personal: {
+        nota: 'Ejemplo de una persona en octubre. Así se ve tu reporte en PDF.',
+        espacio: 'Personal', total: 1284.50, entro: 3200, movs: 64,
+        cats: [['Mercado y alimentos', 486.20], ['Hogar y servicios', 312.00], ['Transporte', 168.40], ['Restaurantes y comida', 142.90], ['Salud y farmacia', 98.00], ['Otros', 77.00]],
+        dias: [18, 0, 42, 25, 0, 96, 31, 12, 55, 0, 140, 22, 18, 0, 64, 38, 15, 72, 0, 28, 33, 0, 118, 26, 14, 41, 0, 58, 22, 30, 47],
+        lado: ['¿Con qué pagaste?', '#2a78d6', [['BCP débito', 612.40], ['Yape', 398.10], ['Efectivo', 274.00]]],
+        lado2: ['¿Dónde gastaste más?', '#eb6834', [['Plaza Vea', 318.60], ['Luz del Sur', 164.00], ['Tambo', 96.50]]]
+      },
+      empresa: {
+        nota: 'Ejemplo de un centro de costo de una empresa. Cada gasto dice quién lo registró.',
+        espacio: 'Piedras SAC - Obra Miraflores', total: 18640.00, entro: 25000, movs: 142,
+        cats: [['Materiales', 8920.00], ['Mano de obra', 5200.00], ['Transporte y fletes', 1860.00], ['Alquiler de equipos', 1450.00], ['Viáticos', 760.00], ['Otros', 450.00]],
+        dias: [420, 1250, 380, 610, 0, 0, 980, 540, 1720, 300, 460, 0, 0, 890, 610, 2240, 380, 520, 0, 0, 760, 430, 1180, 290, 650, 0, 0, 840, 520, 990, 300],
+        lado: ['¿Quién gastó?', '#6250d6', [['Carlos Piedras', 9480.00], ['Lucía Ramos', 5730.00], ['Jorge Huamán', 3430.00]]],
+        lado2: ['¿Con qué pagaste?', '#2a78d6', [['Cuenta BCP empresa', 12980.00], ['Caja chica', 3460.00], ['Centro Costo - 6021', 2200.00]]]
+      }
+    };
+    const sol = n => 'S/ ' + n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const pc = (v, t) => (Math.round(v / t * 1000) / 10).toLocaleString('es-PE') + '%';
+
+    function dona(cats, total) {
+      const R = 70, r = 46, c = 75; let a0 = -Math.PI / 2, s = '';
+      const pt = (a, rad) => (c + rad * Math.cos(a)).toFixed(2) + ' ' + (c + rad * Math.sin(a)).toFixed(2);
+      cats.forEach(([, v], k) => {
+        const a1 = a0 + v / total * Math.PI * 2, l = v / total > .5 ? 1 : 0;
+        s += `<path d="M ${pt(a0, R)} A ${R} ${R} 0 ${l} 1 ${pt(a1, R)} L ${pt(a1, r)} A ${r} ${r} 0 ${l} 0 ${pt(a0, r)} Z" fill="${COL[k]}" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>`;
+        a0 = a1;
+      });
+      const corto = total >= 10000 ? 'S/ ' + Math.round(total).toLocaleString('es-PE') : sol(total);
+      return `<svg viewBox="0 0 150 150" role="img" aria-label="Gastos por categoría">${s}<text x="75" y="70" text-anchor="middle" font-size="9.5" fill="#557566">Gastaste</text><text x="75" y="88" text-anchor="middle" font-size="14" font-weight="800" fill="#0A3324" font-family="Poppins,sans-serif">${corto}</text></svg>`;
+    }
+
+    function columnas(dias, total) {
+      const suma = dias.reduce((a, b) => a + b, 0), vals = dias.map(d => d / suma * total);
+      const W = 560, H = 140, izq = 40, abajo = 18, arriba = 18, n = vals.length, max = Math.max(...vals);
+      const paso = (v => { const p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; })(max / 3);
+      const tope = Math.ceil(max / paso) * paso, y = v => arriba + (H - arriba - abajo) * (1 - v / tope);
+      const an = (W - izq) / n, bw = Math.min(11, an - 4), prom = total / n, pk = vals.indexOf(max);
+      let s = '';
+      for (let v = 0; v <= tope; v += paso) s += `<line x1="${izq}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#E6EFEA"/><text x="${izq - 5}" y="${y(v) + 3}" text-anchor="end" font-size="8.5" fill="#6B8579">${v.toLocaleString('es-PE')}</text>`;
+      s += `<line x1="${izq}" x2="${W}" y1="${y(prom)}" y2="${y(prom)}" stroke="#C98500" stroke-width="1.1" stroke-dasharray="4 3"/>`;
+      vals.forEach((v, k) => {
+        const x = izq + an * k + (an - bw) / 2;
+        if (v > 0) { const yy = y(v), rr = Math.min(3.5, bw / 2, H - abajo - yy); s += `<path d="M${x} ${H - abajo} V${yy + rr} Q${x} ${yy} ${x + rr} ${yy} H${x + bw - rr} Q${x + bw} ${yy} ${x + bw} ${yy + rr} V${H - abajo} Z" fill="${k === pk ? '#0F6B45' : '#1FAE6A'}"/>`; }
+        if (k === 0 || (k + 1) % 5 === 0 || k === pk) s += `<text x="${x + bw / 2}" y="${H - 5}" text-anchor="middle" font-size="8.5" fill="${k === pk ? '#0A3324' : '#6B8579'}" font-weight="${k === pk ? 700 : 500}">${k + 1}</text>`;
+      });
+      s += `<text x="${Math.min(W - 30, izq + an * pk + an / 2)}" y="${y(max) - 5}" text-anchor="middle" font-size="9" font-weight="700" fill="#0A3324">${sol(max)}</text>`;
+      return { svg: `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gastos por día">${s}<line x1="${izq}" x2="${W}" y1="${H - abajo}" y2="${H - abajo}" stroke="#9DB5A8"/></svg>`, pk: pk + 1, max, conGasto: vals.filter(v => v > 0).length };
+    }
+
+    const barras = (lista, color, total) => `<table>${lista.map(([n, v]) => `<tr><td class="nom">${n}</td><td class="bc"><span style="width:${v / lista[0][1] * 100}%;background:${color}"></span></td><td class="n">${sol(v)}</td><td class="n pc">${pc(v, total)}</td></tr>`).join('')}</table>`;
+
+    function pintar(cual) {
+      const d = EJ[cual], t = d.total, cols = columnas(d.dias, t);
+      document.getElementById('rep-nota').textContent = d.nota;
+      document.getElementById('papel').innerHTML = `
+        <div class="p-cab"><div class="p-marca"><svg aria-hidden="true"><use href="#logo"/></svg><b>Mi<span>Plata</span></b></div>
+          <div class="p-der"><small>Reporte de gastos e ingresos</small><b>${d.espacio}</b><i>Octubre 2026</i></div></div>
+        <div class="p-cuerpo">
+          <div class="p-heroe"><div><p class="et">En octubre 2026 gastaste</p><p class="grande">${sol(t)}</p>
+            <p class="p-frase">Tu mayor gasto fue <b>${d.cats[0][0]}</b>: ${sol(d.cats[0][1])}, el ${pc(d.cats[0][1], t)} del total. Le sigue <b>${d.cats[1][0]}</b> con ${pc(d.cats[1][1], t)}.</p></div>
+            <div class="p-kpis"><div class="p-kpi"><small>Te entró</small><b>${sol(d.entro)}</b></div><div class="p-kpi pos"><small>Te quedó</small><b>${sol(d.entro - t)}</b></div>
+              <div class="p-kpi"><small>Promedio por día</small><b>${sol(t / 31)}</b></div><div class="p-kpi"><small>Movimientos</small><b>${d.movs}</b></div></div></div>
+          <h4>¿En qué se fue tu plata? <small>${d.cats.length} categorías</small></h4>
+          <div class="p-cats">${dona(d.cats, t)}<table>${d.cats.map(([n, v], k) => `<tr><td class="nom"><i style="background:${COL[k]}"></i>${n}</td><td class="bc"><span style="width:${v / d.cats[0][1] * 100}%;background:${COL[k]}"></span></td><td class="n">${sol(v)}</td><td class="n pc">${pc(v, t)}</td></tr>`).join('')}</table></div>
+          <h4>¿Cuándo gastaste? <small>por día</small></h4>
+          <div class="p-cols">${cols.svg}</div>
+          <p class="p-nota">El día con más gasto fue el <b>${cols.pk} de octubre</b> (${sol(cols.max)}). Gastaste en ${cols.conGasto} de 31 días. La línea punteada es tu promedio: ${sol(t / 31)} al día.</p>
+          <div class="p-dos"><div><h4>${d.lado[0]}</h4>${barras(d.lado[2], d.lado[1], t)}</div><div><h4>${d.lado2[0]}</h4>${barras(d.lado2[2], d.lado2[1], t)}</div></div>
+        </div>`;
+      document.querySelectorAll('[data-rep]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.rep === cual)));
+    }
+    document.querySelectorAll('[data-rep]').forEach(b => b.addEventListener('click', () => pintar(b.dataset.rep)));
+    pintar('personal');
+  })();
+</script>
+<script>
+  // Si ya hay sesión de MiPlata en este equipo, la portada lo reconoce y ofrece abrir la app (sin redirigir).
+  (() => {
+    let ses = null;
+    try { ses = JSON.parse(localStorage.getItem('sb-wxdgfxrplrbhwbbouzsk-auth-token') || 'null'); } catch (e) {}
+    const u = ses && (ses.user || (ses.currentSession && ses.currentSession.user));
+    if (!u || !ses.refresh_token && !(ses.currentSession && ses.currentSession.refresh_token)) return;
+    const nombre = ((u.user_metadata && u.user_metadata.nombre) || '').trim().split(/\s+/)[0];
+    const nav = document.getElementById('nav-entrar');
+    nav.href = 'app/'; nav.classList.add('con-sesion');
+    nav.innerHTML = (nombre ? '<span class="ini" aria-hidden="true">' + nombre.charAt(0).toUpperCase() + '</span>' : '') + 'Abrir MiPlata';
+    const h = document.getElementById('cta-heroe'); h.href = 'app/'; h.textContent = 'Abrir MiPlata';
+    const c = document.getElementById('cta-cierre'); c.href = 'app/'; c.textContent = 'Abrir MiPlata';
+    const n = document.getElementById('nota-heroe');
+    n.textContent = (nombre ? 'Hola, ' + nombre + '. ' : '') + 'Tu sesión sigue abierta en este equipo.';
+  })();
+</script>
+</body>
+</html>
