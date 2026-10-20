@@ -415,3 +415,6 @@ a.btn{text-decoration:none}
   .pestanas .nav-instalar:hover{background:var(--menta-viva);filter:brightness(1.06);color:#06291B}
   .pestanas .nav-instalar svg{width:22px;height:22px}
 }
+
+/* Cinta del ambiente de calidad (no aparece en producción) */
+.cinta-calidad{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:60;background:#F5C542;color:#3A2A00;font:700 12px var(--f-texto);padding:4px 14px;border-radius:0 0 10px 10px;pointer-events:none}

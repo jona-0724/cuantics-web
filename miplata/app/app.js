@@ -5,6 +5,8 @@
 (function () {
   'use strict';
   const C = window.MIPLATA_CONFIG, J = window.MiPlataJerga, I = window.MiPlataInterprete;
+  // En calidad se ve una cinta para no confundirla con la app real
+  if (C.AMBIENTE === 'calidad') { const c = document.createElement('div'); c.className = 'cinta-calidad'; c.textContent = 'Calidad: datos de prueba'; document.body.appendChild(c); }
   const sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_KEY);
   const $app = document.getElementById('app');
   const LOGO_SVG = document.getElementById('tpl-logo').innerHTML;

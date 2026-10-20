@@ -433,13 +433,24 @@ footer nav{display:flex;gap:18px}
   </div>
 </footer>
 
+<script src="app/config.js"></script>
+<script>
+  // En calidad se ve una cinta para no confundirla con la app real
+  if (window.MIPLATA_CONFIG.AMBIENTE === 'calidad') {
+    const c = document.createElement('div');
+    c.textContent = 'Calidad: datos de prueba';
+    c.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:99;background:#F5C542;color:#3A2A00;font:700 12px Arial,sans-serif;padding:4px 14px;border-radius:0 0 10px 10px;pointer-events:none';
+    document.body.appendChild(c);
+  }
+</script>
 <script>
   // Cupos con precio de lanzamiento (función pública de solo lectura en Supabase)
   (async () => {
     try {
-      const r = await fetch('https://wxdgfxrplrbhwbbouzsk.supabase.co/rest/v1/rpc/cupos_fundador', {
+      const C = window.MIPLATA_CONFIG;
+      const r = await fetch(C.SUPABASE_URL + '/rest/v1/rpc/cupos_fundador', {
         method: 'POST', body: '{}',
-        headers: { apikey: 'sb_publishable_JVx2anQlT7zWca-EPMwezQ_v6UdzTd8', 'Content-Type': 'application/json' }
+        headers: { apikey: C.SUPABASE_KEY, 'Content-Type': 'application/json' }
       });
       const n = await r.json();
       if (r.ok && typeof n === 'number' && n > 0) {
@@ -534,7 +545,7 @@ footer nav{display:flex;gap:18px}
   // Si ya hay sesión de MiPlata en este equipo, la portada lo reconoce y ofrece abrir la app (sin redirigir).
   (() => {
     let ses = null;
-    try { ses = JSON.parse(localStorage.getItem('sb-wxdgfxrplrbhwbbouzsk-auth-token') || 'null'); } catch (e) {}
+    try { ses = JSON.parse(localStorage.getItem(window.MIPLATA_CONFIG.SESION_KEY) || 'null'); } catch (e) {}
     const u = ses && (ses.user || (ses.currentSession && ses.currentSession.user));
     if (!u || !ses.refresh_token && !(ses.currentSession && ses.currentSession.refresh_token)) return;
     const nombre = ((u.user_metadata && u.user_metadata.nombre) || '').trim().split(/\s+/)[0];
