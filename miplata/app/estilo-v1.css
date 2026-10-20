@@ -411,7 +411,7 @@ a.btn{text-decoration:none}
 .pestanas .nav-instalar{display:none}
 @media (min-width:1024px){
   .pantalla:has(>#lista)>.tarjeta-instalar{margin-left:0;margin-right:0}
-  .pestanas .nav-instalar{display:flex;align-items:center;gap:12px;margin-top:auto;padding:11px 14px;border-radius:14px;border:1px dashed color-mix(in srgb,var(--menta) 50%,var(--linea));color:var(--primario-texto);font-weight:600}
-  .pestanas .nav-instalar:hover{background:color-mix(in srgb,var(--menta) 10%,transparent)}
+  .pestanas .nav-instalar{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:18px;padding:12px 14px;border-radius:999px;background:var(--menta-viva);color:#06291B;font:700 15px var(--f-display);box-shadow:0 6px 18px color-mix(in srgb,var(--menta-viva) 35%,transparent)}
+  .pestanas .nav-instalar:hover{background:var(--menta-viva);filter:brightness(1.06);color:#06291B}
   .pestanas .nav-instalar svg{width:22px;height:22px}
 }
