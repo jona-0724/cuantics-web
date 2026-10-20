@@ -72,7 +72,9 @@
   const esGrupo = () => espacioActual().tipo && espacioActual().tipo !== 'personal';
   const esAdminEspacio = () => E.rol === 'admin';
   function accesoHasta() { const p = E.perfil; if (!p) return null; const a = new Date(p.prueba_hasta), b = p.pagado_hasta ? new Date(p.pagado_hasta) : a; return a > b ? a : b; }
-  function tieneAcceso() { const h = accesoHasta(); return !!h && h > new Date(); }
+  // Las cuentas de administrador están siempre activas (sin prueba ni pago)
+  const esAdmin = () => !!(E.perfil && E.perfil.es_admin);
+  function tieneAcceso() { if (esAdmin()) return true; const h = accesoHasta(); return !!h && h > new Date(); }
   function diasRestantes() { const h = accesoHasta(); return h ? Math.ceil((h - new Date()) / 864e5) : 0; }
   const pagado = () => E.perfil && E.perfil.pagado_hasta && new Date(E.perfil.pagado_hasta) > new Date();
   function iconoEspacio(tipo) { return tipo === 'familia' ? IC.familia : tipo === 'empresa' ? IC.empresa : IC.persona; }
@@ -516,6 +518,7 @@
   function avisosAcceso() {
     const p = E.pagoActual;
     if (p && p.estado === 'pendiente') return `<p class="aviso-fijo revision">${IC.sobre}<span>${textoRevision()}</span></p>`;
+    if (esAdmin()) return '';
     if (!tieneAcceso()) return `<div class="aviso-fijo vencido"><span>Tu prueba gratis terminó. Tus datos siguen aquí; para seguir anotando, activa MiPlata por <b>S/ 5 al mes</b>.</span><button type="button" class="btn mini" data-ir="activar">Activar</button></div>`;
     if (!pagado() && diasRestantes() <= 7) return `<div class="aviso-fijo"><span>Te ${diasRestantes() === 1 ? 'queda 1 día' : 'quedan ' + diasRestantes() + ' días'} de prueba gratis.</span><button type="button" class="btn mini" data-ir="activar">Activar</button></div>`;
     return '';
@@ -2003,7 +2006,8 @@
   // ---------------- Cuenta ----------------
   function vistaCuenta() {
     const p = E.perfil, hasta = accesoHasta();
-    const estado = pagado() ? 'Activa hasta el ' + fechaLarga(p.pagado_hasta)
+    const estado = esAdmin() ? 'Administrador: siempre activa'
+      : pagado() ? 'Activa hasta el ' + fechaLarga(p.pagado_hasta)
       : tieneAcceso() ? 'Prueba gratis hasta el ' + fechaLarga(hasta) + ' (' + diasRestantes() + (diasRestantes() === 1 ? ' día)' : ' días)')
       : 'Tu prueba terminó el ' + fechaLarga(hasta);
     const tema = (() => { try { return localStorage.getItem('miplata.tema') || p.tema || 'auto'; } catch (e) { return p.tema || 'auto'; } })();
@@ -2013,7 +2017,7 @@
       <div class="tarjeta"><div class="dato"><span>Correo</span>${esc(p.correo || '')}</div>
       ${p.telefono ? `<div class="dato"><span>Celular</span>${esc(p.telefono)}</div>` : ''}
       <div class="dato"><span>Tu cuenta</span><b style="text-align:right">${esc(estado)}</b></div></div>
-      ${C.FLAGS.pagos ? (pend
+      ${C.FLAGS.pagos && !esAdmin() ? (pend
         ? `<p class="aviso-fijo revision">${IC.sobre}<span>${textoRevision()}</span></p>`
         : pagado() ? (diasRestantes() <= 30
           ? `<button type="button" class="tarjeta-activar" data-ir="activar">
