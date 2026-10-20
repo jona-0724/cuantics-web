@@ -2,7 +2,7 @@
    - Guarda la "cáscara" de la app (HTML, estilos, scripts, íconos) para abrir rápido y sin señal.
    - Los datos (Supabase) y las Edge Functions NUNCA se guardan en caché: siempre van a la red.
    - Cambiar VERSION en cada publicación para que los celulares tomen la versión nueva. */
-const VERSION = 'miplata-v1-2026-10-20b';
+const VERSION = 'miplata-v1-2026-10-20c';
 const CASCARA = [
   './', './index.html', './estilo.css', './estilo-v1.css', './config.js', './jerga.js', './interprete.js', './app.js',
   './manifest.webmanifest', './icons/icono-192.png', './icons/icono-512.png', './icons/favicon-32.png',

@@ -2046,10 +2046,9 @@
   function tarjetaInstalar() {
     if (instalada() || E.demo) return '';
     try { const t = Number(localStorage.getItem(INSTALAR_KEY) || 0); if (t && Date.now() - t < 14 * 864e5) return ''; } catch (e) {}
-    const movil = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
     return `<div class="tarjeta-instalar" id="t-instalar">
-      <span class="ti-ico" aria-hidden="true">${movil ? svg('<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/>') : svg('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M12 7v5M9.5 9.5 12 12l2.5-2.5"/>')}</span>
-      <span class="ti-txt"><b>Ten MiPlata a un toque</b><small>Instálala en tu ${movil ? 'celular' : 'compu'}: se abre como app.</small></span>
+      <span class="ti-ico" aria-hidden="true">${svg('<path d="M12 3v12M7 10l5 5 5-5M5 20h14"/>')}</span>
+      <span class="ti-txt"><b>Ten MiPlata a un toque</b><small>Instálala y ábrela desde tu pantalla, como cualquier app.</small></span>
       <button type="button" class="btn mini" id="ti-si">Instalar</button>
       <button type="button" class="ti-cerrar" id="ti-no" aria-label="Ahora no">${svg('<path d="M6 6l12 12M18 6 6 18"/>', 'width="18" height="18" stroke-width="2.4"')}</button>
     </div>`;
