@@ -486,6 +486,28 @@
   };
   const NOMBRES = { movimientos: 'Movimientos', resumen: 'Resumen', espacio: 'Espacio', cuenta: 'Cuenta' };
 
+  // Celular: mientras escribes, la barra de anotar se pega encima del teclado y se ocultan las pestañas.
+  // Android (con interactive-widget) encoge la página solo; en iPhone medimos el teclado con visualViewport.
+  const tactil = matchMedia('(pointer: coarse)').matches;
+  function medirTeclado() {
+    const v = window.visualViewport; if (!v) return;
+    const alto = Math.max(0, Math.round(window.innerHeight - v.height - v.offsetTop));
+    document.documentElement.style.setProperty('--teclado', (alto > 80 ? alto : 0) + 'px');
+  }
+  if (tactil) {
+    document.addEventListener('focusin', e => {
+      if (e.target.id !== 't-reg') return;
+      document.documentElement.classList.add('escribiendo'); medirTeclado();
+      setTimeout(() => { medirTeclado(); e.target.scrollIntoView({ block: 'nearest' }); }, 320);
+    });
+    document.addEventListener('focusout', e => {
+      if (e.target.id !== 't-reg') return;
+      setTimeout(() => { if (document.activeElement && document.activeElement.id === 't-reg') return;
+        document.documentElement.classList.remove('escribiendo'); document.documentElement.style.setProperty('--teclado', '0px'); }, 120);
+    });
+    if (window.visualViewport) { visualViewport.addEventListener('resize', medirTeclado); visualViewport.addEventListener('scroll', medirTeclado); }
+  }
+
   function principal() {
     const pest = E.pestana === 'activar' || E.pestana === 'admin' ? 'cuenta' : E.pestana;
     $app.innerHTML = `<main class="pantalla" id="contenido"></main>
@@ -1718,23 +1740,19 @@
             <button type="button" data-per="mes" aria-pressed="${periodo === 'mes'}">${nomMes.replace(/^./, c => c.toUpperCase())} ${anio}</button>
             <button type="button" data-per="anio" aria-pressed="${periodo === 'anio'}">Todo ${anio}</button></div></div>
           <div id="x-msg" role="status" aria-live="polite"></div>
-          <button type="button" class="btn" id="x-bajar">${esExcel ? 'Descargar Excel' : 'Abrir PDF para guardar o imprimir'}</button>`;
+          <button type="button" class="btn" id="x-bajar">${esExcel ? 'Descargar Excel' : 'Ver reporte'}</button>`;
         hoja.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { periodo = b.dataset.per; pintar(); });
         hoja.querySelector('#x-bajar').onclick = async ev => {
           ev.target.disabled = true; ev.target.textContent = 'Preparando…';
-          const ventana = formato === 'pdf' ? window.open('', '_blank') : null; // en el mismo toque, para que no la bloqueen
           try {
-            if (formato === 'pdf' && !ventana) throw new Error('Tu navegador bloqueó la ventana. Permite ventanas emergentes para MiPlata y vuelve a intentar.');
-            if (ventana) ventana.document.write('<p style="font:16px Arial;margin:30px">Preparando tu PDF…</p>');
             const desde = periodo === 'mes' ? E.mes : new Date(anio, 0, 1);
             const hasta = periodo === 'mes' ? new Date(anio, E.mes.getMonth() + 1, 0) : new Date(anio, 11, 31);
             const movs = await movimientosRango(desde, hasta);
             if (!movs.length) throw new Error('No hay movimientos en ese periodo.');
             const titulo = periodo === 'mes' ? `${nomMes} ${anio}` : `año ${anio}`;
-            if (formato === 'excel') await exportarExcel(movs, titulo); else exportarPdf(movs, titulo, ventana, { desde, hasta, periodo });
-            cerrar(); if (formato === 'excel') toast('Excel descargado');
+            if (formato === 'excel') { await exportarExcel(movs, titulo); cerrar(); toast('Excel descargado'); }
+            else { const html = exportarPdf(movs, titulo, { desde, hasta, periodo }); cerrar(); visorPdf(html, titulo); }
           } catch (e) {
-            if (ventana) ventana.close();
             ev.target.disabled = false; pintar();
             hoja.querySelector('#x-msg').innerHTML = `<p class="mensaje error">${esc(errorEs(e))}</p>`;
           }
@@ -1794,7 +1812,7 @@
   }
 
   // Reporte PDF: página HTML imprimible (A4) con gráficos SVG propios, sin librerías.
-  function exportarPdf(movs, titulo, w, rango) {
+  function exportarPdf(movs, titulo, rango) {
     const gastos = movs.filter(m => m.tipo === 'gasto'), ingresos = movs.filter(m => m.tipo === 'ingreso');
     const g = gastos.reduce((s, m) => s + Number(m.monto), 0), i = ingresos.reduce((s, m) => s + Number(m.monto), 0);
     const espacio = espacioActual().nombre, Titulo = titulo.replace(/^./, c => c.toUpperCase());
@@ -1905,8 +1923,7 @@
     }).join('');
 
     const logoSvg = LOGO_SVG.replace('<svg ', '<svg width="38" height="38" ');
-    w.document.open();
-    w.document.write(`<!doctype html><html lang="es-PE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    return `<!doctype html><html lang="es-PE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
       <title>MiPlata - ${esc(espacio)} - ${esc(Titulo)}</title>
       <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
@@ -1971,7 +1988,7 @@
         @media print{html{background:#fff}.barra-imp{display:none}.hoja{margin:0;box-shadow:none;width:auto;min-height:0}}
         @media screen and (max-width:820px){.hoja{width:auto;margin:0;min-height:0}.heroe,.cats,.dos{grid-template-columns:1fr}}
       </style></head><body>
-      <div class="barra-imp"><span>En la ventana de impresión elige <b>Guardar como PDF</b>.</span><button type="button" onclick="print()">Guardar o imprimir</button></div>
+      
       <div class="hoja">
         <header class="cab"><div class="marca">${logoSvg}<b>Mi<span>Plata</span></b></div>
           <div class="cab-der"><small>Reporte de gastos e ingresos</small><h1>${esc(espacio)}</h1><p>${esc(Titulo)}</p></div></header>
@@ -1999,8 +2016,40 @@
         </div>
         <footer class="pie"><span>Generado con MiPlata el ${new Date().toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' })}</span><span>cuantics.pe/miplata</span></footer>
       </div>
-      ${E.demo ? '' : '<script>window.onload=()=>(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>setTimeout(()=>window.print(),250))<\/script>'}</body></html>`);
-    w.document.close();
+      <script>
+        // En pantallas angostas la hoja A4 se achica para verse completa (al imprimir sale en tamaño real)
+        function ajustar() { const a = document.documentElement.clientWidth - 24; document.body.style.zoom = a < 794 ? (a / 794).toFixed(3) : ''; }
+        ajustar(); addEventListener('resize', ajustar);
+        matchMedia('print').addEventListener('change', e => { if (e.matches) document.body.style.zoom = ''; else ajustar(); });
+        addEventListener('beforeprint', () => { document.body.style.zoom = ''; }); addEventListener('afterprint', ajustar);
+      <\/script></body></html>`;
+  }
+
+  // Visor del reporte: la hoja sobre la mesa verde, con "Guardar como PDF" abajo, al alcance del pulgar
+  function visorPdf(html, titulo) {
+    const v = document.createElement('div');
+    v.className = 'visor-pdf'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-modal', 'true'); v.setAttribute('aria-label', 'Reporte ' + titulo);
+    v.innerHTML = `<header class="vp-cab">
+        <button type="button" class="vp-volver" aria-label="Volver">${svg('<path d="M15 5l-7 7 7 7"/>', 'width="22" height="22" stroke-width="2.4"')}</button>
+        <div><b>Tu reporte</b><small>${esc(espacioActual().nombre)}, ${esc(titulo)}</small></div></header>
+      <div class="vp-mesa"><p class="vp-cargando">Armando tu reporte…</p><iframe title="Reporte ${esc(titulo)}"></iframe></div>
+      <footer class="vp-pie">
+        <button type="button" class="btn" id="vp-guardar">${svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>')}Guardar como PDF</button>
+        <p>Se abre la ventana de impresión. Elige <b>Guardar como PDF</b> y listo.</p></footer>`;
+    document.body.appendChild(v);
+    document.documentElement.classList.add('con-visor');
+    const fr = v.querySelector('iframe');
+    fr.onload = () => v.classList.add('listo');
+    fr.srcdoc = html;
+    const cerrarVisor = () => { v.remove(); document.documentElement.classList.remove('con-visor'); document.removeEventListener('keydown', tecla); };
+    const tecla = e => { if (e.key === 'Escape') cerrarVisor(); };
+    document.addEventListener('keydown', tecla);
+    v.querySelector('.vp-volver').onclick = cerrarVisor;
+    v.querySelector('#vp-guardar').onclick = () => {
+      try { fr.contentWindow.focus(); fr.contentWindow.print(); }
+      catch (e) { toast('No se pudo abrir la ventana de impresión. Prueba desde Chrome o Safari.', null, true); }
+    };
+    v.querySelector('.vp-volver').focus();
   }
 
   // ---------------- Cuenta ----------------

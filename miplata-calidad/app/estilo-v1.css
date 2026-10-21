@@ -418,3 +418,31 @@ a.btn{text-decoration:none}
 
 /* Cinta del ambiente de calidad (no aparece en producción) */
 .cinta-calidad{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:60;background:#F5C542;color:#3A2A00;font:700 12px var(--f-texto);padding:4px 14px;border-radius:0 0 10px 10px;pointer-events:none}
+
+/* ---------- Celular escribiendo: la barra de anotar va pegada encima del teclado ---------- */
+@media (pointer:coarse) and (max-width:1023px){
+  html.escribiendo .pestanas{display:none}
+  html.escribiendo .zona-voz{bottom:calc(var(--teclado,0px) + 8px);margin-bottom:8px;border-color:var(--menta);
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--menta) 22%,transparent),var(--sombra)}
+  html.escribiendo .mic-usado,html.escribiendo .tarjeta-instalar{display:none}
+}
+
+/* ---------- Visor del reporte PDF: la hoja sobre la mesa verde ---------- */
+.visor-pdf{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;background:#0A3324;color:#F1F5EF;animation:vp-entra .22s ease-out}
+@keyframes vp-entra{from{opacity:0;transform:translateY(14px)}}
+@media (prefers-reduced-motion:reduce){.visor-pdf{animation:none}}
+html.con-visor{overflow:hidden}
+.vp-cab{display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.vp-cab b{display:block;font:700 17px/1.2 var(--f-display)}
+.vp-cab small{display:block;font-size:13px;color:#A9C3B4}
+.vp-volver{width:42px;height:42px;flex:none;border-radius:50%;display:grid;place-items:center;color:#F1F5EF;background:#0F4A33;border:1px solid #1E5C43}
+.vp-mesa{position:relative;flex:1;min-height:0;margin:0 12px;border-radius:18px;overflow:hidden;background:#E9F1EC;box-shadow:inset 0 0 0 1px #1E5C43}
+.vp-mesa iframe{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .2s}
+.visor-pdf.listo iframe{opacity:1}
+.visor-pdf.listo .vp-cargando{display:none}
+.vp-cargando{position:absolute;inset:0;display:grid;place-items:center;color:#557566;font:600 15px var(--f-texto)}
+.vp-pie{padding:14px 16px calc(14px + env(safe-area-inset-bottom));display:grid;gap:8px;justify-items:center}
+.vp-pie .btn{max-width:420px;background:#3DD68C;color:#06291B}
+.vp-pie p{font-size:13px;color:#A9C3B4;text-align:center}
+.vp-pie p b{color:#F1F5EF}
+@media (min-width:1024px){.vp-mesa{margin:0 auto;width:min(900px,calc(100% - 48px))}}
