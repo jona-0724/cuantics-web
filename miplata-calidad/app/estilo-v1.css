@@ -446,3 +446,26 @@ html.con-visor{overflow:hidden}
 .vp-pie p{font-size:13px;color:#A9C3B4;text-align:center}
 .vp-pie p b{color:#F1F5EF}
 @media (min-width:1024px){.vp-mesa{margin:0 auto;width:min(900px,calc(100% - 48px))}}
+
+/* ---------- Panel: usuarios ---------- */
+.filtro-us{margin:4px 0 12px}
+.filtro-us .chip{font-size:14px;padding:7px 12px}
+.filtro-us .chip b{margin-left:4px;opacity:.75}
+.lista-us{display:flex;flex-direction:column;gap:10px}
+.us{background:var(--superficie);border:1px solid var(--linea);border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.us.interna{opacity:.72;border-style:dashed}
+.us-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.us-cab b{font:700 17px/1.3 var(--f-display);overflow-wrap:anywhere}
+.us-correo{color:var(--tinta-suave);font-size:14px;overflow-wrap:anywhere}
+.us-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;border:1px dashed var(--tinta-suave);font-size:12px}
+.us-estado{flex:none;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.us-estado.prueba{background:color-mix(in srgb,var(--oro) 26%,transparent);color:var(--tinta)}
+.us-estado.pago{background:color-mix(in srgb,var(--menta) 22%,transparent);color:var(--primario-texto)}
+.us-estado.vencido{background:color-mix(in srgb,var(--rosado) 18%,transparent);color:var(--rosado)}
+.us-estado.admin{background:color-mix(in srgb,var(--azul) 18%,transparent);color:var(--azul)}
+.us-datos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;padding-top:10px;border-top:1px solid var(--linea)}
+.us-datos dt{font-size:12px;color:var(--tinta-suave)}
+.us-datos dd{font-size:14px;font-weight:600}
+.us-datos dd.nada{color:var(--rosado)}
+.us-interna{align-self:flex-start;font-size:13.5px;margin-top:2px}
+@media (max-width:380px){.us-datos{grid-template-columns:1fr 1fr}}

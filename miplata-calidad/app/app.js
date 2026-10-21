@@ -2278,12 +2278,69 @@
   }
 
   // ---------------- Panel Admin ----------------
+  // ---- Panel: lista de usuarios ----
+  let filtroUs = 'todos';
+  function haceCuanto(d) {
+    if (!d) return null;
+    const min = Math.round((Date.now() - new Date(d)) / 6e4);
+    if (min < 60) return min <= 1 ? 'hace un momento' : 'hace ' + min + ' min';
+    const h = Math.round(min / 60); if (h < 24) return 'hace ' + h + (h === 1 ? ' hora' : ' horas');
+    const dd = Math.round(h / 24); if (dd === 1) return 'ayer'; if (dd < 30) return 'hace ' + dd + ' días';
+    return 'el ' + fechaCorta(d);
+  }
+  function fechaCorta(d) { d = new Date(d); return d.getDate() + ' ' + MESES[d.getMonth()].slice(0, 3) + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : ''); }
+  function estadoUsuario(u) {
+    const ahora = new Date();
+    if (u.es_admin) return { k: 'admin', t: 'Admin' };
+    if (u.pagado_hasta && new Date(u.pagado_hasta) > ahora) return { k: 'pago', t: 'Pagó hasta el ' + fechaCorta(u.pagado_hasta) };
+    if (new Date(u.prueba_hasta) > ahora) { const d = Math.ceil((new Date(u.prueba_hasta) - ahora) / 864e5); return { k: 'prueba', t: 'Prueba, ' + (d === 1 ? 'queda 1 día' : 'quedan ' + d + ' días') }; }
+    return { k: 'vencido', t: 'Vencida' };
+  }
+  function pintarUsuarios(usuarios) {
+    const sinUso = u => !u.ultimo_movimiento || Date.now() - new Date(u.ultimo_movimiento) > 7 * 864e5;
+    const reales = usuarios.filter(u => !u.es_interna && !u.es_admin);
+    const FILTROS = {
+      todos:   { t: 'Todos', f: u => !u.es_interna && !u.es_admin },
+      prueba:  { t: 'En prueba', f: u => reales.includes(u) && estadoUsuario(u).k === 'prueba' },
+      pago:    { t: 'Pagaron', f: u => reales.includes(u) && estadoUsuario(u).k === 'pago' },
+      vencido: { t: 'Vencidos', f: u => reales.includes(u) && estadoUsuario(u).k === 'vencido' },
+      sinuso:  { t: 'Sin uso en 7 días', f: u => reales.includes(u) && sinUso(u) },
+      internas:{ t: 'Internas', f: u => u.es_interna || u.es_admin }
+    };
+    const $f = document.querySelector('.filtro-us'), $l = document.getElementById('lista-us');
+    if (!$f || !$l) return;
+    $f.innerHTML = Object.entries(FILTROS).map(([k, x]) => `<button type="button" class="chip" data-fus="${k}" aria-pressed="${filtroUs === k}">${x.t} <b class="cifra">${usuarios.filter(x.f).length}</b></button>`).join('');
+    const lista = usuarios.filter(FILTROS[filtroUs].f);
+    $l.innerHTML = lista.length ? lista.map(u => {
+      const e = estadoUsuario(u), ult = haceCuanto(u.ultimo_movimiento);
+      return `<article class="us${u.es_interna ? ' interna' : ''}">
+        <div class="us-cab"><b>${esc(u.nombre || 'Sin nombre')}</b><span class="us-estado ${e.k}">${esc(e.t)}</span></div>
+        <p class="us-correo">${esc(u.correo || '')}${u.es_interna ? ' <span class="us-tag">Interna</span>' : ''}</p>
+        <dl class="us-datos">
+          <div><dt>Se registró</dt><dd>${fechaCorta(u.creado_en)}</dd></div>
+          <div><dt>Último anotado</dt><dd class="${ult ? '' : 'nada'}">${ult || 'Aún no anota'}</dd></div>
+          <div><dt>Esta semana</dt><dd>${Number(u.movs_7d)} ${Number(u.movs_7d) === 1 ? 'anotado' : 'anotados'}${Number(u.voz_7d) ? `, ${u.voz_7d} por voz` : ''}</dd></div>
+        </dl>
+        ${u.es_admin ? '' : `<button type="button" class="enlace us-interna" data-interna="${u.id}" data-valor="${!u.es_interna}">${u.es_interna ? 'Volver a contarla como usuario real' : 'Marcar como cuenta interna'}</button>`}
+      </article>`;
+    }).join('') : `<p class="vacio"><b>Nadie en este grupo</b>${filtroUs === 'sinuso' ? 'Todos anotaron algo en los últimos 7 días.' : 'Prueba con otro filtro.'}</p>`;
+    $f.querySelectorAll('[data-fus]').forEach(b => b.onclick = () => { filtroUs = b.dataset.fus; pintarUsuarios(usuarios); });
+    $l.querySelectorAll('[data-interna]').forEach(b => b.onclick = async () => {
+      b.disabled = true;
+      const valor = b.dataset.valor === 'true';
+      const { error } = await sb.rpc('marcar_interna', { p_usuario: b.dataset.interna, p_valor: valor });
+      if (error) { b.disabled = false; return toast(esc(errorEs(error)), null, true); }
+      toast(valor ? 'Marcada como cuenta interna. Ya no cuenta en los números.' : 'Vuelve a contar como usuario real.');
+      await vistaAdmin(); const h = document.getElementById('usuarios'); if (h) h.scrollIntoView({ block: 'start' });
+    });
+  }
+
   async function vistaAdmin() {
     const $c = document.getElementById('contenido');
     if (!E.perfil.es_admin) return irA('cuenta');
     $c.innerHTML = '<div class="cargando">Cargando panel…</div>';
-    const [k, p] = await Promise.all([sb.rpc('kpis_admin'), sb.rpc('pagos_pendientes')]);
-    const K = k.data || {}, pend = p.data || [];
+    const [k, p, us] = await Promise.all([sb.rpc('kpis_admin'), sb.rpc('pagos_pendientes'), sb.rpc('usuarios_admin')]);
+    const K = k.data || {}, pend = p.data || [], usuarios = us.data || [];
     const fotos = {};
     await Promise.all(pend.filter(x => x.captura_path).map(async x => {
       const r = await sb.storage.from('pagos').createSignedUrl(x.captura_path, 600); fotos[x.id] = r.data && r.data.signedUrl;
@@ -2294,7 +2351,8 @@
       <section class="seccion">
         <h1>Administración</h1>
         <div class="kpis-admin">
-          ${kpi(K.pagos_pendientes ?? 0, 'pagos por revisar')}${kpi(K.suscriptores ?? 0, 'cuentas activas')}
+          ${kpi(K.usuarios_total ?? 0, 'usuarios reales')}${kpi(K.usuarios_activos_semana ?? 0, 'anotaron esta semana')}
+          ${kpi(K.pagos_pendientes ?? 0, 'pagos por revisar')}${kpi(K.suscriptores ?? 0, 'cuentas pagadas')}
           ${kpi(K.en_prueba ?? 0, 'en prueba')}${kpi('S/ ' + soles(K.ingresos_mes), 'ingresos del mes')}
           ${kpi((K.lanzamiento_usados ?? 0) + ' / ' + (K.cupo_lanzamiento ?? 0), 'cupos de lanzamiento')}${kpi(K.grupos ?? 0, 'grupos')}
           ${kpi((K.conversion_pct ?? 0) + '%', 'de prueba a pago')}${kpi(K.correos_con_error ?? 0, 'correos con error')}
@@ -2308,7 +2366,12 @@
           ${fotos[x.id] ? `<a href="${fotos[x.id]}" target="_blank" rel="noopener"><img src="${fotos[x.id]}" alt="Comprobante de ${esc(x.nombre)}" class="pa-foto"></a>` : ''}
           <div class="dos"><button type="button" class="btn" data-aprobar="${x.id}">Aprobar y habilitar</button><button type="button" class="btn peligro" data-rechazar="${x.id}">Rechazar</button></div>
         </div>`).join('') : '<p class="vacio"><b>No hay pagos por revisar</b>Cuando alguien envíe su comprobante, te llegará un correo y aparecerá aquí.</p>'}
+        <h2 id="usuarios">Usuarios</h2>
+        <p class="nota">Las cuentas internas (las tuyas de prueba) no cuentan en los números de arriba. Aquí solo ves cuánto usan MiPlata, nunca sus montos.</p>
+        <div class="chips filtro-us" role="group" aria-label="Filtrar usuarios"></div>
+        <div class="lista-us" id="lista-us"></div>
       </section>`;
+    pintarUsuarios(usuarios);
     $c.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => irA(b.dataset.ir));
     $c.querySelectorAll('[data-aprobar]').forEach(b => b.onclick = async () => {
       b.disabled = true;
@@ -2372,16 +2435,25 @@
       E.mes = inicioMes(new Date()); principal();
     };
     cargarMovs = async () => { E.movs = E.demoMovs.filter(m => m.espacio_id === E.espacio && m.fecha.slice(0, 7) === iso(E.mes).slice(0, 7)); E.movsMes = iso(E.mes); };
-    const vistaAdminReal = vistaAdmin;
-    vistaAdmin = async () => {
-      document.getElementById('contenido').innerHTML = `<div class="barra-sup"><button type="button" class="flecha" data-ir="cuenta" aria-label="Volver">${svg('<path d="M15 5l-7 7 7 7"/>', 'width="20" height="20" stroke-width="2.4"')}</button>${logo(34, 22)}</div>
-        <section class="seccion"><h1>Administración</h1><div class="kpis-admin">${[['2', 'pagos por revisar'], ['37', 'cuentas activas'], ['112', 'en prueba'], ['S/ 1,380.00', 'ingresos del mes'], ['37 / 300', 'cupos de lanzamiento'], ['9', 'grupos'], ['24.8%', 'de prueba a pago'], ['0', 'correos con error']].map(([n, t]) => `<div class="kpi"><b class="cifra">${n}</b><small>${t}</small></div>`).join('')}</div>
-        <h2>Pagos por revisar</h2><p class="nota">Antes de aprobar, verifica en tu app de Plin que entró el pago con ese monto y número de operación.</p>
-        <div class="pago-admin"><div class="pa-cab"><b>Rosa Quispe</b><span class="cifra">S/ 60.00</span></div><p class="det">rosa@correo.com, hoy 10:42</p><p>Operación: <b class="cifra">00123456</b></p>
-        <div class="dos"><button type="button" class="btn">Aprobar y habilitar</button><button type="button" class="btn peligro">Rechazar</button></div></div></section>`;
-      document.querySelectorAll('#contenido [data-ir]').forEach(b => b.onclick = () => irA(b.dataset.ir));
+    // Panel de administración de demo: el panel real con datos de ejemplo
+    const hace = n => new Date(Date.now() - n * 864e5).toISOString();
+    const DEMO_RPC = {
+      kpis_admin: { usuarios_total: 112, usuarios_activos_semana: 68, pagos_pendientes: 1, suscriptores: 37, en_prueba: 64, ingresos_mes: 1380, lanzamiento_usados: 37, cupo_lanzamiento: 300, grupos: 9, conversion_pct: 24.8, correos_con_error: 0 },
+      pagos_pendientes: [{ id: 'pg-1', nombre: 'Rosa Quispe', correo: 'rosa@correo.com', monto: 60, nro_operacion: '00123456', captura_path: null, creado_en: hace(0.1) }],
+      usuarios_admin: [
+        { id: 'u1', nombre: 'Rosa Quispe', correo: 'rosa@correo.com', creado_en: hace(12), prueba_hasta: hace(-18), pagado_hasta: null, es_admin: false, es_interna: false, ultimo_movimiento: hace(0.05), movs_7d: 14, voz_7d: 9 },
+        { id: 'u2', nombre: 'Carlos Huamán', correo: 'carlos.h@correo.com', creado_en: hace(40), prueba_hasta: hace(10), pagado_hasta: hace(-325), es_admin: false, es_interna: false, ultimo_movimiento: hace(1), movs_7d: 6, voz_7d: 0 },
+        { id: 'u3', nombre: 'Lucía Mendoza', correo: 'lucia.m@correo.com', creado_en: hace(2), prueba_hasta: hace(-28), pagado_hasta: null, es_admin: false, es_interna: false, ultimo_movimiento: null, movs_7d: 0, voz_7d: 0 },
+        { id: 'u4', nombre: 'Pedro Salas', correo: 'psalas@correo.com', creado_en: hace(45), prueba_hasta: hace(15), pagado_hasta: null, es_admin: false, es_interna: false, ultimo_movimiento: hace(16), movs_7d: 0, voz_7d: 0 },
+        { id: 'u5', nombre: 'Cuenta de prueba', correo: 'prueba@miplata.test', creado_en: hace(20), prueba_hasta: hace(-10), pagado_hasta: null, es_admin: false, es_interna: true, ultimo_movimiento: hace(3), movs_7d: 2, voz_7d: 1 },
+        { id: 'u6', nombre: 'Cliente de prueba', correo: 'demo@miplata.test', creado_en: hace(60), prueba_hasta: hace(30), pagado_hasta: null, es_admin: true, es_interna: false, ultimo_movimiento: hace(0.2), movs_7d: 11, voz_7d: 5 }]
     };
-    void vistaAdminReal;
+    const rpcReal = sb.rpc.bind(sb);
+    sb.rpc = (n, a) => {
+      if (n === 'marcar_interna') { const u = DEMO_RPC.usuarios_admin.find(x => x.id === a.p_usuario); if (u) u.es_interna = a.p_valor; return Promise.resolve({ data: null, error: null }); }
+      if (n === 'aprobar_pago' || n === 'rechazar_pago') { DEMO_RPC.pagos_pendientes = []; return Promise.resolve({ data: null, error: null }); }
+      return n in DEMO_RPC ? Promise.resolve({ data: DEMO_RPC[n], error: null }) : rpcReal(n, a);
+    };
     E.pagoActual = null;
     demoCambiar('e-pers');
     if (/onboarding/.test(location.search)) onboarding();
