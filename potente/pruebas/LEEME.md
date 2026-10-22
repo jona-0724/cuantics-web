@@ -1,9 +1,9 @@
-# Pruebas de la web de feria
+# Pruebas de la web de Potente
 
-Estas pruebas abren la página real en un navegador de verdad y la usan como la usaría
+Estas pruebas abren las páginas reales en un navegador de verdad y las usan como las usaría
 alguien en el stand: tocan botones, llenan casillas, cobran, corrigen y anulan. No tocan
-la base de datos real: `falso_feria.js` se pone en lugar de la librería de Supabase y
-responde con datos inventados.
+la base de datos real: `falso_feria.js` (página de feria) y `falso_equipo.js` (plataforma
+del equipo) se ponen en lugar de la librería de Supabase y responden con datos inventados.
 
 ## Correrlas
 
@@ -11,7 +11,7 @@ Hace falta Node y Playwright con Chromium. Desde esta carpeta:
 
     node correr_pruebas.mjs
 
-Levanta un servidor en el puerto 8770, corre las seis suites y resume al final. Para correr
+Levanta un servidor en el puerto 8770, corre las siete suites y resume al final. Para correr
 una sola, primero levanta el servidor (`npx http-server -p 8770 .` o equivalente) y luego:
 
     node prueba_carta.mjs
@@ -33,8 +33,16 @@ chromium`, o apunta `node_modules` a una instalación que ya tengas.
 | `prueba_feria.mjs` | Regresión de la caída en plena feria: un medio de pago desconocido o nulo no puede tumbar la cola de cocina. |
 | `prueba_entregados.mjs` | Lo que cocina ya despachó: ticket, cliente, qué llevaba, horas, minutos, sin montos, y poder devolver a "listos" lo entregado por error. |
 | `prueba_inventario.mjs` | El inventario de cierre: llenar, guardar, que el borrador sobreviva a una recarga, completar una feria pasada día por día, y que el administrador lo vea en Ventas. |
+| `prueba_turnos.mjs` | **Plataforma del equipo.** Armar los turnos de una feria de tres días: que la tabla no quepa en pantalla, y que al asignar a alguien la barra horizontal NO vuelva a la izquierda. Nació de eso exactamente. También: reemplazar a una persona sin duplicar, vaciar una casilla, y "Mostrar a todo el equipo". |
 
-## El doble de Supabase
+## Los dobles de Supabase
+
+Hay dos, uno por página. `falso_equipo.js` cubre la plataforma del equipo: perfiles,
+ferias, bloques, disponibilidad, asignaciones y envíos, con `insert`, `update`, `upsert` y
+`delete` de verdad, porque esa página sí escribe directo en las tablas. Su feria de prueba
+dura tres días a propósito: así la tabla de turnos no entra en pantalla y aparece la barra
+horizontal, que es donde vivían los problemas. `window.__E` deja los datos y el registro de
+escrituras a la vista.
 
 `falso_feria.js` imita lo que la página usa de verdad: `auth`, el constructor de consultas
 (`select/eq/neq/in/order/single/maybeSingle/update`) y las funciones (`rpc`). Respeta las
@@ -58,5 +66,6 @@ comprobar no solo lo que se ve en pantalla, sino lo que de verdad viajó a la ba
 
 Primero mira si el fallo es de la página o de la prueba. Varias comprobaciones dependen de
 los datos de prueba (cuántos pedidos hay, qué día es): si cambias el fixture, hay que
-ajustar los números. Un fallo en `prueba_feria` o en `prueba_cambiar`, en cambio, casi
-siempre es un error de verdad: esas dos nacieron de fallas que llegaron a producción.
+ajustar los números. Un fallo en `prueba_feria`, `prueba_cambiar` o
+`prueba_turnos`, en cambio, casi siempre es un error de verdad: esas tres nacieron de
+fallas que llegaron a producción.
