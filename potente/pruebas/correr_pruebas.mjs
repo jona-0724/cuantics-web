@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* correr_pruebas.mjs — corre todas las suites de la web de feria.
+/* correr_pruebas.mjs — corre todas las suites de la web de Potente.
    Levanta el servidor estático, ejecuta cada suite y resume. */
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -29,7 +29,8 @@ const SUITES = [
   ['prueba_cambiar.mjs',    'Línea del pedido: − / +, Salsas, Cambiar y Quitar'],
   ['prueba_feria.mjs',      'Cocina: un medio de pago raro no tumba la pantalla'],
   ['prueba_entregados.mjs', 'Cocina: lo que ya se despachó hoy'],
-  ['prueba_inventario.mjs', 'Inventario de cierre, por día y por feria']
+  ['prueba_inventario.mjs', 'Inventario de cierre, por día y por feria'],
+  ['prueba_turnos.mjs',     'Equipo: armar los turnos sin perder el desplazamiento']
 ];
 
 await new Promise(r => servidor.listen(PUERTO, r));

@@ -1929,8 +1929,16 @@ async function cambiarMarcaAjena(perfil_id, bloque_id){
    Es la misma forma que el cuadro que el equipo ya usa en papel, para que
    nadie tenga que reaprender a leerlo.
    ========================================================================== */
-function pintarTurnos(){
-  const cont = $('#listaTurnos'); cont.innerHTML = ''
+/* Al asignar a alguien se vuelve a dibujar toda la tabla, así que el marco
+   con la barra horizontal es uno nuevo y el desplazamiento volvía a la
+   izquierda: con una feria de tres días había que arrastrar otra vez hasta el
+   domingo después de CADA persona. Se guarda dónde estaba la barra y a qué
+   casilla hay que devolver el foco, y se repone al terminar. */
+function pintarTurnos(foco){
+  const cont = $('#listaTurnos')
+  const marcoPrevio = cont.querySelector('.scroll-x')
+  const desplazado = marcoPrevio ? marcoPrevio.scrollLeft : 0
+  cont.innerHTML = ''
   if (!cacheBloques.length) { cont.innerHTML = `<div class="vacio">Esta feria no tiene bloques.</div>`; return }
 
   const maxCupos = Math.max(...cacheBloques.map(b => b.personas_necesarias))
@@ -1970,6 +1978,13 @@ function pintarTurnos(){
   const marco = document.createElement('div'); marco.className = 'scroll-x'
   marco.appendChild(tabla)
   cont.appendChild(marco)
+  // Primero la barra donde estaba; después el foco, que si no el navegador
+  // desplaza solo hasta la casilla enfocada y deshace lo anterior.
+  if (desplazado) marco.scrollLeft = desplazado
+  if (foco) {
+    const sel = marco.querySelector(`select[data-cupo="${foco}"]`)
+    if (sel && !sel.disabled) sel.focus({ preventScroll: true })
+  }
 
   // ---------- leyenda ----------
   const ley = document.createElement('div'); ley.className = 'leyenda'
@@ -2049,6 +2064,7 @@ function celdaCupo(b, i){
      (actual && actual.perfil_id === p.id)))
 
   const sel = document.createElement('select')
+  sel.dataset.cupo = b.id + ':' + i
   const vacio = document.createElement('option')
   vacio.value = ''; vacio.textContent = '—'
   sel.appendChild(vacio)
@@ -2089,7 +2105,7 @@ function celdaCupo(b, i){
       })
     }
     await recargarAsignaciones()
-    pintarTurnos()
+    pintarTurnos(sel.dataset.cupo)
   }
   caja.appendChild(sel)
 
