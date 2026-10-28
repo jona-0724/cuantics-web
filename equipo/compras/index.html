@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CUANTICS · Órdenes de compra</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="../img/libelula.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wdth,wght@125,600;125,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0C1218; --panel:#131D25; --panel-2:#18242E; --line:#263945;
+  --text:#D8E3EA; --muted:#7F94A2; --cyan:#22C7D6; --amber:#F2A93B; --red:#E5636B; --green:#5CD18B;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--text);font:14px/1.45 "IBM Plex Sans",system-ui,sans-serif}
+.mono{font-family:"IBM Plex Mono",monospace}
+.wordmark{font-family:"Open Sans",system-ui,sans-serif;font-weight:700;font-stretch:125%;font-variation-settings:"wdth" 125;letter-spacing:.12em;font-size:18px;line-height:1.06}
+.wordmark span{color:var(--cyan)}
+.brand-row{display:flex;align-items:center;gap:10px}
+.dfly{display:block;flex:none;object-fit:contain}
+/* App shell */
+.top{position:sticky;top:0;z-index:5;background:rgba(12,18,24,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:auto;padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.crumb{color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.sp{flex:1}
+button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);padding:7px 12px;border-radius:6px;cursor:pointer}
+button:hover{border-color:var(--cyan)}
+button.pri{background:var(--cyan);color:#06181c;border-color:var(--cyan);font-weight:600}
+button.amb{border-color:var(--amber);color:var(--amber);background:transparent}
+button.x{background:transparent;border:none;color:var(--muted);padding:4px 6px}
+button.x:hover{color:var(--red)}
+main{max-width:1180px;margin:auto;padding:16px}
+/* Document */
+.doc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:24px}
+.dhead{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:2px solid var(--cyan);padding-bottom:14px}
+.emisor .wordmark{font-size:24px}
+.emisor small{display:block;color:var(--muted);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin:4px 0 8px}
+.box-oc{border:1px solid var(--cyan);border-radius:8px;padding:10px 16px;text-align:center;min-width:250px}
+.box-oc .t{font-family:"Open Sans";font-stretch:125%;font-weight:700;letter-spacing:.05em}
+.box-oc .t i{display:block;font-style:normal;font-size:10px;letter-spacing:.18em;color:var(--muted);font-weight:600}
+.box-oc .n{color:var(--amber);font-size:18px;margin-top:4px}
+.box-oc .rv{font-size:11px;color:var(--muted);margin-top:2px}
+h3{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);margin:22px 0 8px}
+h3 i,label i,th i{font-style:normal;opacity:.6;font-weight:400}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 28px}
+.grid{display:grid;gap:8px 14px;grid-template-columns:repeat(4,1fr)}
+.grid.g2{grid-template-columns:1fr 1fr}
+.grid .c2{grid-column:span 2}.grid .c3{grid-column:span 3}.grid .c4{grid-column:span 4}
+label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted)}
+input,select,textarea{font:inherit;font-size:13.5px;color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:5px;padding:6px 8px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan)}
+textarea{resize:vertical;min-height:70px}
+td textarea{resize:none;overflow:hidden;padding:5px 6px;min-height:0}
+.req{border-left:3px solid var(--amber)}
+.cot{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:6px}
+.warn{color:var(--amber);font-size:12px;margin-top:6px;min-height:1em}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px;border-bottom:1px solid var(--line);vertical-align:bottom}
+th i{display:block;letter-spacing:.06em}
+td{padding:4px;border-bottom:1px solid var(--line);vertical-align:top}
+td input{padding:5px 6px}
+.num{text-align:right}
+td.out{padding:9px 6px;text-align:right;font-family:"IBM Plex Mono",monospace}
+.foot{display:grid;grid-template-columns:1fr 330px;gap:20px;margin-top:14px}
+.tot{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tot div{display:flex;justify-content:space-between;gap:10px;padding:7px 12px;border-bottom:1px solid var(--line)}
+.tot div:last-child{border:none;background:var(--panel-2);font-weight:600;font-size:15px}
+.tot div:last-child span:last-child{color:var(--amber)}
+.letras{margin-top:8px;font-size:12px;color:var(--muted)}
+.docs{font-size:12px;color:var(--text);margin-top:8px;line-height:1.55}
+.firmas{display:grid;grid-template-columns:repeat(2,minmax(0,280px));justify-content:space-between;gap:24px;margin-top:44px}
+.firma{border-top:1px solid var(--muted);padding-top:6px;text-align:center;font-size:12px;color:var(--muted)}
+.firma input{text-align:center;border:none;background:transparent;padding:2px}
+.acepta{margin-top:18px;font-size:11.5px;color:var(--muted)}
+.estado{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;border:1px solid}
+.st-Borrador{color:var(--muted)}.st-Emitida{color:var(--cyan)}.st-Aceptada{color:var(--amber)}.st-Recibida{color:var(--green)}.st-Anulada{color:var(--red)}
+.volver{color:var(--muted);text-decoration:none;font-size:13px}.volver:hover{color:var(--cyan)}
+#bloqueo{position:fixed;inset:0;z-index:20;background:var(--ink);display:grid;place-items:center;color:var(--muted);padding:24px;text-align:center}
+.prov{font-size:11px;color:var(--muted)}
+button:disabled{opacity:.6;cursor:wait}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;width:min(920px,95vw);padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+.hist td{padding:8px 6px;cursor:pointer}.hist tr:hover td{background:var(--panel-2)}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--cyan);color:#06181c;padding:8px 16px;border-radius:6px;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
+.toast.on{opacity:1}
+.pfoot{margin-top:14px;padding-top:6px;border-top:1px solid var(--line);text-align:center;font-size:11px;color:var(--muted)}
+.pv{display:none}
+.doc a{color:inherit;text-decoration:none}
+.doc a:hover{color:var(--cyan)}
+label>.lb{display:block}
+@media (max-width:760px){.grid{grid-template-columns:1fr 1fr}.grid .c4,.grid .c3,.grid .c2{grid-column:span 2}.cols,.foot{grid-template-columns:1fr}.firmas{grid-template-columns:1fr}.doc{padding:14px}}
+
+/* ---------- PRINT: A4 blanco ---------- */
+@page{size:A4;margin:11mm 11mm 14mm}
+@media print{
+  :root{--ink:#fff;--panel:#fff;--panel-2:#EEF6F8;--line:#C9D5DC;--text:#0C1218;--muted:#5A6B77;--cyan:#0E8C99;--amber:#B86E00}
+  body{background:#fff;font-size:10.5px}
+  .top,.noprint,button.x,.toast,.warn{display:none!important}
+  ::placeholder{color:transparent!important}
+  input::-webkit-calendar-picker-indicator{display:none}
+  main{padding:0;max-width:none}
+  .doc{border:none;padding:0}
+  .dhead{flex-wrap:nowrap;align-items:flex-start;padding-bottom:10px}
+  .emisor .wordmark{font-size:22px}
+  input,select,textarea{border:none;background:transparent;padding:1px 0;font-size:10.5px;color:#0C1218;appearance:none;-webkit-appearance:none;resize:none}
+  textarea{min-height:0;overflow:hidden}
+  .req{border-left:none}
+  .cot{padding:8px 10px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .grid{gap:4px 12px}
+  table{min-width:0}
+  th{background:#0C1218;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  th i{color:#9FB0BB;opacity:1}
+  .box-oc,.tot div:last-child{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h3{margin:12px 0 5px}
+  .firmas{margin-top:46px}
+  tr,.foot,.firmas,.acepta{break-inside:avoid}
+  .doc input,.doc select,.doc textarea{display:none!important}
+  .pv{display:block;white-space:pre-wrap;font-size:10.5px;color:#0C1218;min-height:1.2em}
+  .num>.pv,td.num .pv{text-align:right}
+  .firma .pv{text-align:center;min-height:1.3em}
+  .box-oc .rv .pv{display:inline}
+  .pfoot{font-size:9px;margin-top:8px}
+  body{font-size:10px}
+  .pv{font-size:10px}
+  thead th:nth-child(2){width:88px!important}thead th:nth-child(4){width:42px!important}thead th:nth-child(5){width:42px!important}
+  thead th:nth-child(6){width:78px!important}thead th:nth-child(7){width:44px!important}thead th:nth-child(8){width:84px!important}
+  .foot{grid-template-columns:1fr 300px}
+  .docs{font-size:10px;margin-top:10px}
+  .firmas{margin-top:30px}
+  .acepta{margin-top:6px;font-size:9.5px}
+  th{font-size:8.5px;padding:4px 5px;letter-spacing:.06em}
+  th i{font-size:8px}
+  thead th:nth-child(2){width:100px!important}
+  h3{margin:8px 0 4px}
+  .cot{margin-top:4px;padding:6px 10px}
+  .grid{gap:2px 12px}
+  .firma{font-size:10px;padding-top:3px}
+  .firma .pv{min-height:1.25em}
+  .letras{font-size:10px}
+  .tot div{padding:5px 10px}
+  .tot div:last-child{font-size:13px}
+  .hide-empty-print.empty{display:none}
+}
+</style>
+</head>
+<body>
+<div id="bloqueo">Cargando…</div>
+
+<div class="top">
+  <div class="top-in">
+    <a class="brand-row" href="../" style="color:inherit;text-decoration:none" title="Volver al panel"><div class="wordmark">C<span>U</span>ANTICS</div><img class="dfly" src="../img/libelula.png" width="30" height="31" alt=""></a>
+    <a class="volver" href="../">← Panel</a>
+    <div class="crumb">Compras · Órdenes de compra</div>
+    <div class="sp"></div>
+    <button onclick="nueva()">+ Nueva OC</button>
+    <button onclick="abrirHist()">Historial</button>
+    <button onclick="abrirEmpresa()" id="btnEmpresa" hidden>Datos empresa</button>
+    <button class="amb" onclick="guardar()" id="btnGuardar">Guardar</button>
+    <button class="pri" onclick="imprimir()">Imprimir / PDF</button>
+  </div>
+</div>
+
+<main>
+<div class="doc" id="doc">
+  <div class="dhead">
+    <div class="emisor">
+      <div class="brand-row"><div class="wordmark">C<span>U</span>ANTICS</div><img class="dfly" src="../img/libelula.png" width="40" height="41" alt=""></div>
+      <small>Industrial Automation, Analytics &amp; Digital Transformation</small>
+      <div id="emRazon" style="font-weight:600"></div>
+      <div id="emDatos" style="color:var(--muted);font-size:12px;white-space:pre-line"></div>
+      <div id="faltaRuc" class="noprint" hidden style="margin-top:6px;font-size:12px;color:var(--amber)">⚠ Falta el RUC y la dirección fiscal de CUANTICS. <a href="#" onclick="abrirEmpresa();return false" style="color:var(--amber)">Completar</a></div>
+    </div>
+    <div class="box-oc">
+      <div class="t">ORDEN DE COMPRA<i>PURCHASE ORDER</i></div>
+      <div class="n mono" id="numero">OC-0000-0000</div>
+      <div class="rv">Rev. <input id="rev" class="mono" value="0" style="width:34px;text-align:center;padding:1px 2px;font-size:11px"></div>
+      <div style="margin-top:6px" class="noprint">
+        <select id="estado" style="width:auto;font-size:12px">
+          <option>Borrador</option><option>Emitida</option><option>Aceptada</option><option>Recibida</option><option>Anulada</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <h3>Proveedor <i>· Supplier</i></h3>
+      <div class="grid g2">
+        <label class="c2">Razón social <i>· Company name</i><input id="pRazon" class="req"></label>
+        <label>País <i>· Country</i><select id="pPais" onchange="cambiaPais()"></select></label>
+        <label><span id="lTax">RUC</span><input id="pTax" class="mono" oninput="valTax()"></label>
+        <label class="c2">Dirección <i>· Address</i><input id="pDir"></label>
+        <label>Ciudad <i>· City</i><input id="pCiudad"></label>
+        <label>Contacto <i>· Contact</i><input id="pContacto"></label>
+        <label>Correo <i>· Email</i><input id="pMail" type="email"></label>
+        <label>Teléfono <i>· Phone</i><input id="pTel"></label>
+      </div>
+    </div>
+    <div>
+      <h3>Datos de la orden <i>· Order details</i></h3>
+      <div class="grid g2">
+        <label>Fecha de emisión <i>· Order date</i><input type="date" id="fecha"></label>
+        <label>Comprador <i>· Buyer</i><input id="comprador"></label>
+        <label>Moneda <i>· Currency</i><select id="moneda" onchange="calc()"><option value="USD">USD – Dólares</option><option value="PEN">PEN – Soles</option><option value="EUR">EUR – Euros</option></select></label>
+        <label>Condición de pago <i>· Payment terms</i><input id="pago" list="lsPago"></label>
+        <label>Plazo de entrega <i>· Lead time</i><input id="plazo" list="lsPlazo" placeholder="Ej. 5 a 6 semanas"></label>
+        <label>Llegada estimada <i>· Expected arrival</i><input type="date" id="fllegada"></label>
+        <label>Incoterm<select id="incoterm"><option value="">—</option><option>EXW</option><option>FCA</option><option>FOB</option><option>CFR</option><option>CIF</option><option>CPT</option><option>CIP</option><option>DAP</option><option>DPU</option><option>DDP</option><option value="ESD">ESD – Entrega electrónica</option></select></label>
+        <label>Lugar Incoterm <i>· Named place</i><input id="lugarInco" placeholder="Ej. Lima, Miami"></label>
+        <label class="c2">Lugar de entrega <i>· Ship to</i><input id="lugar"></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="cot">
+    <div class="grid">
+      <label>Cotización N° <i>· Quote #</i><input id="cotNum" class="req mono" oninput="docsRef()"></label>
+      <label>Fecha cotización <i>· Quote date</i><input type="date" id="cotFecha" oninput="docsRef();chkVig()"></label>
+      <label>Válida hasta <i>· Valid until</i><input type="date" id="cotVence" oninput="chkVig()"></label>
+      <label>Proyecto / C. costo <i>· Project</i><input id="proyecto"></label>
+      <label>Cliente final <i>· End customer</i><input id="cfinal"></label>
+      <label>Usuario final <i>· End user</i><input id="ufinal"></label>
+      <label class="c2">Correo usuario final <i>· End user email</i><input id="ufmail" type="email" placeholder="Para registro de licencias / garantía"></label>
+    </div>
+    <div class="warn" id="warnCot"></div>
+  </div>
+
+  <h3>Detalle <i>· Items</i></h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr>
+      <th style="width:32px">#</th><th style="width:120px">Código / P/N<i>Part number</i></th><th>Descripción<i>Description</i></th>
+      <th style="width:62px">Unid.<i>UoM</i></th><th style="width:70px" class="num">Cant.<i>Qty</i></th>
+      <th style="width:110px" class="num">P. unit.<i>Unit price</i></th><th style="width:64px" class="num">Dsc %<i>Disc.</i></th>
+      <th style="width:118px" class="num">Importe<i>Amount</i></th><th style="width:30px" class="noprint"></th>
+    </tr></thead>
+    <tbody id="items"></tbody>
+  </table>
+  </div>
+  <div class="noprint" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button onclick="addItem()">+ Agregar ítem</button>
+    <label style="flex-direction:row;align-items:center;gap:6px;font-size:12px">
+      Impuesto: <select id="igvModo" onchange="calc()" style="width:auto">
+        <option value="mas">IGV 18% sobre precios (Perú)</option>
+        <option value="inc">Precios incluyen IGV 18%</option>
+        <option value="exo">Sin impuesto (proveedor del exterior / exonerado)</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="foot">
+    <div>
+      <h3 style="margin-top:0">Condiciones <i>· Terms &amp; conditions</i></h3>
+      <textarea id="obs" rows="6"></textarea>
+    </div>
+    <div>
+      <div class="tot">
+        <div><span>Subtotal</span><span class="mono" id="tSub">0.00</span></div>
+        <div><span>Descuento <i style="opacity:.6;font-style:normal">· Discount</i></span><span class="mono" id="tDsc">0.00</span></div>
+        <div><span id="lIgv">IGV 18%</span><span class="mono" id="tIgv">0.00</span></div>
+        <div><span>Total</span><span class="mono" id="tTot">0.00</span></div>
+      </div>
+      <div class="letras" id="letras"></div>
+      <div class="docs" id="docsRef"></div>
+    </div>
+  </div>
+
+  <div class="firmas">
+    <div class="firma"><input id="fElab" placeholder="Nombre y apellido"><input id="fCargo" placeholder="Cargo" style="font-size:12px;color:var(--muted)">Autorizado por · Authorized by</div>
+    <div class="firma"><input id="fProv" placeholder="Nombre / sello"><input disabled style="visibility:hidden">Aceptación del proveedor · Supplier acceptance</div>
+  </div>
+  <div class="acepta">Señor proveedor: al recibir esta orden, envíela firmada o confirme su recepción por correo. · Dear supplier: please sign and return this order, or confirm receipt by email.</div>
+  <div class="pfoot" id="pfoot"></div>
+</div>
+</main>
+
+<datalist id="lsPago">
+  <option>Contado anticipado</option><option>Adelanto 50% / saldo 50% contra entrega</option><option>Contra entrega</option>
+  <option>Crédito 15 días</option><option>Crédito 30 días desde la factura</option><option>Crédito 45 días</option><option>Crédito 60 días</option>
+  <option>Net 30</option><option>Prepayment (wire transfer)</option>
+</datalist>
+<datalist id="lsPlazo">
+  <option>Inmediato (stock)</option><option>3 días útiles</option><option>1 a 2 semanas</option><option>2 a 3 semanas</option>
+  <option>4 a 6 semanas</option><option>5 a 6 semanas</option><option>6 a 8 semanas</option><option>8 a 10 semanas</option>
+  <option>Entrega electrónica (ESD) al recibir la OC</option>
+</datalist>
+
+<dialog id="dHist">
+  <div style="display:flex;justify-content:space-between;align-items:center"><strong>Órdenes de compra guardadas</strong><button onclick="dHist.close()">Cerrar</button></div>
+  <div class="tbl-wrap" style="margin-top:10px"><table class="hist"><thead><tr><th>Número</th><th>Fecha</th><th>Proveedor</th><th>Cotización</th><th>Estado</th><th class="num">Total</th><th></th></tr></thead><tbody id="histBody"></tbody></table></div>
+  <div style="margin-top:12px;display:flex;gap:8px"><button onclick="exportar()">Exportar todo (JSON)</button><button onclick="document.getElementById('imp').click()">Importar JSON</button><input type="file" id="imp" accept=".json" hidden onchange="importar(this)"></div>
+</dialog>
+
+<dialog id="dEmp">
+  <strong>Datos de la empresa emisora</strong>
+  <div class="grid" style="margin-top:12px;grid-template-columns:1fr 1fr">
+    <label class="c2">Razón social<input id="eRazon"></label>
+    <label>RUC<input id="eRuc" class="mono" maxlength="11"></label>
+    <label>Teléfono<input id="eTel"></label>
+    <label class="c2">Dirección fiscal<input id="eDir"></label>
+    <label>Correo<input id="eMail"></label>
+    <label>Correo para facturas<input id="eFact"></label>
+    <label>Web<input id="eWeb"></label>
+    <label class="c2">Lugar de entrega por defecto<input id="eEntrega"></label>
+    <label>Serie de numeración<input id="eSerie" placeholder="OC"></label>
+    <p class="prov c2" style="margin:0">El correlativo lo asigna la base de datos al guardar: OC-AÑO-0001, OC-AÑO-0002…</p>
+  </div>
+  <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end"><button onclick="dEmp.close()">Cancelar</button><button class="pri" onclick="guardarEmpresa()">Guardar</button></div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<!-- La librería de Supabase va dentro del repo, no en una CDN externa. -->
+<script src="../lib/supabase-js-2.113.0.js"></script>
+<script src="../lib/conexion.js"></script>
+<script>
+/* ==========================================================================
+   CUANTICS · ERP — Órdenes de compra
+   Todo se guarda en Supabase (tabla ordenes_compra). El número OC-AÑO-0001
+   lo pone la base al guardar, nunca la página.
+   ========================================================================== */
+const $=id=>document.getElementById(id);
+const r2=n=>Math.round((n+Number.EPSILON)*100)/100;
+const fmt=n=>Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fFecha=d=>d?d.split('-').reverse().join('/'):'';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* Hoy con la hora de Lima, no en UTC: de noche el UTC ya va en el día siguiente. */
+const hoy=()=>{const f=new Date();return `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}-${String(f.getDate()).padStart(2,'0')}`};
+
+let sb=null, yo=null;
+let emp={razon:'CUANTICS S.A.C.',ruc:'',dir:'',tel:'',mail:'administracion@cuantics.pe',fact:'administracion@cuantics.pe',web:'www.cuantics.pe',serie:'OC',entrega:''};
+let ocs=[];          // historial: {id, numero, correlativo, anio, estado, ...datos}
+let actual=null;     // id (uuid) de la orden en pantalla; null si es nueva
+let sucio=false;     // hay cambios sin guardar
+
+/* ---------- Países e identificador fiscal ---------- */
+const PAISES={'Perú':'RUC','Chile':'RUT','Colombia':'NIT','México':'RFC','Argentina':'CUIT','Ecuador':'RUC','Bolivia':'NIT','Brasil':'CNPJ','Paraguay':'RUC','Uruguay':'RUT','Panamá':'RUC','Costa Rica':'Cédula jurídica','Estados Unidos':'Tax ID (EIN)','Canadá':'Business No.','España':'NIF / VAT','Alemania':'VAT ID','Reino Unido':'VAT No.','Italia':'Partita IVA','Francia':'VAT / SIRET','India':'GSTIN','China':'USCC','Otro':'Tax ID'};
+$('pPais').innerHTML=Object.keys(PAISES).map(p=>`<option>${p}</option>`).join('');
+function etiquetaTax(){const p=$('pPais').value,l=PAISES[p]||'Tax ID';
+  $('lTax').innerHTML=esc(l)+(p==='Perú'||/tax/i.test(l)?'':' <i>· Tax ID</i>')}
+function cambiaPais(){
+  etiquetaTax();
+  $('igvModo').value=$('pPais').value==='Perú'?($('igvModo').value==='exo'?'mas':$('igvModo').value):'exo';
+  valTax();calc();
+}
+function rucOk(r){if(!/^(10|15|17|20)\d{9}$/.test(r))return false;const f=[5,4,3,2,7,6,5,4,3,2];
+  let s=0;for(let i=0;i<10;i++)s+=+r[i]*f[i];let d=11-s%11;if(d===10)d=0;if(d===11)d=1;return d===+r[10]}
+function valTax(){const i=$('pTax');
+  if($('pPais').value!=='Perú'){i.style.borderColor='';i.removeAttribute('maxlength');return}
+  i.maxLength=11;i.value=i.value.replace(/\D/g,'');
+  i.style.borderColor=i.value.length===11?(rucOk(i.value)?'var(--green)':'var(--red)'):'';}
+
+/* ---------- Empresa ---------- */
+function pintarEmpresa(){
+  $('emRazon').textContent=emp.razon+(emp.ruc?'  ·  RUC '+emp.ruc:'');
+  $('emDatos').innerHTML=[esc(emp.dir),[esc(emp.tel),emp.mail?`<a href="mailto:${esc(emp.mail)}">${esc(emp.mail)}</a>`:''].filter(Boolean).join('  ·  ')].filter(Boolean).join('\n');
+  const url=w=>w?'https://'+w.replace(/^https?:\/\//,'').replace(/^www\./,''):'';
+  const ml=m=>m?`<a href="mailto:${esc(m)}">${esc(m)}</a>`:'';
+  $('faltaRuc').hidden=!(yo&&yo.rol==='admin'&&!emp.ruc);
+  $('pfoot').innerHTML=[ml(emp.mail),emp.web?`<a href="${esc(url(emp.web))}">${esc(emp.web.replace(/^https?:\/\//,''))}</a>`:'',emp.ruc?'RUC '+esc(emp.ruc):''].filter(Boolean).join('  |  ');
+}
+/* Número que probablemente tocará. Es solo una vista previa: el definitivo lo
+   asigna la base al guardar, por si alguien más guardó una orden mientras tanto. */
+function numeroPrevio(){
+  const anio=new Date().getFullYear();
+  const max=ocs.filter(o=>o.anio===anio).reduce((m,o)=>Math.max(m,o.correlativo||0),0);
+  return `${emp.serie||'OC'}-${anio}-${String(max+1).padStart(4,'0')}`;
+}
+function obsDefault(){return `1. La factura debe indicar el N° de esta Orden de Compra; de lo contrario será rechazada. · Invoice must reference this PO number.
+2. Cantidades, precios y descripción de la factura deben coincidir con esta orden. Cualquier cambio requiere una revisión de la OC antes de facturar.
+3. Enviar la factura electrónica (XML y PDF) a ${emp.fact||emp.mail}. · Send invoices to ${emp.fact||emp.mail}.
+4. Los bienes deben entregarse completos, en buen estado y con su documentación técnica, certificados y garantía.`}
+
+/* ---------- Ítems ---------- */
+function addItem(d={}){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td class="out idx"></td>
+  <td><input data-k="cod" class="mono"></td>
+  <td><textarea data-k="desc" rows="1"></textarea></td>
+  <td><input data-k="und" value="UND"></td>
+  <td><input data-k="cant" class="num mono" type="number" min="0" step="any" value="1"></td>
+  <td><input data-k="pu" class="num mono" type="number" min="0" step="any" value="0"></td>
+  <td><input data-k="dsc" class="num mono" type="number" min="0" max="100" step="any" value="0"></td>
+  <td class="out imp">0.00</td>
+  <td class="noprint"><button class="x" title="Quitar">✕</button></td>`;
+  for(const [k,v] of Object.entries(d)){const i=tr.querySelector(`[data-k="${k}"]`);if(i)i.value=v}
+  tr.querySelector('.x').onclick=()=>{tr.remove();calc();sucio=true};
+  tr.querySelectorAll('input,textarea').forEach(i=>i.addEventListener('input',calc));
+  const ta=tr.querySelector('textarea');const g=()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px'};ta.addEventListener('input',g);
+  $('items').appendChild(tr);setTimeout(g);calc();
+}
+function leerItems(){return [...$('items').rows].map(tr=>{const o={};tr.querySelectorAll('[data-k]').forEach(i=>o[i.dataset.k]=i.value);return o})}
+
+/* ---------- Cálculo ---------- */
+const SIM={PEN:'S/ ',USD:'US$ ',EUR:'€ '};
+function calc(){
+  let bruto=0,desc=0;
+  [...$('items').rows].forEach((tr,i)=>{
+    tr.querySelector('.idx').textContent=i+1;
+    const g=k=>parseFloat(tr.querySelector(`[data-k="${k}"]`).value)||0;
+    const b=g('cant')*g('pu'),d=b*g('dsc')/100;
+    bruto+=b;desc+=d;tr.querySelector('.imp').textContent=fmt(r2(b-d));
+  });
+  const neto=r2(bruto-desc),modo=$('igvModo').value;
+  let sub,igv,tot,f=1;
+  if(modo==='mas'){sub=neto;igv=r2(neto*.18);tot=r2(sub+igv)}
+  else if(modo==='inc'){tot=neto;sub=r2(neto/1.18);igv=r2(tot-sub);f=1/1.18}
+  else{sub=neto;igv=0;tot=neto}
+  const s=SIM[$('moneda').value];
+  $('tSub').textContent=s+fmt(r2(bruto*f));
+  $('tDsc').textContent=(desc?'- ':'')+s+fmt(r2(desc*f));
+  $('tIgv').textContent=s+fmt(igv);
+  $('lIgv').textContent=modo==='exo'?'Impuesto · Tax (no aplica)':'IGV 18%';
+  $('tTot').textContent=s+fmt(tot);
+  $('letras').textContent='SON: '+enLetras(tot,$('moneda').value);
+  return {sub,igv,tot};
+}
+function enLetras(n,mon){
+  const U=['','UNO','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE','DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS','DIECISIETE','DIECIOCHO','DIECINUEVE','VEINTE','VEINTIUNO','VEINTIDÓS','VEINTITRÉS','VEINTICUATRO','VEINTICINCO','VEINTISÉIS','VEINTISIETE','VEINTIOCHO','VEINTINUEVE'];
+  const D=['','','','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+  const C=['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS','SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+  const c999=x=>{if(x===0)return'';if(x===100)return'CIEN';const c=Math.floor(x/100),r=x%100;let s=C[c];
+    if(r){s+=(s?' ':'')+(r<30?U[r]:D[Math.floor(r/10)]+(r%10?' Y '+U[r%10]:''))}return s};
+  const un=x=>c999(x).replace(/VEINTIUNO$/,'VEINTIÚN').replace(/UNO$/,'UN');
+  const ent=Math.floor(n),cent=Math.round((n-ent)*100);
+  const mill=Math.floor(ent/1e6),miles=Math.floor(ent%1e6/1000),res=ent%1000;
+  let s='';
+  if(mill)s+=(mill===1?'UN MILLÓN':un(mill)+' MILLONES')+' ';
+  if(miles)s+=(miles===1?'MIL':un(miles)+' MIL')+' ';
+  s+=c999(res);s=s.trim()||'CERO';
+  return `${s} CON ${String(cent).padStart(2,'0')}/100 ${{USD:'DÓLARES AMERICANOS',PEN:'SOLES',EUR:'EUROS'}[mon]}`;
+}
+
+/* ---------- Cotización de referencia ---------- */
+function docsRef(){
+  const n=$('cotNum').value.trim(),f=fFecha($('cotFecha').value),p=$('pRazon').value.trim();
+  $('docsRef').innerHTML=n?`<b>Documentos de la orden, en orden de prelación · Order documents:</b><br>1) La presente Orden de Compra ${esc($('numero').textContent)}.<br>2) Cotización N° ${esc(n)}${f?' del '+f:''}${p?' de '+esc(p):''}, cuyas condiciones se aceptan salvo lo indicado en esta orden.`:'';
+}
+function chkVig(){
+  const v=$('cotVence').value,f=$('fecha').value||hoy();
+  $('warnCot').textContent=v&&v<f?`⚠ La cotización venció el ${fFecha(v)}. Pide al proveedor que confirme precio y plazo, o que emita una revisión.`:'';
+}
+
+/* ---------- Leer / cargar ---------- */
+const CAMPOS=['rev','fecha','comprador','moneda','pago','plazo','fllegada','incoterm','lugarInco','lugar','cotNum','cotFecha','cotVence','proyecto','cfinal','ufinal','ufmail','pRazon','pPais','pTax','pDir','pCiudad','pContacto','pMail','pTel','igvModo','obs','fElab','fCargo','fProv','estado'];
+function leer(){const o={items:leerItems()};CAMPOS.forEach(c=>o[c]=$(c).value);Object.assign(o,calc());return o}
+function cargar(o,numero){
+  actual=o.id||null;
+  $('numero').textContent=numero||o.numero||numeroPrevio();
+  $('numero').title=actual?'':'Número provisional: se confirma al guardar';
+  CAMPOS.forEach(c=>{if(o[c]!==undefined)$(c).value=o[c]});
+  etiquetaTax();
+  $('items').innerHTML='';(o.items&&o.items.length?o.items:[{}]).forEach(addItem);valTax();calc();docsRef();chkVig();
+  sucio=false;
+  const u=new URL(location.href);u.search=actual?'?id='+actual:'';u.hash='';history.replaceState(null,'',u);
+}
+function nueva(){
+  if(sucio&&!confirm('Hay cambios sin guardar en esta orden. ¿Empezar una nueva de todos modos?'))return;
+  cargar({id:null,rev:'0',fecha:hoy(),moneda:'USD',pago:'',plazo:'',fllegada:'',incoterm:'',lugarInco:'',
+    comprador:yo?.nombre||'',lugar:emp.entrega||emp.dir||'',cotNum:'',cotFecha:'',cotVence:'',proyecto:'',cfinal:'',ufinal:'',ufmail:'',
+    pRazon:'',pPais:'Perú',pTax:'',pDir:'',pCiudad:'',pContacto:'',pMail:'',pTel:'',igvModo:'mas',obs:obsDefault(),
+    fElab:yo?.nombre||'',fCargo:yo?.cargo||'Gerente General',fProv:'',estado:'Borrador',items:[{}]});
+}
+
+/* ---------- Guardar en la base ---------- */
+function filaDe(o){
+  return {rev:parseInt(o.rev,10)||0,estado:o.estado,fecha:o.fecha||hoy(),proveedor:o.pRazon.trim(),proveedor_pais:o.pPais,
+    cotizacion:o.cotNum.trim(),moneda:o.moneda,total:o.tot,datos:o};
+}
+async function guardar(){
+  const o=leer();
+  if(!o.pRazon.trim()){toast('Falta la razón social del proveedor');$('pRazon').focus();return false}
+  if(!o.cotNum.trim()){toast('Indica el N° de cotización del proveedor');$('cotNum').focus();return false}
+  const b=$('btnGuardar');b.disabled=true;
+  try{
+    let r;
+    if(!actual) r=await sb.from('ordenes_compra').insert(filaDe(o)).select('id,numero,anio,correlativo,estado').single();
+    else        r=await sb.from('ordenes_compra').update(filaDe(o)).eq('id',actual).select('id,numero,anio,correlativo,estado').single();
+    if(r.error){toast('No se pudo guardar: '+r.error.message,true);return false}
+    actual=r.data.id;$('numero').textContent=r.data.numero;$('numero').title='';docsRef();
+    const fila={...o,id:r.data.id,numero:r.data.numero,anio:r.data.anio,correlativo:r.data.correlativo,estado:r.data.estado,tot:o.tot};
+    const i=ocs.findIndex(x=>x.id===actual);if(i>=0)ocs[i]=fila;else ocs.unshift(fila);
+    sucio=false;history.replaceState(null,'','?id='+actual);
+    // La firma recuerda nombre y cargo en el perfil de quien emite.
+    if(yo&&(o.fElab.trim()!==yo.nombre||o.fCargo.trim()!==(yo.cargo||''))&&o.fElab.trim()){
+      const c={nombre:o.fElab.trim(),cargo:o.fCargo.trim()};
+      const {error}=await sb.from('perfiles').update(c).eq('id',yo.id);if(!error)Object.assign(yo,c);
+    }
+    toast('Guardada '+r.data.numero);return true;
+  }finally{b.disabled=false}
+}
+/* Una orden que sale impresa tiene que existir en la base con su número final. */
+async function imprimir(){
+  if(!actual||sucio){if(!await guardar())return}
+  document.querySelectorAll('textarea').forEach(t=>{t.style.height='auto';t.style.height=t.scrollHeight+'px'});
+  prepPrint();const t=document.title;document.title=$('numero').textContent+(+$('rev').value?' Rev'+$('rev').value:'')+' '+($('pRazon').value||'');window.print();document.title=t;
+}
+
+/* ---------- Historial ---------- */
+function deFila(r){return {...(r.datos||{}),id:r.id,numero:r.numero,anio:r.anio,correlativo:r.correlativo,estado:r.estado,tot:Number(r.total)}}
+async function cargarHistorial(){
+  const {data,error}=await sb.from('ordenes_compra').select('*').order('creado_en',{ascending:false});
+  if(error)throw error;ocs=data.map(deFila);
+}
+function abrirHist(){
+  const b=$('histBody');b.innerHTML='';
+  ocs.forEach(o=>{const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="mono">${esc(o.numero)}</td><td>${fFecha(o.fecha)}</td><td>${esc(o.pRazon)}<br><small style="color:var(--muted)">${esc(o.pPais)}</small></td><td class="mono">${esc(o.cotNum)}</td>
+    <td><span class="estado st-${esc(o.estado)}">${esc(o.estado)}</span></td><td class="num mono">${SIM[o.moneda]||''}${fmt(o.tot||0)}</td>
+    <td><button class="x" title="Duplicar como nueva">⧉</button></td>`;
+    tr.onclick=e=>{
+      if(sucio&&!confirm('Hay cambios sin guardar en esta orden. ¿Abrir otra de todos modos?'))return;
+      sucio=false;
+      if(e.target.closest('.x')){const c=JSON.parse(JSON.stringify(o));delete c.id;delete c.numero;c.fecha=hoy();c.estado='Borrador';c.rev='0';c.fProv='';cargar(c)}
+      else cargar(o,o.numero);
+      dHist.close()};
+    b.appendChild(tr)});
+  if(!ocs.length)b.innerHTML='<tr><td colspan="7" style="color:var(--muted)">Aún no hay órdenes guardadas.</td></tr>';
+  dHist.showModal();
+}
+function exportar(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({empresa:emp,ordenes:ocs},null,2)],{type:'application/json'}));a.download='cuantics_ordenes_compra.json';a.click()}
+/* Importa órdenes hechas antes (con el formato suelto). Respeta su número;
+   si ese número ya existe en la base, la salta en vez de duplicarla. */
+async function importar(inp){
+  const f=inp.files[0];inp.value='';if(!f)return;
+  let d;try{d=JSON.parse(await f.text())}catch(e){return toast('El archivo no es un JSON válido',true)}
+  let nuevas=0,repetidas=0,fallas=0;
+  for(const o of (d.ordenes||[])){
+    if(o.numero&&ocs.some(x=>x.numero===o.numero)){repetidas++;continue}
+    const datos={...o};['id','numero','anio','correlativo'].forEach(k=>delete datos[k]);
+    const fila={...filaDe({...datos,pRazon:datos.pRazon||'',cotNum:datos.cotNum||'',tot:Number(o.tot)||0}),numero:o.numero||null};
+    if(!['Borrador','Emitida','Aceptada','Recibida','Anulada'].includes(fila.estado))fila.estado='Emitida';
+    const {error}=await sb.from('ordenes_compra').insert(fila);
+    if(error)fallas++;else nuevas++;
+  }
+  await cargarHistorial();abrirHist();
+  toast(`Importadas: ${nuevas}`+(repetidas?` · ya existían: ${repetidas}`:'')+(fallas?` · con error: ${fallas}`:''),!!fallas);
+}
+
+/* ---------- Datos de la empresa (solo administrador) ---------- */
+const EMP={eRazon:'razon',eRuc:'ruc',eTel:'tel',eDir:'dir',eMail:'mail',eFact:'fact',eWeb:'web',eEntrega:'entrega',eSerie:'serie'};
+function abrirEmpresa(){for(const[i,k]of Object.entries(EMP))$(i).value=emp[k]??'';dEmp.showModal()}
+async function guardarEmpresa(){
+  const nuevo={...emp};for(const[i,k]of Object.entries(EMP))nuevo[k]=$(i).value.trim();
+  const {error}=await sb.from('empresa').update({datos:nuevo}).eq('id',1);
+  if(error)return toast('No se pudo guardar: '+error.message,true);
+  emp=nuevo;pintarEmpresa();if(!actual){$('numero').textContent=numeroPrevio();docsRef()}
+  dEmp.close();toast('Datos de empresa guardados');
+}
+function toast(m,malo){const t=$('toast');t.textContent=m;t.style.background=malo?'var(--red)':'';t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),malo?4500:2200)}
+
+/* ---------- Etiquetas: texto ES + EN en una sola línea ---------- */
+document.querySelectorAll('.doc label').forEach(l=>{const sp=document.createElement('span');sp.className='lb';
+  while(l.firstChild&&!(l.firstChild.matches&&l.firstChild.matches('input,select,textarea')))sp.appendChild(l.firstChild);l.prepend(sp)});
+/* ---------- Vista de impresión: cada campo se imprime como texto ---------- */
+function prepPrint(){
+  document.querySelectorAll('.doc .pv').forEach(e=>e.remove());
+  document.querySelectorAll('.doc input,.doc select,.doc textarea').forEach(el=>{
+    let v=el.tagName==='SELECT'?(el.value?el.options[el.selectedIndex].text:''):el.value;
+    if(el.type==='date')v=fFecha(el.value);
+    if(el.type==='number'&&v!=='')v=el.dataset.k==='pu'?fmt(+v):String(+v);
+    const d=document.createElement('div');d.className='pv'+(el.classList.contains('mono')?' mono':'');d.textContent=v;
+    if(el.closest('td.num')||el.classList.contains('num'))d.style.textAlign='right';
+    if(el.id==='rev')d.style.display='inline';
+    el.after(d)});
+}
+window.addEventListener('beforeprint',prepPrint);
+['pRazon','fecha'].forEach(id=>$(id).addEventListener('input',()=>{docsRef();chkVig()}));
+$('doc').addEventListener('input',()=>{sucio=true});
+$('doc').addEventListener('change',()=>{sucio=true});
+window.addEventListener('beforeunload',e=>{if(sucio){e.preventDefault();e.returnValue=''}});
+
+/* ---------- Arranque: sin sesión, al panel a entrar ---------- */
+(async function inicio(){
+  const bloqueo=$('bloqueo');
+  const pideEmpresa=location.hash==='#empresa';   // se lee antes de que cargar() limpie la URL
+  try{sb=window.erpConectar()}catch(e){bloqueo.textContent=e.message;return}
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return location.replace('../?volver='+encodeURIComponent('compras/'+location.search));
+  const {data:perfil,error}=await sb.from('perfiles').select('*').eq('id',session.user.id).single();
+  if(error||!perfil||!perfil.activo){bloqueo.innerHTML='Tu cuenta no tiene acceso al ERP. <a href="../" style="color:var(--cyan)">Volver</a>';return}
+  yo=perfil;
+  try{
+    const e=await sb.from('empresa').select('datos').eq('id',1).single();
+    if(e.data&&e.data.datos)emp={...emp,...e.data.datos};
+    await cargarHistorial();
+  }catch(err){bloqueo.textContent='No se pudieron leer los datos: '+(err.message||err);return}
+  $('btnEmpresa').hidden=yo.rol!=='admin';
+  pintarEmpresa();
+  const p=new URLSearchParams(location.search),id=p.get('id');
+  const o=id&&ocs.find(x=>x.id===id);
+  if(o)cargar(o,o.numero);else nueva();
+  bloqueo.remove();
+  if(pideEmpresa&&yo.rol==='admin')abrirEmpresa();
+})();
+</script>
+</body>
+</html>

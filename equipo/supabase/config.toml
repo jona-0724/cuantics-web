@@ -1,0 +1,5 @@
+# Proyecto Supabase de CUANTICS · ERP (cuantics.pe/equipo)
+# El identificador tiene que coincidir con el Project ID del panel de Supabase.
+# Es un proyecto aparte de Potente y de MiPlata: cada negocio con su base.
+
+project_id = "PENDIENTE"
