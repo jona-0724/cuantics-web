@@ -20,7 +20,7 @@ flyer. `lib/conexion.js` ya apunta ahí. Las tablas del ERP no tocan lo del flye
 encontraran una tabla con su mismo nombre de otra app, la migración se detiene sin cambiar nada.
 
 1. **Crear las tablas.** SQL Editor → New query → pegar y correr
-   `supabase/migrations/20261028120000_esquema_inicial.sql`. Debe terminar en *Success*.
+   `supabase/migrations/20261028120000_erp_crear_tablas.sql`. Debe terminar en *Success*.
 2. **Cerrar el registro público.** Authentication → Sign In / Providers → desactivar
    *Allow new users to sign up*. (El flyer no usa cuentas; no le afecta.)
 3. **Direcciones de retorno.** Authentication → URL Configuration:

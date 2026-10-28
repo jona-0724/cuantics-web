@@ -1,6 +1,8 @@
 -- ============================================================================
---  CUANTICS · ERP — Esquema inicial
---  Acceso del equipo, datos de la empresa y órdenes de compra.
+--  CUANTICS · ERP (cuantics.pe/equipo) — CREAR TABLAS
+--  Qué hace: crea el acceso del equipo, los datos de la empresa y las
+--  órdenes de compra. Se corre UNA vez en Supabase → SQL Editor.
+--  Si se corre de nuevo no rompe nada.
 --
 --  Convenciones (las mismas de Potente):
 --    · Todo en español, para que las tablas se lean igual que se habla.
