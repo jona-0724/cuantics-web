@@ -689,9 +689,13 @@
       return ayuda('Este navegador no deja grabar. Usa el micrófono de tu teclado o escríbelo.', true);
     }
     ayuda('Preparando el micrófono… si tu navegador pregunta, toca "Permitir".', true);
+    // el medidor se crea aquí, dentro del toque: en iPhone (y algunos Android) si se crea después del permiso queda suspendido
+    let ctx = null;
+    try { ctx = new (window.AudioContext || window.webkitAudioContext)(); ctx.resume?.().catch(() => {}); } catch (e) { ctx = null; }
     let stream;
     try { stream = await abrirMicrofono(); }
     catch (e) {
+      ctx?.close?.();
       return ayuda(e.name === 'NotAllowedError'
         ? 'El navegador no dio permiso al micrófono. Actívalo en el candado de la barra de direcciones, o escríbelo en la caja.'
         : 'No encontré un micrófono. Revisa que esté conectado, o escríbelo en la caja.');
@@ -701,9 +705,11 @@
     const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
     const partes = [];
     // nivel de voz en vivo: las barras se mueven cuando hablas
-    let ctx = null, raf = 0, pico = 0;
+    let raf = 0, pico = 0;
     try {
-      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (!ctx) throw new Error('sin medidor');
+      // sin await: fuera del toque, en Safari resume() puede quedarse esperando para siempre
+      if (ctx.state !== 'running') ctx.resume().catch(() => {});
       const an = ctx.createAnalyser(); an.fftSize = 64;
       ctx.createMediaStreamSource(stream).connect(an);
       const datos = new Uint8Array(an.frequencyBinCount), barras = [...document.querySelectorAll('#g-onda i')];
@@ -723,12 +729,15 @@
     const g = grabacion = { rec, timer: setTimeout(() => rec.state === 'recording' && rec.stop(), 30000) };
     rec.ondataavailable = e => { if (e.data && e.data.size) partes.push(e.data); };
     rec.onstop = async () => {
+      // solo confiamos en el medidor si de verdad estuvo midiendo (en celular puede quedar suspendido y marcar 0)
+      const medidorOk = ctx?.state === 'running';
       stream.getTracks().forEach(t => t.stop()); clearTimeout(g.timer); clearInterval(reloj); cancelAnimationFrame(raf); ctx?.close?.(); grabacion = null;
       estadoGrabando(false);
       const audio = new Blob(partes, { type: rec.mimeType || mime || 'audio/webm' });
+      console.info('[voz] grabado:', audio.size, 'bytes,', audio.type, ', medidor:', medidorOk ? 'ok' : 'sin medir', ', pico:', pico);
       if (audio.size < 1500) return ayuda('No te escuché. Toca el micrófono, habla y vuelve a tocar para terminar.', true);
       // casi silencio: el micrófono elegido no está captando (ej. auriculares con el micrófono silenciado)
-      if (ctx && pico < 40) return ayuda('Casi no te escuché. Revisa que el micrófono no esté silenciado o toca "Cambiar" para usar otro.');
+      if (medidorOk && pico < 40) return ayuda('Casi no te escuché. Revisa que el micrófono no esté silenciado o toca "Cambiar" para usar otro.');
       await enviarAudio(audio);
     };
     rec.start();
