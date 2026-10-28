@@ -13,6 +13,29 @@
 
 create extension if not exists pgcrypto;
 
+-- Este esquema vive en el proyecto Supabase "CUANTICS", que también usa el
+-- flyer (cold_mail_flyer_open). Si ya existiera una tabla con el mismo nombre
+-- que no sea del ERP, se detiene aquí sin tocar nada.
+do $$
+begin
+  if to_regclass('public.perfiles') is not null and not exists (
+       select 1 from information_schema.columns
+       where table_schema = 'public' and table_name = 'perfiles' and column_name = 'cargo') then
+    raise exception 'Ya existe public.perfiles de otra aplicación: no se aplica el esquema del ERP';
+  end if;
+  if to_regclass('public.empresa') is not null and not exists (
+       select 1 from information_schema.columns
+       where table_schema = 'public' and table_name = 'empresa' and column_name = 'datos') then
+    raise exception 'Ya existe public.empresa de otra aplicación: no se aplica el esquema del ERP';
+  end if;
+  if to_regclass('public.ordenes_compra') is not null and not exists (
+       select 1 from information_schema.columns
+       where table_schema = 'public' and table_name = 'ordenes_compra' and column_name = 'datos') then
+    raise exception 'Ya existe public.ordenes_compra de otra aplicación: no se aplica el esquema del ERP';
+  end if;
+end;
+$$;
+
 
 -- ============================================================================
 --  1. PERFILES

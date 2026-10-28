@@ -15,21 +15,20 @@ equipo/
 
 ## Puesta en marcha (una sola vez)
 
-1. **Crear el proyecto** en supabase.com → New project → nombre `cuantics-erp`, región
-   São Paulo (la más cercana a Lima). Guarda la contraseña de la base en un lugar seguro.
-2. **Crear las tablas.** SQL Editor → pegar y correr
-   `supabase/migrations/20261028120000_esquema_inicial.sql`.
-   (O, igual que en Potente: Integrations → GitHub → este repo, carpeta `equipo/supabase`.)
-3. **Cerrar el registro público.** Authentication → Sign In / Providers → desactivar
-   *Allow new users to sign up*. Nadie entra si no lo invitas.
-4. **Direcciones de retorno.** Authentication → URL Configuration:
+La base vive en el proyecto Supabase **CUANTICS** (`gsjeyqccxwefbetxgutn`), el mismo del
+flyer. `lib/conexion.js` ya apunta ahí. Las tablas del ERP no tocan lo del flyer, y si
+encontraran una tabla con su mismo nombre de otra app, la migración se detiene sin cambiar nada.
+
+1. **Crear las tablas.** SQL Editor → New query → pegar y correr
+   `supabase/migrations/20261028120000_esquema_inicial.sql`. Debe terminar en *Success*.
+2. **Cerrar el registro público.** Authentication → Sign In / Providers → desactivar
+   *Allow new users to sign up*. (El flyer no usa cuentas; no le afecta.)
+3. **Direcciones de retorno.** Authentication → URL Configuration:
    - Site URL: `https://cuantics.pe/equipo/`
    - Redirect URLs: `https://cuantics.pe/equipo/**`
-5. **Tu cuenta.** Authentication → Users → *Invite user* → `jonathan@cuantics.pe`.
-   Llega un correo; el enlace abre `cuantics.pe/equipo` pidiendo definir la contraseña.
-   Ese correo está en `admins_iniciales`, así que entra como administrador.
-6. **Conectar la web.** Project Settings → API → copiar *Project URL* y la clave
-   *publishable* en `lib/conexion.js`, y el Project ID en `supabase/config.toml`.
+4. **Tu cuenta.** Authentication → Users → *Add user* → *Send invitation* →
+   `jonathan@cuantics.pe`. El enlace del correo abre `cuantics.pe/equipo` pidiendo definir
+   la contraseña. Ese correo está en `admins_iniciales`: entra como administrador.
 
 ## Agregar a alguien del equipo
 

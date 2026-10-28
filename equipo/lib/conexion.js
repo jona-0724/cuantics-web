@@ -4,12 +4,11 @@
 
    La clave publishable es pública a propósito: lo que protege los datos son
    las políticas RLS de la base, no el secreto de esta cadena.
-   Se completa con los datos del proyecto Supabase "cuantics-erp"
-   (Project Settings → API).
+   Proyecto Supabase "CUANTICS" (el mismo que usa el flyer).
    ========================================================================== */
 window.ERP_SUPABASE = {
-  url: 'https://PENDIENTE.supabase.co',
-  key: 'sb_publishable_PENDIENTE'
+  url: 'https://gsjeyqccxwefbetxgutn.supabase.co',
+  key: 'sb_publishable_K88L7Q54xZAFmFz-DqrAwQ_LeU0Cm7J'
 }
 
 window.erpConectar = function () {
