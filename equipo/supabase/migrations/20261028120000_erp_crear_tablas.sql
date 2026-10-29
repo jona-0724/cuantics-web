@@ -81,8 +81,8 @@ create table if not exists public.empresa (
 
 insert into public.empresa (id, datos) values (1, jsonb_build_object(
   'razon',   'CUANTICS S.A.C.',
-  'ruc',     '',
-  'dir',     '',
+  'ruc',     '20616400607',
+  'dir',     'Cal. Viña Marengo 322, Urb. Los Jardines de Surco, Santiago de Surco, Lima',
   'tel',     '',
   'mail',    'administracion@cuantics.pe',
   'fact',    'administracion@cuantics.pe',
