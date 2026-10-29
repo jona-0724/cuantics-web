@@ -93,7 +93,8 @@ label>.lb{display:block}
 @media (max-width:760px){.grid{grid-template-columns:1fr 1fr}.grid .c4,.grid .c3,.grid .c2{grid-column:span 2}.cols,.foot{grid-template-columns:1fr}.firmas{grid-template-columns:1fr}.doc{padding:14px}}
 
 /* ---------- PRINT: A4 blanco ---------- */
-@page{size:A4;margin:11mm 11mm 14mm}
+/* márgenes dentro del documento: no dependen de la opción "Márgenes" del diálogo de impresión */
+@page{size:A4;margin:0}
 @media print{
   :root{--ink:#fff;--panel:#fff;--panel-2:#EEF6F8;--line:#C9D5DC;--text:#0C1218;--muted:#5A6B77;--cyan:#0E8C99;--amber:#B86E00}
   body{background:#fff;font-size:10.5px}
@@ -101,7 +102,7 @@ label>.lb{display:block}
   ::placeholder{color:transparent!important}
   input::-webkit-calendar-picker-indicator{display:none}
   main{padding:0;max-width:none}
-  .doc{border:none;padding:0}
+  .doc{border:none;border-radius:0;padding:11mm 11mm 14mm;-webkit-box-decoration-break:clone;box-decoration-break:clone}
   .dhead{flex-wrap:nowrap;align-items:flex-start;padding-bottom:10px}
   .emisor .wordmark{font-size:22px}
   input,select,textarea{border:none;background:transparent;padding:1px 0;font-size:10.5px;color:#0C1218;appearance:none;-webkit-appearance:none;resize:none}
