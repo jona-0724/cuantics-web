@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CUANTICS · Productos</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0C1218">
+<link rel="icon" href="../img/libelula.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wdth,wght@125,600;125,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../lib/erp.css">
+<style>
+.lineas{display:flex;gap:6px;flex-wrap:wrap}
+.lineas button{font:inherit;font-size:12.5px;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:4px 12px;cursor:pointer}
+.lineas button:hover{border-color:var(--cyan);color:var(--text)}
+.lineas button.on{background:var(--panel-2);color:var(--text);border-color:var(--cyan)}
+.lineas button i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--c)}
+.lineas button b{font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:11px;color:var(--cyan);margin-left:5px}
+.pn{color:var(--amber);font-family:"IBM Plex Mono",monospace;font-size:12.5px;white-space:nowrap}
+.det{color:var(--muted);font-size:12px;white-space:pre-line;margin-top:2px}
+.margen.bajo{color:var(--red)}.margen.ok{color:var(--green)}
+.inactivo td{opacity:.5}
+.tec{font-size:12px;color:var(--muted)}
+.tec.si{color:var(--green)}
+#dLineas table input{padding:5px 6px}
+#dLineas .etq-pal{flex-wrap:nowrap;gap:4px}#dLineas .etq-pal button{width:17px;height:17px}
+</style>
+</head>
+<body>
+<div id="bloqueo">Cargando…</div>
+
+<main class="pagina">
+  <div class="cabeza">
+    <div>
+      <h1>Productos</h1>
+      <p>Los part numbers que ofreces, por línea. Al cotizar escribes el P/N y la descripción, la unidad y el precio se llenan solos.</p>
+    </div>
+    <span class="sp"></span>
+    <button class="btn" id="btnLineas">Líneas de producto</button>
+    <button class="btn btn--pri" id="btnNuevo">Nuevo producto</button>
+  </div>
+  <div class="herr">
+    <div class="lineas" id="fLineas" role="group" aria-label="Filtrar por línea"></div>
+    <span class="sp"></span>
+    <input type="search" id="q" placeholder="Buscar P/N o descripción">
+  </div>
+  <div id="lista"></div>
+</main>
+
+<dialog id="dProd">
+  <form id="fProd" novalidate>
+    <div class="d-head"><h2 id="pTitulo">Nuevo producto</h2><button type="button" class="btn btn--x" id="pCerrar" aria-label="Cerrar">✕</button></div>
+    <div class="d-body">
+      <div class="grid">
+        <label class="req">Part number<input id="p_pn" class="mono" required placeholder="Ej. IGN-STD-8.3"></label>
+        <label class="c2">Línea<select id="p_linea_id"></select></label>
+        <label>Sección de la oferta<select id="p_seccion"><option>Licencias de software</option><option>Hardware</option><option>Servicios profesionales</option><option>Soporte y mantenimiento</option></select></label>
+        <label class="c4 req">Descripción<input id="p_nombre" required placeholder="Como sale en la cotización. Ej. Ignition Standard Edition"></label>
+        <label class="c4">Detalle (una viñeta por línea)<textarea id="p_detalle" rows="3" placeholder="Módulo Perspective incluido&#10;Tags ilimitados&#10;Licencia perpetua"></textarea></label>
+        <label>Unidad<input id="p_unidad" list="lsUnd"></label>
+        <label>Moneda<select id="p_moneda"><option>USD</option><option>PEN</option><option>EUR</option></select></label>
+        <label>Precio de venta<input id="p_precio" type="number" min="0" step="any" class="mono"></label>
+        <label>Costo<input id="p_costo" type="number" min="0" step="any" class="mono"></label>
+        <label class="c2" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="p_activo" style="width:auto">Se ofrece (desmarca si está descontinuado)</label>
+        <p id="pMargen" class="c2" style="margin:0;font-size:12.5px;color:var(--muted);align-self:center"></p>
+      </div>
+    </div>
+    <div class="d-foot">
+      <button type="button" class="btn btn--mal" id="pBorrar" hidden>Eliminar</button>
+      <span class="sp"></span>
+      <button type="button" class="btn" id="pCancelar">Cancelar</button>
+      <button type="submit" class="btn btn--pri" id="pGuardar">Guardar producto</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dLineas" style="width:min(900px,96vw)">
+  <div class="d-head"><h2>Líneas de producto</h2><button type="button" class="btn btn--x" onclick="dLineas.close()" aria-label="Cerrar">✕</button></div>
+  <div class="d-body">
+    <p style="margin:0 0 12px;color:var(--muted);font-size:13px">Cada línea es también una etiqueta de color: la eliges en el interés de un lead y en las oportunidades. La oferta técnica de cada línea es el Word que acompañará a la oferta económica. Cuando lo tengas, anota aquí su ruta o enlace (por ejemplo <span class="mono">40_Productos/IGNITION/01_Comercial/PTC_Ignition_v1.docx</span>).</p>
+    <div class="tabla-env"><table class="tabla"><thead><tr><th>Línea</th><th>Color</th><th>Fabricante</th><th>Oferta técnica (Word)</th><th class="num">Orden</th></tr></thead><tbody id="lBody"></tbody></table></div>
+  </div>
+  <div class="d-foot"><button type="button" class="btn" id="lAgregar">Agregar línea</button><span class="sp"></span><button type="button" class="btn btn--pri" id="lGuardar">Guardar líneas</button></div>
+</dialog>
+
+<datalist id="lsUnd"><option>Und.</option><option>Lic.</option><option>Glb.</option><option>Hr.</option><option>Mes</option><option>Año</option></datalist>
+
+<script src="../lib/supabase-js-2.113.0.js"></script>
+<script src="../lib/conexion.js"></script>
+<script src="../lib/erp.js"></script>
+<script>
+const {$,esc,toast,mon}=ERP;
+let sb,yo,lineas=[],prods=[],filtro='',actual=null,sucio=false;
+const SECC=['Licencias de software','Hardware','Servicios profesionales','Soporte y mantenimiento'];
+const nomLinea=id=>(lineas.find(l=>l.id===id)||{}).nombre||'Sin línea';
+const margen=p=>Number(p.precio)>0&&Number(p.costo)>0?Math.round(100*(p.precio-p.costo)/p.precio):null;
+
+function pintarFiltro(){
+  const n=id=>prods.filter(p=>id===''||p.linea_id===id).length;
+  $('fLineas').innerHTML=[['','Todas'],...lineas.filter(l=>l.activo).map(l=>[l.id,l.nombre,l.color])].map(([id,t,c])=>`<button type="button" data-id="${esc(id)}" class="${filtro===id?'on':''}" aria-pressed="${filtro===id}">${c?`<i style="--c:${esc(c)}"></i>`:''}${esc(t)}<b>${n(id)}</b></button>`).join('');
+  $('fLineas').querySelectorAll('button').forEach(b=>b.onclick=()=>{filtro=b.dataset.id;pintarFiltro();pintar()});
+}
+function pintar(){
+  const q=$('q').value.trim().toLowerCase();
+  const lista=prods.filter(p=>(!filtro||p.linea_id===filtro)&&(!q||[p.pn,p.nombre,p.detalle].join(' ').toLowerCase().includes(q)));
+  if(!prods.length){$('lista').innerHTML='<div class="tabla-env"><div class="vacio">El catálogo está vacío.<br><button class="btn btn--pri" onclick="abrir()">Agregar el primer producto</button></div></div>';return}
+  const grupos=[...lineas.map(l=>l.id),null].map(id=>[id,lista.filter(p=>(p.linea_id||null)===id)]).filter(g=>g[1].length);
+  $('lista').innerHTML=`<div class="tabla-env"><table class="tabla"><thead><tr><th>Part number</th><th>Descripción</th><th>Sección</th><th>Und.</th><th class="num">Precio</th><th class="num">Costo</th><th class="num">Margen</th></tr></thead><tbody>
+    ${grupos.map(([id,ps])=>{const l=lineas.find(x=>x.id===id);
+      return `<tr class="grupo"><td colspan="7">${l?ERP.etiquetas.chip(l.nombre):esc(nomLinea(id))}${l?.fabricante&&l.fabricante!==l.nombre?` <span style="color:var(--muted);font-weight:400">· ${esc(l.fabricante)}</span>`:''}${l?`<span class="tec ${l.plantilla_tecnica?'si':''}" style="float:right;font-weight:400">${l.plantilla_tecnica?'Oferta técnica lista':'Oferta técnica pendiente'}</span>`:''}</td></tr>`
+      +ps.map(p=>{const m=margen(p);return `<tr class="clic${p.activo?'':' inactivo'}" data-id="${esc(p.id)}"><td class="pn">${esc(p.pn)}</td><td>${esc(p.nombre)}${p.detalle?`<div class="det">${esc(p.detalle)}</div>`:''}</td>
+        <td><small>${esc(p.seccion)}</small></td><td>${esc(p.unidad)}</td><td class="num mono">${Number(p.precio)?mon(p.precio,p.moneda,1):'—'}</td><td class="num mono">${Number(p.costo)?mon(p.costo,p.moneda,1):'—'}</td>
+        <td class="num mono margen ${m===null?'':m<15?'bajo':'ok'}">${m===null?'—':m+'%'}</td></tr>`}).join('')}).join('')}
+    </tbody></table></div>`+(lista.length?'':'<p class="vacio">Nada coincide con la búsqueda.</p>');
+  $('lista').querySelectorAll('tr[data-id]').forEach(tr=>tr.onclick=()=>abrir(tr.dataset.id));
+}
+
+const CAMPOS=['pn','nombre','detalle','seccion','unidad','moneda','precio','costo','linea_id'];
+function pintarMargen(){const m=margen({precio:+$('p_precio').value,costo:+$('p_costo').value});$('pMargen').textContent=m===null?'':`Margen: ${m}%`}
+function abrir(id){
+  const p=id?prods.find(x=>x.id===id):{seccion:'Licencias de software',unidad:'Lic.',moneda:'USD',precio:'',costo:'',linea_id:filtro||'',activo:true};
+  actual=id||null;sucio=false;
+  $('p_linea_id').innerHTML='<option value="">Sin línea</option>'+lineas.map(l=>`<option value="${esc(l.id)}">${esc(l.nombre)}</option>`).join('');
+  CAMPOS.forEach(k=>$('p_'+k).value=p[k]??'');$('p_activo').checked=p.activo!==false;
+  $('pTitulo').textContent=id?p.pn:'Nuevo producto';$('pBorrar').hidden=!(id&&yo.rol==='admin');pintarMargen();
+  $('dProd').showModal();setTimeout(()=>{if(!id)$('p_pn').focus()},30);
+}
+function cerrar(){if(sucio&&!confirm('Hay cambios sin guardar. ¿Cerrar sin guardar?'))return;sucio=false;$('dProd').close()}
+$('fProd').addEventListener('input',e=>{sucio=true;if(e.target.id==='p_precio'||e.target.id==='p_costo')pintarMargen()});
+$('pCerrar').onclick=cerrar;$('pCancelar').onclick=cerrar;
+$('dProd').addEventListener('cancel',e=>{if(sucio&&!confirm('Hay cambios sin guardar. ¿Cerrar sin guardar?'))e.preventDefault()});
+$('fProd').onsubmit=async e=>{
+  e.preventDefault();
+  const f={};CAMPOS.forEach(k=>f[k]=$('p_'+k).value.trim());f.activo=$('p_activo').checked;
+  f.precio=Number(f.precio)||0;f.costo=Number(f.costo)||0;f.linea_id=f.linea_id||null;f.pn=f.pn.toUpperCase();
+  if(!f.pn){toast('Falta el part number',true);return $('p_pn').focus()}
+  if(!f.nombre){toast('Falta la descripción',true);return $('p_nombre').focus()}
+  const b=$('pGuardar');b.disabled=true;
+  try{
+    const r=actual?await sb.from('productos').update(f).eq('id',actual).select().single():await sb.from('productos').insert(f).select().single();
+    if(r.error)return toast(/duplicate|unique/i.test(r.error.message)?`Ya existe un producto con el P/N ${f.pn}`:'No se pudo guardar: '+r.error.message,true);
+    const i=prods.findIndex(x=>x.id===r.data.id);if(i>=0)prods[i]=r.data;else prods.push(r.data);
+    prods.sort((a,b)=>a.pn.localeCompare(b.pn));
+    sucio=false;$('dProd').close();pintarFiltro();pintar();toast(actual?'Producto guardado':'Producto agregado');
+  }finally{b.disabled=false}
+};
+$('pBorrar').onclick=async()=>{
+  if(!confirm('¿Eliminar este producto del catálogo? Las cotizaciones ya emitidas no cambian. Si solo dejó de venderse, mejor desmarca "Se ofrece".'))return;
+  const r=await sb.from('productos').delete().eq('id',actual);if(r.error)return toast('No se pudo eliminar: '+r.error.message,true);
+  prods=prods.filter(p=>p.id!==actual);sucio=false;$('dProd').close();pintarFiltro();pintar();toast('Producto eliminado');
+};
+
+/* ---------- Líneas ---------- */
+function filaLinea(l={}){
+  const tr=document.createElement('tr');if(l.id)tr.dataset.id=l.id;
+  const col=l.color||ERP.etiquetas.PALETA[$('lBody').children.length%ERP.etiquetas.PALETA.length];
+  tr.innerHTML=`<td><input data-k="nombre" value="${esc(l.nombre)}" placeholder="Nombre" aria-label="Línea"></td>
+    <td><input type="hidden" data-k="color" value="${esc(col)}"><div class="etq-pal" role="group" aria-label="Color">${ERP.etiquetas.PALETA.map(c=>`<button type="button" style="--c:${c}" data-c="${c}" aria-pressed="${c===col}" aria-label="Color ${c}"></button>`).join('')}</div></td><td><input data-k="fabricante" value="${esc(l.fabricante)}" aria-label="Fabricante"></td>
+    <td><input data-k="plantilla_tecnica" value="${esc(l.plantilla_tecnica)}" placeholder="Pendiente" aria-label="Oferta técnica"></td><td><input data-k="orden" type="number" value="${esc(l.orden??0)}" style="width:64px" class="mono" aria-label="Orden"></td>`;
+  $('lBody').appendChild(tr);
+}
+$('lBody').addEventListener('click',e=>{const b=e.target.closest('.etq-pal button');if(!b)return;const td=b.closest('td');
+  td.querySelector('[data-k=color]').value=b.dataset.c;td.querySelectorAll('.etq-pal button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+$('btnLineas').onclick=()=>{$('lBody').innerHTML='';lineas.forEach(filaLinea);$('dLineas').showModal()};
+$('lAgregar').onclick=()=>{filaLinea({orden:lineas.length+1});$('lBody').lastElementChild.querySelector('input').focus()};
+$('lGuardar').onclick=async()=>{
+  for(const tr of $('lBody').children){
+    const o={};tr.querySelectorAll('[data-k]').forEach(i=>o[i.dataset.k]=i.type==='number'?(+i.value||0):i.value.trim());
+    if(!o.nombre)continue;
+    const r=tr.dataset.id?await sb.from('lineas_producto').update(o).eq('id',tr.dataset.id):await sb.from('lineas_producto').insert(o);
+    if(r.error)return toast(/color/.test(r.error.message)?'Falta correr la migración 20261108120000_erp_etiquetas_color.sql para guardar colores':'No se pudo guardar '+o.nombre+': '+r.error.message,true);
+  }
+  await cargar();$('dLineas').close();pintarFiltro();pintar();toast('Líneas guardadas');
+};
+
+async function cargar(){
+  const [l,p]=await Promise.all([sb.from('lineas_producto').select('*').order('orden'),sb.from('productos').select('*').order('pn')]);
+  if(l.error||p.error)throw(l.error||p.error);prods=p.data;
+  lineas=l.data.map(x=>({...x,color:x.color||ERP.etiquetas.colorDe(x.nombre)}));await ERP.etiquetas.cargar(sb);
+  lineas.forEach(x=>{const e=ERP.etiquetas.lista().find(y=>y.id===x.id);if(e)x.color=e.color});
+}
+$('q').addEventListener('input',pintar);
+$('btnNuevo').onclick=()=>abrir();
+(async()=>{
+  ({sb,yo}=await ERP.entrar());
+  try{await cargar()}catch(e){return ERP.falla(ERP.faltaTabla(e,'20261107120000_erp_crm_cotizaciones.sql'))}
+  ERP.menu('productos',{sb,yo});ERP.listo();pintarFiltro();pintar();
+})();
+</script>
+</body>
+</html>

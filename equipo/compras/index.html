@@ -316,6 +316,7 @@ label>.lb{display:block}
 <!-- La librería de Supabase va dentro del repo, no en una CDN externa. -->
 <script src="../lib/supabase-js-2.113.0.js"></script>
 <script src="../lib/conexion.js"></script>
+<script src="../lib/erp.js"></script>
 <script>
 /* ==========================================================================
    CUANTICS · ERP — Órdenes de compra
@@ -594,6 +595,7 @@ window.addEventListener('beforeunload',e=>{if(sucio){e.preventDefault();e.return
   const o=id&&ocs.find(x=>x.id===id);
   if(o)cargar(o,o.numero);else nueva();
   bloqueo.remove();
+  ERP.menu('compras',{sb,yo});
   if(pideEmpresa&&yo.rol==='admin')abrirEmpresa();
 })();
 </script>

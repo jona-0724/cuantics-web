@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CUANTICS · Cotización</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0C1218">
+<link rel="icon" href="../../img/libelula.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wdth,wght@125,600;125,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../lib/erp.css">
+<style>
+.barra-doc{position:sticky;top:0;z-index:5;background:rgba(12,18,24,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.barra-doc .in{max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.barra-doc .num{font-family:"IBM Plex Mono",monospace;color:var(--amber);font-size:15px}
+.barra-doc .rev{font-family:"IBM Plex Mono",monospace;color:var(--muted);font-size:13px}
+.aviso{background:rgba(242,169,59,.08);border:1px solid rgba(242,169,59,.35);color:var(--text);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.doc{display:grid;grid-template-columns:1fr 280px;gap:18px;align-items:start}
+.hoja{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px}
+.hoja h3{font-size:13px;font-weight:600;color:var(--cyan);margin:22px 0 10px}
+.hoja h3:first-child{margin-top:0}
+.items{width:100%;border-collapse:collapse;min-width:820px}
+.items th{font-size:11.5px;font-weight:500;color:var(--muted);text-align:left;padding:6px;border-bottom:1px solid var(--line)}
+.items td{padding:5px;border-bottom:1px solid var(--line-2);vertical-align:top}
+.items .sec td{background:var(--ink);color:var(--cyan);font-weight:600;font-size:12.5px;padding:7px 8px}
+.items .n{width:30px;color:var(--muted);font-family:"IBM Plex Mono",monospace;padding-top:11px;text-align:center}
+.items input,.items textarea,.items select{padding:5px 6px;font-size:13px}
+.items textarea{min-height:0;resize:none;overflow:hidden;color:var(--muted);margin-top:4px}
+.items .pn input{font-family:"IBM Plex Mono",monospace;color:var(--amber)}
+.items .r{text-align:right}
+.items td.tot{font-family:"IBM Plex Mono",monospace;text-align:right;padding-top:11px;white-space:nowrap}
+.items select.secc{font-size:11.5px;color:var(--muted);margin-top:4px}
+.totales{margin-left:auto;width:min(340px,100%);margin-top:14px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.totales div{display:flex;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--line-2);font-size:13.5px}
+.totales div span:last-child{font-family:"IBM Plex Mono",monospace}
+.totales div:last-child{border:none;background:var(--panel-2);font-weight:600;font-size:15px}
+.totales div:last-child span:last-child{color:var(--amber)}
+.letras{font-size:12px;color:var(--muted);text-align:right;margin-top:6px}
+.lado{display:flex;flex-direction:column;gap:14px;position:sticky;top:70px}
+.margen b{display:block;font-family:"IBM Plex Mono",monospace;font-size:20px;font-weight:500}
+.margen small{color:var(--muted);font-size:12px}
+.margen .fila{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0}
+.margen .fila span:last-child{font-family:"IBM Plex Mono",monospace}
+.bajo{color:var(--red)!important}.okm{color:var(--green)!important}
+.revs a{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line-2);text-decoration:none;color:var(--text);font-size:13px}
+.revs a:last-child{border:none}
+.revs a.yo{color:var(--cyan)}
+.sololectura input,.sololectura textarea,.sololectura select{pointer-events:none;border-color:transparent;background:transparent}
+.sololectura .solo-edicion{display:none!important}
+.tbl-x{overflow-x:auto}
+
+/* ---------- Impresión (PDF): misma estructura que Formato_COT ---------- */
+#impresion{display:none}
+@page{size:A4;margin:14mm 14mm 16mm}
+@media print{
+  body{background:#fff;color:#111;font:10pt/1.4 "IBM Plex Sans",Arial,sans-serif}
+  body>*:not(#impresion){display:none!important}
+  #impresion{display:block}
+  #impresion table{width:100%;border-collapse:collapse}
+  .p-cab td{vertical-align:top}
+  .p-tit{font-family:"Open Sans",Arial,sans-serif;font-stretch:125%;font-weight:700;font-size:17pt;color:#0C1218;letter-spacing:.04em}
+  .p-box{border:1.5px solid #0E8C99;border-radius:6px;padding:8px 12px;text-align:right;font-size:9.5pt}
+  .p-box b{display:block;font-size:12pt;color:#0E8C99;letter-spacing:.06em}
+  .p-box .n{font-family:"IBM Plex Mono",monospace;font-size:11pt;color:#B86E00;margin:2px 0}
+  .p-partes{margin-top:12px}
+  .p-partes td{width:50%;vertical-align:top;border:1px solid #C9D5DC;padding:7px 10px;font-size:9.5pt}
+  .p-partes h4{margin:0 0 4px;font-size:8.5pt;letter-spacing:.12em;color:#0E8C99}
+  .p-ref{margin:12px 0 6px;font-size:9.5pt}
+  .p-items{margin-top:8px}
+  .p-items th{background:#0C1218;color:#fff;font-size:8pt;font-weight:600;padding:5px;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .p-items td{border-bottom:1px solid #C9D5DC;padding:5px;font-size:9pt;vertical-align:top}
+  .p-items .s td{background:#EEF6F8;color:#0E8C99;font-weight:700;font-size:8.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .p-items .r{text-align:right;white-space:nowrap}
+  .p-items .det{color:#5A6B77;font-size:8.5pt;white-space:pre-line}
+  .p-items .pn{font-family:"IBM Plex Mono",monospace;font-size:8.5pt}
+  .p-tot{width:46%!important;margin:8px 0 0 auto}
+  .p-tot td{padding:4px 8px;border-bottom:1px solid #C9D5DC;font-size:9.5pt}
+  .p-tot tr:last-child td{background:#0C1218;color:#fff;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .p-son{font-size:9pt;margin:6px 0 12px}
+  .p-cond td{border:1px solid #C9D5DC;padding:4px 8px;font-size:9pt;vertical-align:top}
+  .p-cond td:first-child{width:30%;font-weight:600;background:#EEF6F8;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .p-notas{font-size:8.5pt;color:#5A6B77;margin:10px 0 0;padding-left:16px}
+  .p-firma{margin-top:22px;font-size:9.5pt}
+  .p-pie{margin-top:16px;border-top:1px solid #C9D5DC;padding-top:5px;font-size:8pt;color:#5A6B77;text-align:center}
+  tr,.p-firma{break-inside:avoid}
+}
+@media (max-width:1000px){.doc{grid-template-columns:1fr}.lado{position:static}}
+</style>
+</head>
+<body>
+<div id="bloqueo">Cargando…</div>
+
+<div class="barra-doc">
+  <div class="in">
+    <span class="num" id="bNum">COT nueva</span><span class="rev" id="bRev"></span>
+    <span class="estado e-Borrador" id="bEstado">Borrador</span>
+    <span class="sp"></span>
+    <button class="btn" id="bRevision" type="button" hidden>Nueva revisión</button>
+    <button class="btn btn--amb solo-borrador" id="bGuardar" type="button">Guardar</button>
+    <button class="btn btn--pri" id="bEmitir" type="button">Emitir oferta (Word + PDF)</button>
+  </div>
+</div>
+
+<main class="pagina">
+  <div class="migas"><a href="../?vista=oportunidades">Oportunidades</a> / <a id="mOp" href="#">—</a> / <span id="mCot">Cotización</span></div>
+  <div class="aviso" id="avisoRO" hidden><span id="avisoTxt"></span><span class="sp"></span><button class="btn" type="button" id="bRevision2">Crear revisión</button></div>
+
+  <div class="doc">
+    <div class="hoja" id="hoja">
+      <h3>Cliente</h3>
+      <div class="grid">
+        <label class="c3 req">Razón social<input id="c_razon"></label>
+        <label>RUC<input id="c_ruc" class="mono"></label>
+        <label>Atención<input id="c_atencion"></label>
+        <label>Cargo<input id="c_cargo"></label>
+        <label>Correo<input id="c_correo" type="email"></label>
+        <label>Teléfono<input id="c_tel"></label>
+      </div>
+
+      <h3>Oferta</h3>
+      <div class="grid">
+        <label>Fecha<input id="d_fecha" type="date"></label>
+        <label>Validez (días)<input id="d_validez" type="number" min="1" class="mono"></label>
+        <label>Moneda<select id="d_moneda"><option value="USD">USD – Dólares</option><option value="PEN">PEN – Soles</option><option value="EUR">EUR – Euros</option></select></label>
+        <label>Impuesto<select id="d_igv"><option value="mas">IGV 18% sobre precios</option><option value="inc">Precios incluyen IGV</option><option value="exo">Sin IGV (exportación / exonerado)</option></select></label>
+        <label class="c4 req">Referencia<input id="d_referencia" placeholder="Suministro de licencias e implementación de plataforma OEE para Planta Lima"></label>
+        <label class="c3">Objeto (completa la frase “nuestra oferta económica para …”)<input id="d_objeto" placeholder="el suministro de licencias Ignition y servicios de implementación"></label>
+        <label>Propuesta técnica asociada<input id="d_ptc" placeholder="Opcional"></label>
+      </div>
+
+      <h3>Detalle</h3>
+      <div class="tbl-x">
+      <table class="items">
+        <thead><tr><th>N°</th><th style="width:150px">Código / P/N</th><th>Descripción</th><th style="width:66px" class="r">Cant.</th><th style="width:68px">Und.</th><th style="width:118px" class="r">P. unit.</th><th style="width:120px" class="r">Total</th><th style="width:30px"></th></tr></thead>
+        <tbody id="items"></tbody>
+      </table>
+      </div>
+      <div class="solo-edicion" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" type="button" id="bAddItem">Agregar ítem</button>
+        <span style="font-size:12px;color:var(--muted);align-self:center">Escribe el P/N y lo demás se llena desde <a href="../../productos/">Productos</a>.</span>
+      </div>
+      <div class="totales">
+        <div><span>Subtotal</span><span id="tSub">0.00</span></div>
+        <div><span id="lIgv">IGV (18%)</span><span id="tIgv">0.00</span></div>
+        <div><span id="lTot">Total USD</span><span id="tTot">0.00</span></div>
+      </div>
+      <div class="letras" id="letras"></div>
+
+      <h3>Condiciones comerciales</h3>
+      <div class="grid g2">
+        <label class="c2">Forma de pago<input id="k_pago" list="lsPago"></label>
+        <label class="c2">Plazo de entrega<input id="k_plazo"></label>
+        <label class="c2">Lugar / modalidad<input id="k_lugar"></label>
+        <label class="c2">Garantía<input id="k_garantia"></label>
+        <label class="c2">Datos bancarios<input id="k_banco"></label>
+      </div>
+
+      <h3>Emitido por</h3>
+      <div class="grid">
+        <label>Nombre<input id="e_nombre"></label>
+        <label>Cargo<input id="e_cargo"></label>
+        <label>Correo<input id="e_correo"></label>
+        <label>Teléfono<input id="e_tel"></label>
+      </div>
+    </div>
+
+    <aside class="lado">
+      <div class="caja margen">
+        <small>Margen de esta oferta (solo interno)</small>
+        <b id="mPct">—</b>
+        <div class="fila"><span>Venta sin IGV</span><span id="mVenta">—</span></div>
+        <div class="fila"><span>Costo según catálogo</span><span id="mCosto">—</span></div>
+        <div class="fila"><span>Utilidad</span><span id="mUtil">—</span></div>
+        <small id="mSinCosto"></small>
+      </div>
+      <div class="caja revs" id="cajaRevs" hidden><small style="color:var(--muted)">Revisiones</small><div id="revs"></div></div>
+    </aside>
+  </div>
+</main>
+
+<div id="impresion"></div>
+
+<datalist id="lsPN"></datalist>
+<datalist id="lsPago"><option>100% con la orden de compra</option><option>Licencias: 100% con la orden de compra · Servicios: 50% adelanto y 50% a la conformidad</option><option>Crédito 30 días desde la factura</option><option>Contra entrega</option></datalist>
+
+<script src="../../lib/supabase-js-2.113.0.js"></script>
+<script src="../../lib/conexion.js"></script>
+<script src="../../lib/erp.js"></script>
+<script src="../../lib/pizzip-3.3.0.min.js"></script>
+<script src="../../lib/docxtemplater-3.71.1.min.js"></script>
+<script>
+const {$,esc,toast,fmt,mon,r2,hoy,fFecha,enLetras}=ERP;
+const SECCIONES=['Licencias de software','Hardware','Servicios profesionales','Soporte y mantenimiento'];
+const MON_TXT={USD:'Dólares americanos (USD).',PEN:'Soles (PEN).',EUR:'Euros (EUR).'};
+const qs=new URLSearchParams(location.search);
+let sb,yo,emp={},cot=null,op=null,prods=[],revs=[],sucio=false;
+
+/* ---------- Ítems ---------- */
+function autoAlto(t){t.style.height='auto';t.style.height=t.scrollHeight+'px'}
+function filaItem(d={}){
+  const tr=document.createElement('tr');tr.className='it';
+  tr.innerHTML=`<td class="n"></td>
+    <td class="pn"><input data-k="pn" list="lsPN" placeholder="P/N" aria-label="Part number"><select data-k="seccion" class="secc" aria-label="Sección">${SECCIONES.map(s=>`<option>${s}</option>`).join('')}</select></td>
+    <td><input data-k="nombre" placeholder="Descripción" aria-label="Descripción"><textarea data-k="detalle" rows="1" placeholder="Detalle: una viñeta por línea" aria-label="Detalle"></textarea></td>
+    <td><input data-k="cant" type="number" min="0" step="any" class="r mono" aria-label="Cantidad"></td>
+    <td><input data-k="und" aria-label="Unidad"></td>
+    <td><input data-k="pu" type="number" min="0" step="any" class="r mono" aria-label="Precio unitario"></td>
+    <td class="tot">0.00</td>
+    <td><button type="button" class="btn btn--x solo-edicion" title="Quitar ítem" aria-label="Quitar ítem">✕</button></td>`;
+  const v={pn:'',nombre:'',detalle:'',seccion:'Licencias de software',cant:1,und:'Und.',pu:0,costo:0,...d};
+  tr.querySelectorAll('[data-k]').forEach(i=>i.value=v[i.dataset.k]??'');tr.dataset.costo=v.costo||0;
+  tr.querySelector('.btn--x').onclick=()=>{tr.remove();ordenar();calc();sucio=true};
+  tr.querySelector('[data-k=pn]').addEventListener('change',e=>desdeCatalogo(tr,e.target.value));
+  tr.querySelector('[data-k=seccion]').addEventListener('change',()=>{ordenar();calc()});
+  const ta=tr.querySelector('textarea');ta.addEventListener('input',()=>autoAlto(ta));
+  $('items').appendChild(tr);setTimeout(()=>autoAlto(ta));
+  return tr;
+}
+function desdeCatalogo(tr,pn){
+  const p=prods.find(x=>x.pn.toUpperCase()===pn.trim().toUpperCase());if(!p)return;
+  const s=k=>tr.querySelector(`[data-k=${k}]`);
+  s('pn').value=p.pn;s('nombre').value=p.nombre;s('detalle').value=p.detalle;s('und').value=p.unidad;s('seccion').value=p.seccion;
+  const mo=$('d_moneda').value;
+  if(p.moneda===mo&&Number(p.precio))s('pu').value=p.precio;else if(Number(p.precio))toast(`El precio de ${p.pn} está en ${p.moneda}; ponlo en ${mo}`);
+  tr.dataset.costo=p.moneda===mo?p.costo:0;
+  autoAlto(s('detalle'));ordenar();calc();sucio=true;
+}
+function leerItems(){
+  return [...document.querySelectorAll('#items tr.it')].map(tr=>{const o={};tr.querySelectorAll('[data-k]').forEach(i=>o[i.dataset.k]=i.type==='number'?(Number(i.value)||0):i.value);o.costo=Number(tr.dataset.costo)||0;return o})
+    .filter(o=>o.pn||o.nombre||o.pu);
+}
+// Agrupa las filas por sección (A. Licencias, B. Servicios…) con su encabezado.
+function ordenar(){
+  const tb=$('items'),filas=[...tb.querySelectorAll('tr.it')];
+  tb.querySelectorAll('tr.sec').forEach(r=>r.remove());
+  let letra=0;
+  SECCIONES.forEach(s=>{
+    const fs=filas.filter(f=>f.querySelector('[data-k=seccion]').value===s);if(!fs.length)return;
+    const h=document.createElement('tr');h.className='sec';h.innerHTML=`<td colspan="8">${String.fromCharCode(65+letra++)}.  ${s.toUpperCase()}</td>`;
+    tb.appendChild(h);fs.forEach(f=>tb.appendChild(f));
+  });
+}
+function calc(){
+  let neto=0,costo=0,sinCosto=0,n=0;
+  document.querySelectorAll('#items tr.it').forEach(tr=>{
+    const g=k=>Number(tr.querySelector(`[data-k=${k}]`).value)||0,t=r2(g('cant')*g('pu'));
+    tr.querySelector('.n').textContent=++n;tr.querySelector('.tot').textContent=fmt(t);neto+=t;
+    const c=Number(tr.dataset.costo)||0;costo+=c*g('cant');if(!c&&t)sinCosto++;
+  });
+  const modo=$('d_igv').value,mo=$('d_moneda').value;let sub,igv,tot;
+  if(modo==='mas'){sub=r2(neto);igv=r2(sub*.18);tot=r2(sub+igv)}
+  else if(modo==='inc'){tot=r2(neto);sub=r2(tot/1.18);igv=r2(tot-sub)}
+  else{sub=r2(neto);igv=0;tot=sub}
+  $('tSub').textContent=fmt(sub);$('tIgv').textContent=fmt(igv);$('tTot').textContent=fmt(tot);
+  $('lIgv').textContent=modo==='exo'?'IGV (no aplica)':'IGV (18%)';$('lTot').textContent='Total '+mo;
+  $('letras').textContent=tot?'Son: '+enLetras(tot,mo)+(modo==='exo'?'.':' (incluido IGV).'):'';
+  const util=r2(sub-costo),pct=sub&&costo?Math.round(100*util/sub):null;
+  $('mVenta').textContent=mon(sub,mo,1);$('mCosto').textContent=costo?mon(costo,mo,1):'—';$('mUtil').textContent=costo?mon(util,mo,1):'—';
+  $('mPct').textContent=pct===null?'—':pct+'%';$('mPct').className=pct===null?'':pct<15?'bajo':'okm';
+  $('mSinCosto').textContent=sinCosto?`${sinCosto} ítem${sinCosto>1?'s':''} sin costo en el catálogo.`:'';
+  return {sub,igv,tot};
+}
+
+/* ---------- Leer / cargar ---------- */
+const C_CLI=['razon','ruc','atencion','cargo','correo','tel'],C_DOC=['fecha','validez','moneda','igv','referencia','objeto','ptc'],C_K=['pago','plazo','lugar','garantia','banco'],C_E=['nombre','cargo','correo','tel'];
+function leer(){
+  const g=(p,ks)=>Object.fromEntries(ks.map(k=>[k,$(p+k).value.trim()]));
+  const t=calc();   // igv es el modo (mas/inc/exo); el monto va en igv_monto
+  return {cliente:g('c_',C_CLI),...g('d_',C_DOC),cond:g('k_',C_K),emisor:g('e_',C_E),items:leerItems(),sub:t.sub,igv_monto:t.igv,tot:t.tot};
+}
+function cargar(d){
+  const s=(p,ks,o)=>ks.forEach(k=>$(p+k).value=(o||{})[k]??'');
+  s('c_',C_CLI,d.cliente);s('d_',C_DOC,d);s('k_',C_K,d.cond);s('e_',C_E,d.emisor);
+  $('items').innerHTML='';(d.items&&d.items.length?d.items:[{}]).forEach(filaItem);ordenar();calc();
+}
+function pintarBarra(){
+  const n=cot?.numero,ro=cot&&cot.estado!=='Borrador';
+  $('bNum').textContent=n||'COT nueva';$('bRev').textContent=n?'Rev'+cot.rev:'número al guardar';
+  $('bEstado').textContent=cot?.estado||'Borrador';$('bEstado').className='estado e-'+(cot?.estado||'Borrador');
+  $('mCot').textContent=n?`${n} Rev${cot.rev}`:'Cotización nueva';document.title='CUANTICS · '+(n?`${n} Rev${cot.rev}`:'Cotización nueva');
+  $('mOp').textContent=op?.numero||'Oportunidad';$('mOp').href=op?'../oportunidad/?id='+op.id+'#cotizaciones':'../';
+  const ultima=!revs.length||revs[0].id===cot?.id;
+  $('bRevision').hidden=!(ro&&ultima);$('bGuardar').hidden=ro;
+  $('bEmitir').textContent=ro?'Descargar Word + PDF':'Emitir oferta (Word + PDF)';
+  $('hoja').classList.toggle('sololectura',!!ro);
+  document.querySelectorAll('#hoja input,#hoja select,#hoja textarea').forEach(i=>i.readOnly=!!ro);
+  $('avisoRO').hidden=!ro;$('bRevision2').hidden=!(ro&&ultima);
+  $('avisoTxt').textContent=!ro?'':cot.estado==='Reemplazada'?`Esta revisión fue reemplazada por Rev${revs[0]?.rev}. Se muestra tal como se envió.`:`Esta revisión ya se envió al cliente (${cot.estado.toLowerCase()}). Para cambiar algo, crea una nueva revisión.`;
+  $('cajaRevs').hidden=revs.length<2;
+  $('revs').innerHTML=revs.map(r=>`<a href="?id=${esc(r.id)}" class="${r.id===cot?.id?'yo':''}"><span class="mono">Rev${r.rev}</span><span>${fFecha(r.fecha)}</span><span class="estado e-${esc(r.estado)}">${esc(r.estado)}</span></a>`).join('');
+}
+
+/* ---------- Guardar ---------- */
+function filaDe(d){
+  return {oportunidad_id:op?.id||null,cliente_id:op?.cliente_id||null,fecha:d.fecha||hoy(),cliente:d.cliente.razon,referencia:d.referencia,moneda:d.moneda,
+    subtotal:d.sub,total:d.tot,datos:d};
+}
+function validar(d){
+  if(!d.cliente.razon){toast('Falta la razón social del cliente',true);$('c_razon').focus();return false}
+  if(!d.referencia){toast('Falta la referencia de la oferta',true);$('d_referencia').focus();return false}
+  if(!d.items.length){toast('Agrega al menos un ítem',true);return false}
+  if(d.items.some(i=>!i.nombre)){toast('Hay un ítem sin descripción',true);return false}
+  return true;
+}
+async function guardar(extra={}){
+  const d=leer();if(!validar(d))return null;
+  const fila={...filaDe(d),...extra};
+  const b=$('bGuardar');b.disabled=true;
+  try{
+    const r=cot?.id?await sb.from('cotizaciones').update(fila).eq('id',cot.id).select().single():await sb.from('cotizaciones').insert(fila).select().single();
+    if(r.error){toast('No se pudo guardar: '+r.error.message,true);return null}
+    const nueva=!cot?.id;cot=r.data;sucio=false;
+    if(nueva){history.replaceState(null,'','?id='+cot.id);await cargarRevs();
+      await anotarOp(`${cot.numero} Rev${cot.rev} creada`,'cot')}
+    await sincronizarOp(d);
+    // El emisor recuerda su teléfono en su perfil.
+    if(d.emisor.tel&&d.emisor.tel!==(yo.telefono||'')){const rp=await sb.from('perfiles').update({telefono:d.emisor.tel}).eq('id',yo.id);if(!rp.error)yo.telefono=d.emisor.tel}
+    pintarBarra();if(!extra.estado)toast(nueva?`${cot.numero} Rev${cot.rev} guardada`:'Guardada');
+    return cot;
+  }finally{b.disabled=false}
+}
+// La oportunidad toma el monto (sin IGV) de su cotización más reciente.
+async function sincronizarOp(d){
+  if(!op)return;
+  const c={monto:d.sub,moneda:d.moneda};
+  if(c.monto===Number(op.monto)&&c.moneda===op.moneda)return;
+  const r=await sb.from('oportunidades').update(c).eq('id',op.id).select().single();if(!r.error)op=r.data;
+}
+async function anotarOp(texto,tipo='cot',cambios={}){
+  if(!op)return;
+  const act=[...(op.actividad||[]),{en:new Date().toISOString(),quien:yo.nombre,tipo,texto}];
+  const r=await sb.from('oportunidades').update({actividad:act,...cambios}).eq('id',op.id).select().single();if(!r.error)op=r.data;
+}
+
+/* ---------- Revisiones ---------- */
+async function cargarRevs(){
+  if(!cot?.numero){revs=[];return}
+  const r=await sb.from('cotizaciones').select('id,rev,fecha,estado').eq('numero',cot.numero).order('rev',{ascending:false});revs=r.data||[];
+}
+async function nuevaRevision(){
+  if(!confirm(`Se creará ${cot.numero} Rev${(revs[0]?.rev??cot.rev)+1} como copia de esta, en borrador. La anterior queda como reemplazada al emitir la nueva.`))return;
+  const d={...cot.datos,fecha:hoy()};
+  const r=await sb.from('cotizaciones').insert({...filaDe(d),numero:cot.numero,estado:'Borrador'}).select().single();
+  if(r.error)return toast('No se pudo crear la revisión: '+r.error.message,true);
+  await anotarOp(`${r.data.numero} Rev${r.data.rev} creada (revisión)`);
+  location.href='?id='+r.data.id;
+}
+$('bRevision').onclick=nuevaRevision;$('bRevision2').onclick=nuevaRevision;
+
+/* ---------- Emitir: Word desde la plantilla + PDF ---------- */
+function datosPlantilla(d){
+  const sec=SECCIONES.map(s=>[s,d.items.filter(i=>i.seccion===s)]).filter(x=>x[1].length);
+  let n=0;
+  const corto=s=>(s||'').replace(/\s+S\.?A\.?C?\.?$|\s+S\.?R\.?L\.?$/i,'').trim();
+  return {numero:cot.numero,rev:cot.rev,fecha:fFecha(d.fecha),validez:d.validez||30,mon:d.moneda,
+    cliente:d.cliente.razon,cliente_ruc:d.cliente.ruc||'—',atencion:d.cliente.atencion,atencion_cargo:d.cliente.cargo,atencion_correo:d.cliente.correo,atencion_tel:d.cliente.tel,
+    emp_ruc:emp.ruc||'',emp_razon:emp.razon||'CUANTICS S.A.C.',emp_mail:emp.mail||'administracion@cuantics.pe',emp_web:emp.web||'www.cuantics.pe',
+    emisor:d.emisor.nombre,emisor_cargo:d.emisor.cargo,emisor_correo:d.emisor.correo,emisor_tel:d.emisor.tel,
+    referencia:d.referencia,objeto:d.objeto||d.referencia.charAt(0).toLowerCase()+d.referencia.slice(1),ptc:d.ptc||false,
+    secciones:sec.map(([s,its],i)=>({titulo:`${String.fromCharCode(65+i)}.  ${s.toUpperCase()}`,items:its.map(it=>({n:++n,pn:it.pn,nombre:it.nombre,
+      detalle:(it.detalle||'').split('\n').map(x=>x.trim()).filter(Boolean).map(x=>'– '+x.replace(/^[-–•]\s*/,'')).join('\n'),
+      cant:+it.cant,und:it.und,pu:fmt(it.pu),total:fmt(r2(it.cant*it.pu))}))})),
+    subtotal:fmt(d.sub),igv_label:d.igv==='exo'?'IGV (no aplica)':'IGV (18%)',igv:fmt(d.igv_monto),total_general:fmt(d.tot),
+    letras:enLetras(d.tot,d.moneda),igv_nota:d.igv==='exo'?'.':' (incluido IGV).',moneda_texto:MON_TXT[d.moneda],
+    pago:d.cond.pago,plazo:d.cond.plazo,lugar:d.cond.lugar,garantia:d.cond.garantia,banco:d.cond.banco,
+    _archivo:`${cot.numero} Rev${cot.rev} - ${corto(d.cliente.razon)}`};
+}
+async function generarWord(v){
+  const r=await fetch('../../plantillas/Formato_COT_v1_campos.docx',{cache:'no-store'});
+  if(!r.ok)throw new Error('No se encontró la plantilla Formato_COT_v1_campos.docx');
+  const zip=new PizZip(await r.arrayBuffer());
+  const doc=new window.docxtemplater(zip,{paragraphLoop:true,linebreaks:true,nullGetter:()=>''});
+  doc.render(v);
+  const blob=doc.getZip().generate({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=v._archivo+'.docx';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+function pintarImpresion(v){
+  const e=s=>esc(s||'');
+  $('impresion').innerHTML=`
+    <table class="p-cab"><tr><td><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="font-family:'Open Sans',Arial,sans-serif;font-stretch:125%;font-weight:700;letter-spacing:.12em;font-size:15pt;color:#0C1218">C<span style="color:#0E8C99">U</span>ANTICS</b><img src="../../img/libelula.png" width="26" height="27" alt=""></div><div class="p-tit">OFERTA ECONÓMICA</div><div style="font-size:9pt;color:#5A6B77;margin-top:4px">${e(v.emp_razon)} · RUC ${e(v.emp_ruc)}</div></td>
+      <td style="width:42%"><div class="p-box"><b>COTIZACIÓN</b><div class="n">N° ${e(v.numero)}  Rev${v.rev}</div>Fecha: ${e(v.fecha)}<br>Validez: ${e(v.validez)} días calendario</div></td></tr></table>
+    <table class="p-partes"><tr><td><h4>CLIENTE</h4><b>${e(v.cliente)}</b><br>RUC: ${e(v.cliente_ruc)}<br>Atención: ${e(v.atencion)}<br>Cargo: ${e(v.atencion_cargo)}<br>Correo: ${e(v.atencion_correo)}<br>Teléfono: ${e(v.atencion_tel)}</td>
+      <td><h4>EMITIDO POR</h4><b>${e(v.emp_razon)}</b><br>RUC: ${e(v.emp_ruc)}<br>Contacto: ${e(v.emisor)}<br>Cargo: ${e(v.emisor_cargo)}<br>Correo: ${e(v.emisor_correo)}<br>Teléfono: ${e(v.emisor_tel)}</td></tr></table>
+    <div class="p-ref"><b>Referencia:</b> ${e(v.referencia)}${v.ptc?`<br><b>Propuesta técnica asociada:</b> ${e(v.ptc)}`:''}</div>
+    <div style="font-size:9.5pt">De nuestra consideración:<br>Por medio de la presente, ${e(v.emp_razon)} tiene el agrado de presentar a ustedes nuestra oferta económica para ${e(v.objeto)}, de acuerdo con el siguiente detalle:</div>
+    <table class="p-items"><thead><tr><th>N°</th><th>Código / P/N</th><th>Descripción</th><th class="r">Cant.</th><th>Und.</th><th class="r">P. Unit. ${e(v.mon)}</th><th class="r">Total ${e(v.mon)}</th></tr></thead><tbody>
+      ${v.secciones.map(s=>`<tr class="s"><td colspan="7">${e(s.titulo)}</td></tr>`+s.items.map(i=>`<tr><td>${i.n}</td><td class="pn">${e(i.pn)}</td><td><b>${e(i.nombre)}</b>${i.detalle?`<div class="det">${e(i.detalle)}</div>`:''}</td><td class="r">${i.cant}</td><td>${e(i.und)}</td><td class="r">${i.pu}</td><td class="r">${i.total}</td></tr>`).join('')).join('')}
+    </tbody></table>
+    <table class="p-tot"><tr><td>SUBTOTAL</td><td class="r" style="text-align:right">${v.subtotal}</td></tr><tr><td>${e(v.igv_label)}</td><td style="text-align:right">${v.igv}</td></tr><tr><td>TOTAL ${e(v.mon)}</td><td style="text-align:right">${v.total_general}</td></tr></table>
+    <div class="p-son">Son: ${e(v.letras)}${e(v.igv_nota)}</div>
+    <div style="font-weight:700;font-size:10pt;margin-bottom:4px">Condiciones comerciales</div>
+    <table class="p-cond">${[['Moneda',v.moneda_texto],['Forma de pago',v.pago],['Plazo de entrega',v.plazo],['Lugar / modalidad',v.lugar],['Validez de la oferta',v.validez+' días calendario desde la fecha de emisión.'],['Garantía',v.garantia],
+      ['Facturación','Factura electrónica emitida por '+v.emp_razon+'. Detracción SUNAT según corresponda al tipo de operación.'],['Datos bancarios',v.banco]].filter(x=>x[1]).map(([a,b])=>`<tr><td>${e(a)}</td><td>${e(b)}</td></tr>`).join('')}</table>
+    <ul class="p-notas"><li>Las licencias de software están sujetas a los términos y condiciones (EULA) de cada fabricante.</li><li>No incluye hardware, servidores ni licencias de sistema operativo o base de datos, salvo que se indique en el detalle.</li>
+      <li>Cualquier actividad fuera del alcance descrito será cotizada por separado.</li><li>Para aceptar esta oferta, envíe su orden de compra a ${e(v.emp_mail)} con copia a ${e(v.emisor_correo)}, indicando el N° de cotización.</li></ul>
+    <div class="p-firma">Atentamente,<br><br><br><b>${e(v.emisor)}</b><br>${e(v.emisor_cargo)} · ${e(v.emp_razon)}<br>${e(v.emisor_tel)} · ${e(v.emisor_correo)} · ${e(v.emp_web)}</div>
+    <div class="p-pie">${e(v.emp_razon)} · RUC ${e(v.emp_ruc)} · ${e(emp.dir||'')} · ${e(v.emp_web)}</div>`;
+}
+$('bEmitir').onclick=async()=>{
+  const b=$('bEmitir');
+  if(!cot||cot.estado==='Borrador'){
+    const d=leer();if(!validar(d))return;
+    if(!confirm('Al emitir, esta revisión queda como Enviada y ya no se edita (los cambios van en una revisión nueva). ¿Emitir la oferta?'))return;
+    b.disabled=true;
+    try{
+      if(!await guardar({estado:'Enviada',emitida_en:new Date().toISOString()}))return;
+      // Las revisiones anteriores quedan reemplazadas.
+      const viejas=revs.filter(r=>r.id!==cot.id&&r.estado!=='Reemplazada'&&r.estado!=='Rechazada');
+      for(const r of viejas)await sb.from('cotizaciones').update({estado:'Reemplazada'}).eq('id',r.id);
+      await cargarRevs();
+      const ABIERTAS=['Calificación','Diagnóstico','Prueba de concepto'];
+      await anotarOp(`${cot.numero} Rev${cot.rev} enviada al cliente`,'cot',op&&ABIERTAS.includes(op.etapa)?{etapa:'Propuesta',probabilidad:Math.max(Number(op.probabilidad)||0,50)}:{});
+      pintarBarra();
+    }finally{b.disabled=false}
+  }
+  const v=datosPlantilla(cot.datos);
+  try{await generarWord(v)}catch(e){toast('No se pudo generar el Word: '+(e.message||e),true);console.error(e)}
+  pintarImpresion(v);
+  const t=document.title;document.title=v._archivo;
+  setTimeout(()=>{window.print();document.title=t;toast(`${cot.numero} Rev${cot.rev} emitida`)},400);
+};
+$('bGuardar').onclick=()=>guardar();
+
+/* ---------- Varios ---------- */
+$('bAddItem').onclick=()=>{const tr=filaItem();ordenar();calc();tr.querySelector('[data-k=pn]').focus()};
+$('hoja').addEventListener('input',e=>{sucio=true;if(e.target.closest('#items')||['d_igv','d_moneda'].includes(e.target.id))calc()});
+$('d_igv').addEventListener('change',calc);$('d_moneda').addEventListener('change',calc);
+window.addEventListener('beforeunload',e=>{if(sucio){e.preventDefault();e.returnValue=''}});
+
+async function nuevaDesdeOp(opId){
+  const r=await sb.from('oportunidades').select('*').eq('id',opId).single();
+  if(r.error)throw new Error('No se encontró la oportunidad');op=r.data;
+  let cli={},con={};
+  if(op.cliente_id){const rc=await sb.from('clientes').select('*').eq('id',op.cliente_id).single();cli=rc.data||{}}
+  if(op.contacto_id){const rk=await sb.from('contactos').select('*').eq('id',op.contacto_id).single();con=rk.data||{}}
+  const sec={'Licencias de software':'Licencias de software','Hardware':'Hardware','Soporte y mantenimiento':'Soporte y mantenimiento'}[op.tipo]||'Licencias de software';
+  return {cliente:{razon:cli.nombre||op.cliente,ruc:cli.ruc||'',atencion:con.nombre||'',cargo:con.cargo||'',correo:con.correo||'',tel:con.telefono||''},
+    fecha:hoy(),validez:30,moneda:op.moneda||'USD',igv:(cli.pais&&cli.pais!=='Perú')?'exo':'mas',referencia:op.nombre||'',objeto:'',ptc:'',
+    cond:{pago:'Licencias: 100% con la orden de compra · Servicios: 50% adelanto y 50% a la conformidad',plazo:'Licencias: 5 días hábiles desde la OC · Servicios: según cronograma acordado',
+      lugar:'Licencias: entrega electrónica. Servicios: remoto / en planta del cliente',garantia:'Licencias: según términos del fabricante · Servicios: 3 meses',banco:emp.banco||''},
+    emisor:{nombre:yo.nombre,cargo:yo.cargo,correo:yo.correo,tel:yo.telefono||emp.tel||''},items:[{seccion:sec}]};
+}
+
+(async()=>{
+  ({sb,yo}=await ERP.entrar());
+  try{
+    const [e,p]=await Promise.all([sb.from('empresa').select('datos').eq('id',1).single(),sb.from('productos').select('*').eq('activo',true).order('pn')]);
+    if(p.error)throw p.error;
+    emp=Object.assign({razon:'CUANTICS S.A.C.',ruc:'20616400607',mail:'administracion@cuantics.pe',web:'www.cuantics.pe',dir:'Cal. Viña Marengo 322, Urb. Los Jardines de Surco, Santiago de Surco, Lima'},
+      Object.fromEntries(Object.entries(e.data?.datos||{}).filter(([k,v])=>v!==''&&v!=null)));
+    prods=p.data;
+    $('lsPN').innerHTML=prods.map(x=>`<option value="${esc(x.pn)}">${esc(x.nombre)}</option>`).join('');
+    const id=qs.get('id'),rev=qs.get('revisar'),opId=qs.get('op');
+    if(id||rev){
+      const r=await sb.from('cotizaciones').select('*').eq('id',id||rev).single();
+      if(r.error)throw new Error('No se encontró esa cotización');
+      cot=r.data;
+      if(cot.oportunidad_id){const ro=await sb.from('oportunidades').select('*').eq('id',cot.oportunidad_id).single();op=ro.data||null}
+      await cargarRevs();
+      if(rev){ERP.menu('cotizaciones',{sb,yo});ERP.listo();cargar(cot.datos);pintarBarra();return nuevaRevision()}
+      cargar(cot.datos);
+    }else if(opId){
+      cargar(await nuevaDesdeOp(opId));sucio=true;
+    }else throw new Error('Las cotizaciones se crean desde una oportunidad.');
+  }catch(err){return ERP.falla(err.code||/relation|column/.test(err.message)?ERP.faltaTabla(err,'20261107120000_erp_crm_cotizaciones.sql'):esc(err.message))}
+  ERP.menu('cotizaciones',{sb,yo});ERP.listo();pintarBarra();
+})();
+</script>
+</body>
+</html>

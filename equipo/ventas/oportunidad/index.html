@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CUANTICS · Oportunidad</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0C1218">
+<link rel="icon" href="../../img/libelula.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wdth,wght@125,600;125,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../lib/erp.css">
+<style>
+.num-op{font-family:"IBM Plex Mono",monospace;color:var(--amber);font-size:13px;letter-spacing:.02em}
+.titulo{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.titulo h1{flex:1;min-width:260px}
+.titulo h1 input{font:inherit;font-size:inherit;letter-spacing:inherit;background:transparent;border:1px solid transparent;border-radius:6px;padding:2px 6px;margin-left:-7px;color:var(--text)}
+.titulo h1 input:hover{border-color:var(--line)}
+.titulo h1 input:focus{border-color:var(--cyan)}
+.sub-cli{color:var(--muted);font-size:14px;margin-top:2px}
+.sub-cli a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--muted)}
+.acciones{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ---------- Línea de proceso: cada etapa es una estación sobre la tubería ---------- */
+.proceso{margin:22px 0 6px;padding:18px 18px 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+.proceso ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--n),minmax(92px,1fr));min-width:calc(var(--n) * 96px);position:relative}
+.proceso li{position:relative;text-align:center}
+.proceso li::before{content:"";position:absolute;top:13px;left:-50%;right:50%;height:3px;background:var(--line)}
+.proceso li:first-child::before{display:none}
+.proceso li.hecho::before,.proceso li.on::before{background:var(--cyan)}
+.proceso button{position:relative;z-index:1;font:inherit;background:none;border:none;color:var(--muted);cursor:pointer;padding:0 4px;display:flex;flex-direction:column;align-items:center;gap:7px;width:100%}
+.proceso .nodo{width:29px;height:29px;border-radius:50%;background:var(--ink);border:3px solid var(--line);display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);transition:border-color .15s,background .15s}
+.proceso button:hover .nodo{border-color:var(--cyan)}
+.proceso button:focus-visible{outline:none}
+.proceso button:focus-visible .nodo{box-shadow:0 0 0 3px rgba(34,199,214,.35)}
+.proceso .et{font-size:12px;line-height:1.25}
+.proceso li.hecho .nodo{background:var(--cyan);border-color:var(--cyan);color:#06181c}
+.proceso li.hecho .et{color:var(--text)}
+.proceso li.on .nodo{background:var(--ink);border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 0 5px rgba(34,199,214,.14)}
+.proceso li.on .et{color:var(--text);font-weight:600}
+.proceso li.fin .nodo{border-style:dashed}
+.proceso.Ganada li.fin .nodo{background:var(--green);border:3px solid var(--green);color:#062012}
+.proceso.Perdida li.fin .nodo{background:var(--red);border:3px solid var(--red);color:#fff}
+.proceso.Cancelada li.fin .nodo{background:#3a4c58;border:3px solid #3a4c58;color:var(--text)}
+.proceso.cerrada li.hecho .nodo,.proceso.cerrada li.on .nodo{background:#1f3540;border-color:#2f5866;color:var(--text);box-shadow:none}
+.proceso.cerrada li::before{background:#2f5866}
+.ayuda-etapa{font-size:12.5px;color:var(--muted);margin:0 0 18px}
+.ayuda-etapa b{color:var(--text);font-weight:500}
+@media (prefers-reduced-motion:no-preference){
+  .proceso li.on .nodo{animation:latido 2.4s ease-in-out infinite}
+  @keyframes latido{50%{box-shadow:0 0 0 9px rgba(34,199,214,.05)}}
+}
+
+/* ---------- pestañas ---------- */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.tabs button{font:inherit;font-size:13.5px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:9px 14px;cursor:pointer;margin-bottom:-1px}
+.tabs button:hover{color:var(--text)}
+.tabs button[aria-selected=true]{color:var(--text);border-bottom-color:var(--cyan)}
+.tabs b{font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:11px;color:var(--cyan);margin-left:5px}
+.resumen{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+.lado{display:flex;flex-direction:column;gap:14px}
+.valor b{display:block;font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:500}
+.valor small{color:var(--muted);font-size:12px}
+.valor .pond{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.valor .pond b{font-size:16px;color:var(--amber)}
+.carpeta code{display:block;font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px;word-break:break-all;margin:6px 0 8px}
+.liga{font-size:13px}
+.selcrear{display:flex;gap:6px}
+.selcrear select{flex:1}
+
+/* ---------- cotizaciones ---------- */
+.cot{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.cot-h{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.cot-h .mono{color:var(--amber);font-size:14px}
+.cot-h strong{font-weight:600}
+.revs{width:100%;border-collapse:collapse}
+.revs td{padding:9px 16px;border-bottom:1px solid var(--line-2);font-size:13.5px}
+.revs tr:last-child td{border-bottom:none}
+.revs tr{cursor:pointer}.revs tr:hover td{background:var(--panel-2)}
+.revs .num{text-align:right;font-family:"IBM Plex Mono",monospace}
+
+/* ---------- bitácora ---------- */
+.bit-nueva{display:grid;grid-template-columns:140px 1fr auto;gap:8px;margin-bottom:16px}
+.bit{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--line)}
+.bit li{position:relative;padding:0 0 16px 12px;font-size:13.5px}
+.bit li::before{content:"";position:absolute;left:-21px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--ink);border:2px solid var(--line)}
+.bit li.etapa::before{border-color:var(--cyan)}
+.bit li.cot::before{border-color:var(--amber)}
+.bit small{display:block;color:var(--muted);font-size:11.5px}
+
+@media (max-width:900px){.resumen{grid-template-columns:1fr}.bit-nueva{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="bloqueo">Cargando…</div>
+
+<main class="pagina">
+  <div class="migas"><a href="../?vista=oportunidades">Oportunidades</a> / <span id="mNum">Nueva</span></div>
+  <div class="titulo">
+    <h1><span class="num-op" id="hNum"></span><br><input id="o_nombre" placeholder="Nombre de la oportunidad" aria-label="Nombre de la oportunidad" autocomplete="off"></h1>
+    <div class="acciones">
+      <button class="btn btn--ok" id="bGanada" type="button">Marcar ganada</button>
+      <button class="btn" id="bPerdida" type="button">Perdida</button>
+      <button class="btn" id="bCancelada" type="button">Cancelar</button>
+      <button class="btn" id="bReabrir" type="button" hidden>Reabrir</button>
+      <button class="btn btn--pri" id="bGuardar" type="button">Guardar</button>
+    </div>
+  </div>
+  <div class="sub-cli" id="hCli"></div>
+
+  <div class="proceso" id="proceso" role="group" aria-label="Etapa de la oportunidad"></div>
+  <p class="ayuda-etapa" id="ayudaEtapa"></p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="resumen">Resumen</button>
+    <button role="tab" aria-selected="false" data-tab="cotizaciones">Cotizaciones<b id="nCot"></b></button>
+    <button role="tab" aria-selected="false" data-tab="bitacora">Bitácora<b id="nBit"></b></button>
+  </div>
+
+  <section id="t-resumen" role="tabpanel">
+    <div class="resumen">
+      <div class="caja">
+        <div class="grid g2">
+          <label class="req">Cliente
+            <span class="selcrear"><select id="o_cliente_id"></select><button type="button" class="btn" id="bNuevoCli" title="Registrar cliente nuevo">Nuevo</button></span></label>
+          <label>Contacto
+            <span class="selcrear"><select id="o_contacto_id"></select><button type="button" class="btn" id="bNuevoCon" title="Agregar contacto al cliente">Nuevo</button></span></label>
+          <label>Tipo<select id="o_tipo"><option value="">—</option><option>Licencias de software</option><option>Proyecto / integración</option><option>Hardware</option><option>Soporte y mantenimiento</option><option>Capacitación</option><option>Consultoría</option></select></label>
+          <label>Líneas / marcas<input id="o_productos" placeholder="Elige las líneas…" aria-label="Líneas o marcas"></label>
+        </div>
+        <div class="grid" style="margin-top:14px">
+          <label>Moneda<select id="o_moneda"><option>USD</option><option>PEN</option><option>EUR</option></select></label>
+          <label>Monto estimado<input id="o_monto" type="number" min="0" step="any" class="mono"></label>
+          <label>Probabilidad %<input id="o_probabilidad" type="number" min="0" max="100" step="5" class="mono"></label>
+          <label>Cierre estimado<input id="o_cierre_estimado" type="date"></label>
+          <label class="c2">Próximo paso<input id="o_proximo_paso" placeholder="Ej. Presentar propuesta el jueves"></label>
+          <label>Para cuándo<input id="o_proximo_fecha" type="date"></label>
+          <label>Responsable<select id="o_responsable"></select></label>
+          <label class="c2">Competencia<input id="o_competencia" placeholder="Otros integradores o marcas en la evaluación"></label>
+          <label class="c2" id="lMotivo">Motivo de cierre<input id="o_motivo_perdida"></label>
+          <label class="c4">Notas<textarea id="o_notas" rows="4"></textarea></label>
+        </div>
+      </div>
+      <aside class="lado">
+        <div class="caja valor"><small>Valor de la oportunidad</small><b id="vMonto">—</b><small id="vFuente"></small>
+          <div class="pond"><small>Ponderado por probabilidad</small><b id="vPond">—</b></div></div>
+        <div class="caja carpeta"><small style="color:var(--muted)">Carpeta en el disco</small><code id="vCarpeta"></code>
+          <button type="button" class="btn" id="bCopiar">Copiar nombre</button></div>
+        <div class="caja liga" id="vLead" hidden></div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="t-cotizaciones" role="tabpanel" hidden>
+    <div id="cots"></div>
+  </section>
+
+  <section id="t-bitacora" role="tabpanel" hidden>
+    <div class="bit-nueva">
+      <select id="bTipo" aria-label="Tipo de registro"><option>Nota</option><option>Llamada</option><option>Reunión</option><option>Correo</option><option>Visita</option></select>
+      <input id="bTexto" placeholder="Qué se habló, qué quedó pendiente…" aria-label="Texto de la bitácora">
+      <button type="button" class="btn" id="bAgregar">Anotar</button>
+    </div>
+    <ul class="bit" id="bit"></ul>
+  </section>
+</main>
+
+<dialog id="dRapido" style="width:min(520px,94vw)">
+  <form id="fRapido" novalidate>
+    <div class="d-head"><h2 id="rTitulo"></h2><button type="button" class="btn btn--x" onclick="dRapido.close()" aria-label="Cerrar">✕</button></div>
+    <div class="d-body"><div class="grid g2" id="rCampos"></div></div>
+    <div class="d-foot"><span class="sp"></span><button type="button" class="btn" onclick="dRapido.close()">Cancelar</button><button class="btn btn--pri" type="submit">Guardar</button></div>
+  </form>
+</dialog>
+
+<dialog id="dMotivo" style="width:min(460px,94vw)">
+  <form id="fMotivo">
+    <div class="d-head"><h2 id="mTitulo"></h2></div>
+    <div class="d-body" style="display:flex;flex-direction:column;gap:10px">
+      <label>Motivo<select id="mSel"></select></label>
+      <label>Detalle (opcional)<input id="mTxt"></label>
+    </div>
+    <div class="d-foot"><span class="sp"></span><button type="button" class="btn" id="mCancelar">Volver</button><button class="btn btn--pri" type="submit">Confirmar</button></div>
+  </form>
+</dialog>
+
+
+<script src="../../lib/supabase-js-2.113.0.js"></script>
+<script src="../../lib/conexion.js"></script>
+<script src="../../lib/erp.js"></script>
+<script>
+const {$,esc,toast,mon,fFecha,fHora,hoy}=ERP;
+const ABIERTAS=['Calificación','Diagnóstico','Prueba de concepto','Propuesta','Licitación','Negociación'];
+const CIERRES=['Ganada','Perdida','Cancelada'];
+const PROB={'Calificación':10,'Diagnóstico':20,'Prueba de concepto':40,'Propuesta':50,'Licitación':50,'Negociación':75,'Ganada':100,'Perdida':0,'Cancelada':0};
+const AYUDA={'Calificación':'Hay necesidad, presupuesto o alguien que decide.','Diagnóstico':'Levantamiento, visita a planta, arquitectura.','Prueba de concepto':'Demo o piloto en la planta del cliente.',
+  'Propuesta':'Cotización o propuesta técnica enviada.','Licitación':'Proceso formal: bases, consultas, presentación.','Negociación':'Precio, plazos y condiciones finales.',
+  'Ganada':'El cliente envió su orden de compra o firmó el contrato.','Perdida':'Se cotizó y no se ganó.','Cancelada':'No llegó a cotizarse o el cliente detuvo el proyecto.'};
+const MOTIVOS={Perdida:['Precio','Eligió a la competencia','No ganamos la licitación','Sin presupuesto','Sin respuesta del cliente','Otro'],
+  Cancelada:['No llegó a cotizarse','El cliente detuvo el proyecto','Sin presupuesto este año','Sin respuesta del cliente','Otro']};
+const CAMPOS=['nombre','cliente_id','contacto_id','tipo','productos','moneda','monto','probabilidad','cierre_estimado','proximo_paso','proximo_fecha','responsable','competencia','motivo_perdida','notas'];
+
+let sb,yo,op=null,clientes=[],contactos=[],perfiles=[],lineas=[],cots=[],leadOrigen=null,sucio=false;
+const qs=new URLSearchParams(location.search);
+const ev=(tipo,texto)=>({en:new Date().toISOString(),quien:yo?.nombre||'',tipo,texto});
+const cerrada=()=>CIERRES.includes(op.etapa);
+
+/* ---------- Pintar ---------- */
+function pintarProceso(){
+  const et=op.etapa,fin=CIERRES.includes(et),idx=fin?ABIERTAS.length:ABIERTAS.indexOf(et);
+  const etapas=[...ABIERTAS,fin?et:'Cierre'];
+  const p=$('proceso');p.className='proceso'+(fin?' cerrada '+et:'');
+  p.innerHTML=`<ol style="--n:${etapas.length}">${etapas.map((e,i)=>{
+    const ultimo=i===ABIERTAS.length,cls=(ultimo?'fin ':'')+(i<idx?'hecho':i===idx?'on':'');
+    const marca=ultimo?(et==='Ganada'?'✓':et==='Perdida'?'✕':et==='Cancelada'?'–':''):(i<idx?'✓':i+1);
+    return `<li class="${cls}"><button type="button" data-etapa="${esc(ultimo&&!fin?'':e)}" ${i===idx?'aria-current="step"':''} title="${esc(AYUDA[e]||'Ganada, perdida o cancelada')}"><span class="nodo">${marca}</span><span class="et">${esc(e)}</span></button></li>`}).join('')}</ol>`;
+  $('ayudaEtapa').innerHTML=`<b>${esc(et)}.</b> ${esc(AYUDA[et]||'')}`+(fin&&op.motivo_perdida&&et!=='Ganada'?` Motivo: ${esc(op.motivo_perdida)}.`:'');
+  $('bGanada').hidden=$('bPerdida').hidden=$('bCancelada').hidden=fin;$('bReabrir').hidden=!fin;
+  $('lMotivo').hidden=!(et==='Perdida'||et==='Cancelada');
+}
+function pintarCabeza(){
+  $('hNum').textContent=op.numero||'Oportunidad nueva';$('mNum').textContent=op.numero||'Nueva';
+  document.title='CUANTICS · '+(op.numero||'Nueva oportunidad');
+  const c=clientes.find(x=>x.id=== $('o_cliente_id').value),k=contactos.find(x=>x.id===$('o_contacto_id').value);
+  $('hCli').innerHTML=(c?`<a href="../../clientes/?id=${esc(c.id)}">${esc(c.nombre)}</a>${k?' · '+esc(k.nombre)+(k.cargo?`, ${esc(k.cargo)}`:''):''}`:'Sin cliente asignado')
+    +($('o_productos').value?`<span style="margin-left:10px;vertical-align:middle;display:inline-flex">${ERP.etiquetas.chips($('o_productos').value)}</span>`:'');
+}
+function opcionesCliente(){
+  $('o_cliente_id').innerHTML='<option value="">Elige un cliente…</option>'+clientes.map(c=>`<option value="${esc(c.id)}">${esc(c.nombre)}</option>`).join('');
+}
+function opcionesContacto(){
+  const cid=$('o_cliente_id').value,cs=contactos.filter(k=>k.cliente_id===cid),v=$('o_contacto_id').value;
+  $('o_contacto_id').innerHTML='<option value="">—</option>'+cs.map(k=>`<option value="${esc(k.id)}">${esc(k.nombre)}${k.cargo?' · '+esc(k.cargo):''}</option>`).join('');
+  $('o_contacto_id').value=cs.some(k=>k.id===v)?v:(cs.find(k=>k.principal)||{}).id||'';
+}
+function pintarValor(){
+  const m=Number($('o_monto').value)||0,p=Number($('o_probabilidad').value)||0,mo=$('o_moneda').value;
+  $('vMonto').textContent=mon(m,mo);$('vPond').textContent=mon(m*p/100,mo);
+  const vig=vigentes()[0];
+  $('vFuente').textContent=vig?`Según ${vig.numero} Rev${vig.rev} (sin IGV)`:'Estimado; se actualiza al cotizar';
+}
+function pintarCarpeta(){
+  const vig=vigentes()[0],c=clientes.find(x=>x.id===$('o_cliente_id').value);
+  const corto=s=>(s||'').replace(/\b(S\.?A\.?C?\.?|S\.?R\.?L\.?|E\.?I\.?R\.?L\.?|S\.?A\.?A\.?)\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ').toUpperCase();
+  const lin=($('o_productos').value||'').split(/[,/]/).map(s=>s.trim()).filter(Boolean).join('-');
+  const anio=(vig?.numero||'').match(/-(\d{4})-/)?.[1]||new Date().getFullYear();
+  const nombre=vig?`${vig.numero} - ${corto(c?.nombre)||'CLIENTE'} - ${lin||'Producto'}`:'';
+  $('vCarpeta').textContent=vig?`30_Ventas/31_Cotizaciones/${anio}/${nombre}`:'Se define al crear la cotización.';
+  $('bCopiar').hidden=!vig;$('bCopiar').dataset.v=nombre;
+}
+// Una entrada por número de cotización: su revisión más alta.
+function vigentes(){
+  const m={};cots.forEach(c=>{if(!m[c.numero]||c.rev>m[c.numero].rev)m[c.numero]=c});
+  return Object.values(m).sort((a,b)=>b.creado_en.localeCompare(a.creado_en));
+}
+function pintarCots(){
+  $('nCot').textContent=cots.length?vigentes().length:'';
+  if(!op.id){$('cots').innerHTML='<div class="caja vacio">Guarda la oportunidad para poder cotizarla.</div>';return}
+  if(!cots.length){
+    $('cots').innerHTML=`<div class="caja vacio">Esta oportunidad todavía no tiene cotización.<br>
+      <button class="btn btn--pri" type="button" id="bCrearCot">Crear cotización</button>
+      <p style="margin:12px auto 0;max-width:52ch;font-size:12.5px">Le toca el siguiente número COT del año. Si nunca llega a cotizarse, ciérrala como cancelada.</p></div>`;
+    $('bCrearCot').onclick=crearCot;return;
+  }
+  const porNum={};cots.forEach(c=>(porNum[c.numero]=porNum[c.numero]||[]).push(c));
+  $('cots').innerHTML=vigentes().map(v=>{const rs=porNum[v.numero].sort((a,b)=>b.rev-a.rev);
+    return `<div class="cot"><div class="cot-h"><span class="mono">${esc(v.numero)}</span><strong>${esc(v.referencia||v.cliente)}</strong><span class="sp"></span>
+      <button class="btn" type="button" data-rev="${esc(v.id)}">Nueva revisión</button></div>
+      <table class="revs">${rs.map(r=>`<tr data-id="${esc(r.id)}"><td class="mono" style="width:70px">Rev${r.rev}</td><td>${fFecha(r.fecha)}</td>
+        <td><span class="estado e-${esc(r.estado)}">${esc(r.estado)}</span></td><td class="num">${mon(r.total,r.moneda,1)}</td></tr>`).join('')}</table></div>`}).join('')
+    +`<button class="btn" type="button" id="bOtraCot" style="margin-top:4px">Otra cotización con número nuevo</button>`;
+  $('cots').querySelectorAll('tr[data-id]').forEach(tr=>tr.onclick=()=>irCot('?id='+tr.dataset.id));
+  $('cots').querySelectorAll('[data-rev]').forEach(b=>b.onclick=()=>irCot('?revisar='+b.dataset.rev));
+  $('bOtraCot').onclick=crearCot;
+}
+function pintarBit(){
+  const a=[...(op.actividad||[])].reverse();$('nBit').textContent=a.length||'';
+  $('bit').innerHTML=a.length?a.map(x=>`<li class="${esc(x.tipo)}"><small>${esc(fHora(x.en))} · ${esc(x.quien||'')}${!['nota','etapa','creado','cot'].includes(x.tipo)?' · '+esc(x.tipo):''}</small>${x.tipo==='etapa'?'Etapa: ':''}${esc(x.texto)}</li>`).join('')
+    :'<li style="color:var(--muted)">Sin movimientos todavía. Anota llamadas, reuniones y acuerdos.</li>';
+}
+function pintarLead(){
+  if(!leadOrigen){$('vLead').hidden=true;return}
+  $('vLead').hidden=false;
+  $('vLead').innerHTML=`Viene del lead <a href="../?vista=leads&id=${esc(leadOrigen.id)}">${esc(leadOrigen.empresa)}${leadOrigen.contacto?' · '+esc(leadOrigen.contacto):''}</a>${leadOrigen.origen?`<br><small style="color:var(--muted)">Origen: ${esc(leadOrigen.origen)}</small>`:''}`;
+}
+function llenar(){
+  opcionesCliente();
+  $('o_responsable').innerHTML='<option value="">—</option>'+perfiles.filter(p=>p.activo||p.id===op.responsable).map(p=>`<option value="${esc(p.id)}">${esc(p.nombre)}</option>`).join('');
+  CAMPOS.forEach(k=>{if(k!=='contacto_id')$('o_'+k).value=op[k]??''});
+  opcionesContacto();$('o_contacto_id').value=op.contacto_id||$('o_contacto_id').value;
+  ERP.selectorEtiquetas($('o_productos'),sb);
+  pintarCabeza();pintarProceso();pintarValor();pintarCarpeta();pintarCots();pintarBit();pintarLead();
+}
+
+/* ---------- Guardar ---------- */
+function leer(){
+  const o={};CAMPOS.forEach(k=>{const v=$('o_'+k).value;o[k]=v});
+  o.monto=Number(o.monto)||0;o.probabilidad=Math.max(0,Math.min(100,Math.round(Number(o.probabilidad)||0)));
+  ['cliente_id','contacto_id','responsable','cierre_estimado','proximo_fecha'].forEach(k=>{if(!o[k])o[k]=null});
+  const c=clientes.find(x=>x.id===o.cliente_id),k=contactos.find(x=>x.id===o.contacto_id);
+  o.cliente=c?.nombre||'';o.contacto=k?[k.nombre,k.cargo].filter(Boolean).join(' · '):'';
+  return o;
+}
+async function guardar(extra={}){
+  const o={...leer(),...extra};
+  if(!o.nombre.trim()){toast('Ponle nombre a la oportunidad',true);$('o_nombre').focus();return null}
+  if(!o.cliente_id){toast('Elige el cliente',true);$('o_cliente_id').focus();return null}
+  o.etapa=extra.etapa||op.etapa;
+  o.actividad=extra.actividad||op.actividad||[];
+  if(!op.id){o.lead_id=op.lead_id||null;o.actividad=[ev('creado',o.lead_id?'Oportunidad creada desde el lead':'Oportunidad creada'),...o.actividad]}
+  const b=$('bGuardar');b.disabled=true;
+  try{
+    const r=op.id?await sb.from('oportunidades').update(o).eq('id',op.id).select().single():await sb.from('oportunidades').insert(o).select().single();
+    if(r.error){toast('No se pudo guardar: '+r.error.message,true);return null}
+    const nueva=!op.id;op=r.data;sucio=false;
+    if(nueva){
+      history.replaceState(null,'','?id='+op.id);
+      if(leadOrigen){
+        const c={estado:'Calificado',oportunidad_id:op.id,actividad:[...(leadOrigen.actividad||[]),ev('etapa',`${leadOrigen.estado} → Calificado · convertido en ${op.numero}`)]};
+        const rl=await sb.from('leads').update(c).eq('id',leadOrigen.id);
+        if(rl.error)toast('La oportunidad se creó, pero el lead no se pudo marcar: '+rl.error.message,true);
+      }
+    }
+    llenar();toast(nueva?`Oportunidad ${op.numero} creada`:'Guardado');return op;
+  }finally{b.disabled=false}
+}
+$('bGuardar').onclick=()=>guardar();
+
+/* ---------- Etapas ---------- */
+function pedirMotivo(etapa){
+  return new Promise(res=>{
+    $('mTitulo').textContent=etapa==='Perdida'?'¿Por qué se perdió?':'¿Por qué se cancela?';
+    $('mSel').innerHTML=MOTIVOS[etapa].map(m=>`<option>${esc(m)}</option>`).join('');$('mTxt').value='';
+    let ok=false;const d=$('dMotivo');
+    $('fMotivo').onsubmit=e=>{e.preventDefault();ok=true;d.close();const t=$('mTxt').value.trim();res($('mSel').value+(t?' — '+t:''))};
+    $('mCancelar').onclick=()=>d.close();d.onclose=()=>{if(!ok)res(null)};d.showModal();
+  });
+}
+async function moverA(etapa){
+  if(!etapa||etapa===op.etapa)return;
+  const antes=op.etapa,extra={etapa};let motivo='';
+  if(etapa==='Perdida'||etapa==='Cancelada'){motivo=await pedirMotivo(etapa);if(motivo===null)return;extra.motivo_perdida=motivo}
+  const p=Number($('o_probabilidad').value);
+  extra.probabilidad=(p===PROB[antes]||CIERRES.includes(etapa)||CIERRES.includes(antes))?PROB[etapa]:p;
+  $('o_probabilidad').value=extra.probabilidad;
+  extra.actividad=[...(op.actividad||[]),ev('etapa',`${antes} → ${etapa}`+(motivo?` · ${motivo}`:''))];
+  if(!op.id){op.etapa=etapa;op.actividad=extra.actividad;if(motivo)$('o_motivo_perdida').value=motivo;sucio=true;pintarProceso();pintarBit();pintarValor();return}
+  const r=await guardar(extra);
+  if(r&&etapa==='Ganada'){
+    const env=vigentes().find(c=>c.estado==='Enviada');
+    if(env&&confirm(`¿Marcar ${env.numero} Rev${env.rev} como aceptada por el cliente?`)){
+      const rc=await sb.from('cotizaciones').update({estado:'Aceptada'}).eq('id',env.id).select().single();
+      if(!rc.error){Object.assign(env,rc.data);pintarCots()}
+    }
+    toast(`${op.numero} ganada`);
+  }
+}
+$('proceso').addEventListener('click',e=>{const b=e.target.closest('button[data-etapa]');if(b&&b.dataset.etapa&&!cerrada())moverA(b.dataset.etapa)});
+$('bGanada').onclick=()=>moverA('Ganada');
+$('bPerdida').onclick=()=>moverA('Perdida');
+$('bCancelada').onclick=()=>moverA('Cancelada');
+$('bReabrir').onclick=()=>moverA(vigentes().length?'Propuesta':'Calificación');
+
+/* ---------- Cotizaciones ---------- */
+async function crearCot(){
+  if(sucio||!op.id){if(!await guardar())return}
+  irCot('?op='+op.id);
+}
+function irCot(q){location.href='../cotizacion/'+q}
+
+/* ---------- Bitácora ---------- */
+$('bAgregar').onclick=async()=>{
+  const t=$('bTexto').value.trim();if(!t)return $('bTexto').focus();
+  const tipo=$('bTipo').value,act=[...(op.actividad||[]),ev(tipo==='Nota'?'nota':tipo,t)];
+  if(!op.id){op.actividad=act;$('bTexto').value='';sucio=true;return pintarBit()}
+  const r=await sb.from('oportunidades').update({actividad:act}).eq('id',op.id).select('actividad').single();
+  if(r.error)return toast('No se pudo anotar: '+r.error.message,true);
+  op.actividad=r.data.actividad;$('bTexto').value='';pintarBit();toast('Anotado');
+};
+$('bTexto').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('bAgregar').click()}});
+
+/* ---------- Alta rápida de cliente o contacto ---------- */
+function rapido(tipo,base={}){
+  const cli=tipo==='cliente';
+  $('rTitulo').textContent=cli?'Nuevo cliente':'Nuevo contacto';
+  const campos=cli?[['nombre','Razón social',1],['ruc','RUC'],['industria','Industria'],['ciudad','Ciudad']]:[['nombre','Nombre y apellido',1],['cargo','Cargo'],['correo','Correo'],['telefono','Teléfono']];
+  $('rCampos').innerHTML=campos.map(([k,t,req])=>`<label class="${req?'req c2':''}">${t}<input data-k="${k}" value="${esc(base[k]||'')}"></label>`).join('');
+  $('fRapido').onsubmit=async e=>{
+    e.preventDefault();const o={};$('rCampos').querySelectorAll('[data-k]').forEach(i=>o[i.dataset.k]=i.value.trim());
+    if(!o.nombre)return toast('Falta el nombre',true);
+    if(!cli){o.cliente_id=$('o_cliente_id').value;o.principal=!contactos.some(k=>k.cliente_id===o.cliente_id)}
+    const r=await sb.from(cli?'clientes':'contactos').insert(o).select().single();
+    if(r.error)return toast('No se pudo guardar: '+r.error.message,true);
+    if(cli){clientes.push(r.data);clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));opcionesCliente();$('o_cliente_id').value=r.data.id;
+      if(base.contacto){const rk=await sb.from('contactos').insert({cliente_id:r.data.id,nombre:base.contacto,cargo:base.cargo||'',correo:base.correo||'',telefono:base.telefono||'',principal:true}).select().single();if(!rk.error)contactos.push(rk.data)}}
+    else contactos.push(r.data);
+    opcionesContacto();if(!cli)$('o_contacto_id').value=r.data.id;
+    sucio=true;pintarCabeza();pintarCarpeta();$('dRapido').close();toast(cli?'Cliente registrado':'Contacto agregado');
+  };
+  $('dRapido').showModal();setTimeout(()=>$('rCampos').querySelector('input').focus(),30);
+}
+$('bNuevoCli').onclick=()=>rapido('cliente');
+$('bNuevoCon').onclick=()=>{if(!$('o_cliente_id').value)return toast('Primero elige el cliente',true);rapido('contacto')};
+
+/* ---------- Varios ---------- */
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  ['resumen','cotizaciones','bitacora'].forEach(t=>$('t-'+t).hidden=t!==b.dataset.tab);
+  const u=new URL(location.href);u.hash=b.dataset.tab==='resumen'?'':b.dataset.tab;history.replaceState(null,'',u);
+});
+document.querySelector('main').addEventListener('input',e=>{if(e.target.closest('#t-bitacora'))return;sucio=true;
+  if(['o_monto','o_probabilidad','o_moneda'].includes(e.target.id))pintarValor();
+  if(e.target.id==='o_productos'){pintarCarpeta();pintarCabeza()}});
+$('o_cliente_id').addEventListener('change',()=>{opcionesContacto();pintarCabeza();pintarCarpeta()});
+$('o_contacto_id').addEventListener('change',pintarCabeza);
+$('bCopiar').onclick=async()=>{try{await navigator.clipboard.writeText($('bCopiar').dataset.v);toast('Nombre de carpeta copiado')}catch(e){toast('No se pudo copiar',true)}};
+window.addEventListener('beforeunload',e=>{if(sucio){e.preventDefault();e.returnValue=''}});
+
+(async()=>{
+  ({sb,yo}=await ERP.entrar());
+  const [c,k,p,l]=await Promise.all([sb.from('clientes').select('*').order('nombre'),sb.from('contactos').select('*').order('creado_en'),
+    sb.from('perfiles').select('id,nombre,activo').order('nombre'),sb.from('lineas_producto').select('nombre').order('orden')]);
+  const err=c.error||k.error||l.error;if(err)return ERP.falla(ERP.faltaTabla(err,'20261107120000_erp_crm_cotizaciones.sql'));
+  clientes=c.data;contactos=k.data;perfiles=p.data||[yo];lineas=l.data;
+  await ERP.etiquetas.cargar(sb);
+  const id=qs.get('id');
+  if(id){
+    const r=await sb.from('oportunidades').select('*').eq('id',id).single();
+    if(r.error)return ERP.falla('No se encontró esa oportunidad.');
+    op=r.data;
+    const rc=await sb.from('cotizaciones').select('id,numero,rev,estado,fecha,total,subtotal,moneda,referencia,cliente,creado_en').eq('oportunidad_id',id).order('creado_en');
+    cots=rc.data||[];
+    if(op.lead_id){const rl=await sb.from('leads').select('*').eq('id',op.lead_id).single();leadOrigen=rl.data||null}
+  }else{
+    op={etapa:'Calificación',moneda:'USD',monto:0,probabilidad:10,responsable:yo.id,actividad:[]};
+    const lid=qs.get('lead');
+    if(lid){
+      const rl=await sb.from('leads').select('*').eq('id',lid).single();
+      if(rl.data){
+        const L=leadOrigen=rl.data;
+        if(L.oportunidad_id)return location.replace('?id='+L.oportunidad_id);
+        const cli=clientes.find(x=>x.nombre.trim().toLowerCase()===L.empresa.trim().toLowerCase());
+        Object.assign(op,{lead_id:L.id,nombre:[L.interes,L.empresa].filter(Boolean).join(' – '),productos:L.interes,notas:L.notas,
+          responsable:L.responsable||yo.id,proximo_paso:L.proximo_paso,proximo_fecha:L.proximo_fecha,cliente_id:cli?.id||null});
+        if(!cli)setTimeout(()=>{toast(`${L.empresa} aún no está en Clientes: regístralo`);rapido('cliente',{nombre:L.empresa,contacto:L.contacto,cargo:L.cargo,correo:L.correo,telefono:L.telefono})},300);
+        sucio=true;
+      }
+    }
+  }
+  ERP.menu('oportunidades',{sb,yo});ERP.listo();llenar();
+  if(location.hash==='#cotizaciones'||location.hash==='#bitacora')document.querySelector(`.tabs [data-tab="${location.hash.slice(1)}"]`).click();
+  if(!op.id&&!op.nombre)$('o_nombre').focus();
+})();
+</script>
+</body>
+</html>

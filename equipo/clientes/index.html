@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CUANTICS · Clientes</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0C1218">
+<link rel="icon" href="../img/libelula.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wdth,wght@125,600;125,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../lib/erp.css">
+<style>
+.contactos{display:flex;flex-direction:column;gap:8px}
+.contacto{display:grid;grid-template-columns:1.3fr 1fr 1.3fr 1fr auto auto;gap:8px;align-items:center}
+.contacto label.pr{flex-direction:row;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
+.contacto label.pr input{width:auto}
+.ops{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ops li{display:flex;gap:10px;align-items:baseline;font-size:13px}
+.ops a{text-decoration:none}
+.ops .mono{color:var(--amber);font-size:12px}
+@media (max-width:760px){.contacto{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="bloqueo">Cargando…</div>
+
+<main class="pagina">
+  <div class="cabeza">
+    <div>
+      <h1>Clientes</h1>
+      <p>Las empresas a las que les vendes. Sus datos y contactos llenan solos el bloque de cliente de cada cotización.</p>
+    </div>
+    <span class="sp"></span>
+    <button class="btn btn--pri" id="btnNuevo">Nuevo cliente</button>
+  </div>
+  <div class="herr">
+    <input type="search" id="q" placeholder="Buscar por nombre, RUC, contacto o industria">
+    <span class="sp"></span>
+    <span id="cuenta" style="color:var(--muted);font-size:12.5px"></span>
+  </div>
+  <div id="lista"></div>
+</main>
+
+<dialog id="dCli">
+  <form id="fCli" novalidate>
+    <div class="d-head"><h2 id="cTitulo">Nuevo cliente</h2><button type="button" class="btn btn--x" id="cCerrar" aria-label="Cerrar">✕</button></div>
+    <div class="d-body">
+      <div class="grid">
+        <label class="c3 req">Razón social<input id="c_nombre" required></label>
+        <label>RUC / Tax ID<input id="c_ruc" class="mono" inputmode="numeric"></label>
+        <label>País<input id="c_pais" list="lsPaises"></label>
+        <label>Ciudad<input id="c_ciudad"></label>
+        <label class="c2">Industria<input id="c_industria" list="lsIndustrias" placeholder="Minería, alimentos, agua…"></label>
+        <label class="c3">Dirección fiscal<input id="c_direccion"></label>
+        <label>Teléfono<input id="c_telefono"></label>
+        <label class="c2">Web<input id="c_web" placeholder="www.empresa.com"></label>
+        <label class="c2">Notas<input id="c_notas"></label>
+      </div>
+      <div style="display:flex;align-items:center;margin:20px 0 8px">
+        <strong style="font-size:13.5px">Contactos</strong><span class="sp"></span>
+        <button type="button" class="btn" id="cAddCon">Agregar contacto</button>
+      </div>
+      <div class="contactos" id="cCon"></div>
+      <div id="cOpsCaja" hidden>
+        <strong style="display:block;font-size:13.5px;margin:20px 0 8px">Oportunidades</strong>
+        <ul class="ops" id="cOps"></ul>
+      </div>
+    </div>
+    <div class="d-foot">
+      <button type="button" class="btn btn--mal" id="cBorrar" hidden>Eliminar</button>
+      <span class="sp"></span>
+      <button type="button" class="btn" id="cCancelar">Cancelar</button>
+      <button type="submit" class="btn btn--pri" id="cGuardar">Guardar cliente</button>
+    </div>
+  </form>
+</dialog>
+
+<datalist id="lsPaises"><option>Perú</option><option>Chile</option><option>Colombia</option><option>Ecuador</option><option>Bolivia</option><option>México</option><option>Estados Unidos</option></datalist>
+<datalist id="lsIndustrias"><option>Minería</option><option>Alimentos y bebidas</option><option>Agua y saneamiento</option><option>Energía</option><option>Oil &amp; gas</option><option>Química</option><option>Pesca</option><option>Farmacéutica</option><option>Manufactura</option><option>Cemento</option></datalist>
+
+<script src="../lib/supabase-js-2.113.0.js"></script>
+<script src="../lib/conexion.js"></script>
+<script src="../lib/erp.js"></script>
+<script>
+const {$,esc,toast,fCorta}=ERP;
+let sb,yo,clientes=[],contactos=[],ops=[],actual=null,sucio=false;
+
+function pintar(){
+  const q=$('q').value.trim().toLowerCase();
+  const conDe=id=>contactos.filter(c=>c.cliente_id===id);
+  const lista=clientes.filter(c=>!q||[c.nombre,c.ruc,c.industria,c.ciudad,...conDe(c.id).map(x=>x.nombre+' '+x.correo)].join(' ').toLowerCase().includes(q));
+  $('cuenta').textContent=`${lista.length} de ${clientes.length}`;
+  if(!clientes.length){$('lista').innerHTML='<div class="tabla-env"><div class="vacio">Aún no hay clientes registrados.<br><button class="btn btn--pri" onclick="abrir()">Registrar el primero</button></div></div>';return}
+  $('lista').innerHTML=`<div class="tabla-env"><table class="tabla"><thead><tr><th>Cliente</th><th>RUC</th><th>Industria</th><th>Contacto principal</th><th class="num">Oportunidades abiertas</th></tr></thead><tbody>
+    ${lista.map(c=>{const cs=conDe(c.id),p=cs.find(x=>x.principal)||cs[0];const ab=ops.filter(o=>o.cliente_id===c.id&&!['Ganada','Perdida','Cancelada'].includes(o.etapa)).length;
+      return `<tr class="clic" data-id="${esc(c.id)}"><td><b>${esc(c.nombre)}</b><br><small>${esc([c.ciudad,c.pais].filter(Boolean).join(', '))}</small></td>
+      <td class="mono">${esc(c.ruc)}</td><td>${esc(c.industria)}</td>
+      <td>${p?esc(p.nombre)+`<br><small>${esc([p.cargo,p.correo].filter(Boolean).join(' · '))}</small>`:'<small>Sin contactos</small>'}</td>
+      <td class="num mono">${ab||'—'}</td></tr>`}).join('')}
+    </tbody></table></div>`;
+  $('lista').querySelectorAll('tr[data-id]').forEach(tr=>tr.onclick=()=>abrir(tr.dataset.id));
+}
+
+const CAMPOS=['nombre','ruc','pais','ciudad','industria','direccion','telefono','web','notas'];
+function filaContacto(c={}){
+  const d=document.createElement('div');d.className='contacto';if(c.id)d.dataset.id=c.id;
+  d.innerHTML=`<input data-k="nombre" placeholder="Nombre y apellido" value="${esc(c.nombre)}" aria-label="Nombre">
+    <input data-k="cargo" placeholder="Cargo" value="${esc(c.cargo)}" aria-label="Cargo">
+    <input data-k="correo" type="email" placeholder="correo@empresa.com" value="${esc(c.correo)}" aria-label="Correo">
+    <input data-k="telefono" placeholder="Teléfono" value="${esc(c.telefono)}" aria-label="Teléfono">
+    <label class="pr"><input type="radio" name="principal" data-k="principal"${c.principal?' checked':''}>Principal</label>
+    <button type="button" class="btn btn--x" title="Quitar contacto" aria-label="Quitar contacto">✕</button>`;
+  d.querySelector('button').onclick=()=>{d.remove();sucio=true};
+  $('cCon').appendChild(d);
+}
+function abrir(id){
+  const c=id?clientes.find(x=>x.id===id):{pais:'Perú'};actual=id||null;sucio=false;
+  $('cTitulo').textContent=id?c.nombre:'Nuevo cliente';
+  CAMPOS.forEach(k=>$('c_'+k).value=c[k]||'');
+  $('cCon').innerHTML='';
+  const cs=id?contactos.filter(x=>x.cliente_id===id):[];
+  (cs.length?cs:[{principal:true}]).forEach(filaContacto);
+  const os=id?ops.filter(o=>o.cliente_id===id):[];
+  $('cOpsCaja').hidden=!os.length;
+  $('cOps').innerHTML=os.map(o=>`<li><span class="mono">${esc(o.numero)}</span><a href="../ventas/oportunidad/?id=${esc(o.id)}">${esc(o.nombre)}</a><span class="estado ${['Ganada','Perdida','Cancelada'].includes(o.etapa)?'e-'+esc(o.etapa):'e-abierta'}">${esc(o.etapa)}</span></li>`).join('');
+  $('cBorrar').hidden=!(id&&yo.rol==='admin');
+  $('dCli').showModal();setTimeout(()=>{if(!id)$('c_nombre').focus()},30);
+}
+function cerrar(){if(sucio&&!confirm('Hay cambios sin guardar. ¿Cerrar sin guardar?'))return;sucio=false;$('dCli').close()}
+$('fCli').addEventListener('input',()=>sucio=true);
+$('cCerrar').onclick=cerrar;$('cCancelar').onclick=cerrar;
+$('dCli').addEventListener('cancel',e=>{if(sucio&&!confirm('Hay cambios sin guardar. ¿Cerrar sin guardar?'))e.preventDefault()});
+$('cAddCon').onclick=()=>{filaContacto();sucio=true;$('cCon').lastElementChild.querySelector('input').focus()};
+
+$('fCli').onsubmit=async e=>{
+  e.preventDefault();
+  const fila={};CAMPOS.forEach(k=>fila[k]=$('c_'+k).value.trim());
+  if(!fila.nombre){toast('Falta la razón social',true);return $('c_nombre').focus()}
+  const b=$('cGuardar');b.disabled=true;
+  try{
+    const r=actual?await sb.from('clientes').update(fila).eq('id',actual).select().single():await sb.from('clientes').insert(fila).select().single();
+    if(r.error)return toast('No se pudo guardar: '+r.error.message,true);
+    const id=r.data.id;
+    // Contactos: los que quedaron en pantalla se guardan; los quitados se borran.
+    const filas=[...$('cCon').children].map(d=>{const o={cliente_id:id};d.querySelectorAll('[data-k]').forEach(i=>o[i.dataset.k]=i.type==='radio'?i.checked:i.value.trim());return {id:d.dataset.id,o}}).filter(x=>x.o.nombre||x.o.correo||x.id);
+    const quedan=new Set(filas.map(x=>x.id).filter(Boolean));
+    for(const c of contactos.filter(c=>c.cliente_id===id&&!quedan.has(c.id))){await sb.from('contactos').delete().eq('id',c.id)}
+    for(const x of filas){
+      const rr=x.id?await sb.from('contactos').update(x.o).eq('id',x.id).select().single():await sb.from('contactos').insert(x.o).select().single();
+      if(rr.error)toast('Un contacto no se pudo guardar: '+rr.error.message,true);
+    }
+    await cargar();sucio=false;$('dCli').close();pintar();toast(actual?'Cliente guardado':'Cliente registrado');
+  }finally{b.disabled=false}
+};
+$('cBorrar').onclick=async()=>{
+  if(!confirm('¿Eliminar este cliente y sus contactos? Sus oportunidades y cotizaciones se conservan.'))return;
+  const r=await sb.from('clientes').delete().eq('id',actual);
+  if(r.error)return toast('No se pudo eliminar: '+r.error.message,true);
+  sucio=false;$('dCli').close();await cargar();pintar();toast('Cliente eliminado');
+};
+
+async function cargar(){
+  const [c,k,o]=await Promise.all([sb.from('clientes').select('*').order('nombre'),sb.from('contactos').select('*').order('creado_en'),sb.from('oportunidades').select('id,numero,nombre,etapa,cliente_id').order('creado_en',{ascending:false})]);
+  const err=c.error||k.error||o.error;if(err)throw err;
+  clientes=c.data;contactos=k.data;ops=o.data;
+}
+$('q').addEventListener('input',pintar);
+$('btnNuevo').onclick=()=>abrir();
+
+(async()=>{
+  ({sb,yo}=await ERP.entrar());
+  try{await cargar()}catch(e){return ERP.falla(ERP.faltaTabla(e,'20261107120000_erp_crm_cotizaciones.sql'))}
+  ERP.menu('clientes',{sb,yo});ERP.listo();pintar();
+  const id=new URLSearchParams(location.search).get('id');if(id&&clientes.some(c=>c.id===id))abrir(id);
+})();
+</script>
+</body>
+</html>

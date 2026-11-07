@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CUANTICS · Cotizaciones</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0C1218">
+<link rel="icon" href="../../img/libelula.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wdth,wght@125,600;125,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../lib/erp.css">
+<style>
+.cotn{font-family:"IBM Plex Mono",monospace;color:var(--amber);white-space:nowrap}
+.opn{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);text-decoration:none}
+.opn:hover{color:var(--cyan)}
+.herr label.chk{flex-direction:row;align-items:center;gap:6px;font-size:13px;color:var(--text)}
+.herr label.chk input{width:auto}
+</style>
+</head>
+<body>
+<div id="bloqueo">Cargando…</div>
+<main class="pagina">
+  <div class="cabeza">
+    <div>
+      <h1>Cotizaciones</h1>
+      <p>Cada oferta económica con su número COT y sus revisiones. Para cotizar algo nuevo, entra a la oportunidad y crea su cotización desde ahí.</p>
+    </div>
+  </div>
+  <div class="herr">
+    <input type="search" id="q" placeholder="Buscar número, cliente o referencia">
+    <select id="fEstado" aria-label="Estado"><option value="">Todos los estados</option><option>Borrador</option><option>Enviada</option><option>Aceptada</option><option>Rechazada</option></select>
+    <label class="chk"><input type="checkbox" id="fTodas">Mostrar revisiones anteriores</label>
+    <span class="sp"></span><span id="suma" style="font-size:12.5px;color:var(--muted)"></span>
+  </div>
+  <div id="lista"></div>
+</main>
+<script src="../../lib/supabase-js-2.113.0.js"></script>
+<script src="../../lib/conexion.js"></script>
+<script src="../../lib/erp.js"></script>
+<script>
+const {$,esc,mon,fFecha}=ERP;
+let sb,yo,cots=[],ops={};
+function pintar(){
+  const q=$('q').value.trim().toLowerCase(),fe=$('fEstado').value,todas=$('fTodas').checked;
+  const max={};cots.forEach(c=>{max[c.numero]=Math.max(max[c.numero]??-1,c.rev)});
+  const lista=cots.filter(c=>(todas||c.rev===max[c.numero])&&(!fe||c.estado===fe)&&(!q||[c.numero,c.cliente,c.referencia,ops[c.oportunidad_id]?.numero].join(' ').toLowerCase().includes(q)));
+  const enviadas=lista.filter(c=>c.estado==='Enviada'),t={};enviadas.forEach(c=>t[c.moneda]=(t[c.moneda]||0)+Number(c.subtotal));
+  $('suma').textContent=enviadas.length?`En espera de respuesta: ${Object.entries(t).map(([m,v])=>mon(v,m)).join(' · ')} sin IGV`:'';
+  if(!cots.length){$('lista').innerHTML=`<div class="tabla-env"><div class="vacio">Todavía no hay cotizaciones.<br>Se crean desde la pestaña Cotizaciones de cada oportunidad.<br><a class="btn btn--pri" href="../?vista=oportunidades">Ir a oportunidades</a></div></div>`;return}
+  $('lista').innerHTML=`<div class="tabla-env"><table class="tabla"><thead><tr><th>Número</th><th>Fecha</th><th>Cliente</th><th>Referencia</th><th>Oportunidad</th><th>Estado</th><th class="num">Total</th></tr></thead><tbody>
+    ${lista.map(c=>{const o=ops[c.oportunidad_id];return `<tr class="clic" data-id="${esc(c.id)}"><td class="cotn">${esc(c.numero)} <span style="color:var(--muted)">Rev${c.rev}</span></td><td>${fFecha(c.fecha)}</td>
+      <td>${esc(c.cliente)}</td><td>${esc(c.referencia)}</td><td>${o?`<a class="opn" href="../oportunidad/?id=${esc(o.id)}">${esc(o.numero)}</a>`:'—'}</td>
+      <td><span class="estado e-${esc(c.estado)}">${esc(c.estado)}</span></td><td class="num mono">${mon(c.total,c.moneda,1)}</td></tr>`}).join('')}
+    </tbody></table></div>`+(lista.length?'':'<p class="vacio">Nada coincide con el filtro.</p>');
+  $('lista').querySelectorAll('tr[data-id]').forEach(tr=>tr.onclick=e=>{if(!e.target.closest('a'))location.href='../cotizacion/?id='+tr.dataset.id});
+}
+['q','fEstado','fTodas'].forEach(i=>$(i).addEventListener('input',pintar));
+(async()=>{
+  ({sb,yo}=await ERP.entrar());
+  const [c,o]=await Promise.all([sb.from('cotizaciones').select('id,numero,rev,estado,fecha,cliente,referencia,moneda,subtotal,total,oportunidad_id').order('creado_en',{ascending:false}),
+    sb.from('oportunidades').select('id,numero')]);
+  if(c.error)return ERP.falla(ERP.faltaTabla(c.error,'20261107120000_erp_crm_cotizaciones.sql'));
+  cots=c.data;(o.data||[]).forEach(x=>ops[x.id]=x);
+  ERP.menu('cotizaciones',{sb,yo});ERP.listo();pintar();
+})();
+</script>
+</body>
+</html>

@@ -159,12 +159,43 @@
     </div>
 
     <div class="modulos">
+      <a class="modulo" href="ventas/">
+        <span class="chip on">Ventas</span>
+        <div class="modulo__area">CRM</div>
+        <div class="modulo__nom">Pipeline comercial</div>
+        <p class="modulo__txt">Leads en verde y el funnel de oportunidades, de la calificación a la orden de compra del cliente.</p>
+        <div class="modulo__dato" id="datoVentas">—</div>
+      </a>
+      <a class="modulo" href="ventas/cotizaciones/">
+        <span class="chip on">Ventas</span>
+        <div class="modulo__area">CRM</div>
+        <div class="modulo__nom">Cotizaciones</div>
+        <p class="modulo__txt">Ofertas económicas COT con sus revisiones. Se emiten en Word y PDF desde tu formato.</p>
+        <div class="modulo__dato" id="datoCot">—</div>
+      </a>
+      <a class="modulo" href="clientes/">
+        <span class="chip on">Ventas</span>
+        <div class="modulo__area">Maestros</div>
+        <div class="modulo__nom">Clientes y contactos</div>
+        <p class="modulo__txt">Razón social, RUC y la gente con la que hablas en cada empresa.</p>
+      </a>
+      <a class="modulo" href="productos/">
+        <span class="chip on">Catálogo</span>
+        <div class="modulo__area">Maestros</div>
+        <div class="modulo__nom">Productos</div>
+        <p class="modulo__txt">Part numbers de Kepware, Canary, Litmus, Ignition, Opto 22, Tulip y servicios propios.</p>
+      </a>
       <a class="modulo" href="compras/">
-        <span class="chip on">Activo</span>
+        <span class="chip on">Compras</span>
         <div class="modulo__area">Compras</div>
         <div class="modulo__nom">Órdenes de compra</div>
         <p class="modulo__txt">Emite órdenes a proveedores nacionales y del exterior, contra su cotización.</p>
         <div class="modulo__dato" id="datoOc">—</div>
+      </a>
+      <a class="modulo" href="ventas/?vista=leads&amp;nuevo=1">
+        <div class="modulo__area">Atajo</div>
+        <div class="modulo__nom">+ Nuevo lead</div>
+        <p class="modulo__txt">Registra a alguien con quien acabas de hablar antes de que se te olvide.</p>
       </a>
       <a class="modulo" href="compras/?nueva=1">
         <div class="modulo__area">Atajo</div>
@@ -173,21 +204,9 @@
       </a>
       <div class="modulo pronto">
         <span class="chip">Próximamente</span>
-        <div class="modulo__area">Ventas</div>
-        <div class="modulo__nom">Cotizaciones a clientes</div>
-        <p class="modulo__txt">Propuestas Kepware, Canary, Litmus, Ignition, Opto 22 y Tulip con el mismo formato.</p>
-      </div>
-      <div class="modulo pronto">
-        <span class="chip">Próximamente</span>
-        <div class="modulo__area">Maestros</div>
-        <div class="modulo__nom">Proveedores y productos</div>
-        <p class="modulo__txt">Fichas de proveedores y códigos de producto para no volver a escribirlos.</p>
-      </div>
-      <div class="modulo pronto">
-        <span class="chip">Próximamente</span>
-        <div class="modulo__area">Proyectos</div>
-        <div class="modulo__nom">Proyectos y clientes</div>
-        <p class="modulo__txt">Lo comprado y lo vendido por proyecto, para ver el margen real.</p>
+        <div class="modulo__area">Finanzas</div>
+        <div class="modulo__nom">Ventas y facturas</div>
+        <p class="modulo__txt">De la oportunidad ganada a la factura y su cobro, por proyecto.</p>
       </div>
       <a class="modulo" href="compras/#empresa" id="modEmpresa" hidden>
         <div class="modulo__area">Configuración</div>
@@ -218,6 +237,7 @@
 <!-- La librería de Supabase va dentro del repo, no en una CDN externa. -->
 <script src="lib/supabase-js-2.113.0.js"></script>
 <script src="lib/conexion.js"></script>
+<script src="lib/erp.js"></script>
 <script type="module">
 const $ = s => document.querySelector(s)
 const pAcceso = $('#pantallaAcceso'), pApp = $('#pantallaApp')
@@ -233,6 +253,7 @@ const fFecha = d => d ? d.split('-').reverse().join('/') : ''
 function decir(el, texto, malo = false){ el.textContent = texto; el.classList.toggle('malo', malo) }
 function mostrar(el, si){ el.hidden = !si }
 function verFormulario(cual){
+  document.querySelector('.erp-menu')?.remove(); document.body.classList.remove('con-menu')
   mostrar(pAcceso, true); mostrar(pApp, false)
   mostrar(fEntrar, cual === 'entrar'); mostrar(fOlvide, cual === 'olvide'); mostrar(fClave, cual === 'clave')
   mostrar(avisoCarga, cual === 'cargando')
@@ -318,8 +339,31 @@ async function arrancar(){
 
   pintarQuien(user)
   mostrar(pAcceso, false); mostrar(pApp, true)
+  ERP.menu('inicio', { sb, yo })
   mostrar($('#modEmpresa'), yo.rol === 'admin')
   cargarOrdenes()
+  cargarVentas()
+}
+
+async function cargarVentas(){
+  const [l, o, c] = await Promise.all([
+    sb.from('leads').select('estado'),
+    sb.from('oportunidades').select('etapa,moneda,monto'),
+    sb.from('cotizaciones').select('numero,rev,estado')
+  ])
+  if (!c.error) {
+    const max = {}; c.data.forEach(x => { if (!max[x.numero] || x.rev > max[x.numero].rev) max[x.numero] = x })
+    const vs = Object.values(max), env = vs.filter(x => x.estado === 'Enviada').length
+    $('#datoCot').innerHTML = vs.length ? `<b>${vs.length}</b> ${vs.length===1?'cotización':'cotizaciones'} · <b>${env}</b> esperando respuesta` : 'Se crean desde cada oportunidad.'
+  }
+  const dato = $('#datoVentas')
+  if (l.error || o.error) { dato.textContent = 'Falta crear las tablas del pipeline en la base.'; return }
+  const leads = l.data.filter(x => !['Calificado','Descartado'].includes(x.estado)).length
+  const abiertas = o.data.filter(x => !['Ganada','Perdida','Cancelada'].includes(x.etapa))
+  const usd = abiertas.filter(x => x.moneda === 'USD').reduce((s, x) => s + Number(x.monto || 0), 0)
+  dato.innerHTML = leads || abiertas.length
+    ? `<b>${leads}</b> ${leads===1?'lead':'leads'} · <b>${abiertas.length}</b> ${abiertas.length===1?'oportunidad':'oportunidades'}` + (usd ? ` · <b>US$ ${Number(usd).toLocaleString('en-US',{maximumFractionDigits:0})}</b>` : '')
+    : 'Aún no hay leads. Registra el primero.'
 }
 
 function pintarQuien(user){
