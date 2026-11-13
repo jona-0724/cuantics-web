@@ -428,7 +428,15 @@ select:hover{border-color:var(--ink-3)}
 /* Desglose de gastos: cada fila es un gasto; la suma ES el punto 0. */
 .p0-costos{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
 .p0-costos > .lbl{display:block;margin-bottom:8px}
-.p0-fila{display:grid;grid-template-columns:minmax(0,1fr) 150px 38px;gap:8px;align-items:center;margin-bottom:8px}
+.p0-lista{position:relative}
+.p0-fila{display:grid;grid-template-columns:30px minmax(0,1fr) 150px 38px;gap:8px;align-items:center;margin-bottom:8px;
+  border-radius:12px;transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease}
+.p0-mover{width:30px;height:38px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--ink-2);
+  font-size:18px;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.p0-mover:hover,.p0-mover:focus-visible{color:var(--ink);background:rgba(255,255,255,.06)}
+.p0-fila.arrastrando{position:relative;z-index:5;opacity:.95;box-shadow:0 10px 28px rgba(0,0,0,.55);background:var(--panel);outline:1px solid var(--fuego)}
+.p0-fila.arrastrando .p0-mover{cursor:grabbing;color:var(--fuego)}
+body.p0-arrastre{cursor:grabbing;user-select:none;-webkit-user-select:none}
 .p0-fila input.p0-nom{width:100%}
 .p0-fila .unidad{position:relative;display:block;width:100%}
 .p0-fila .unidad b{position:absolute;top:50%;left:12px;transform:translateY(-50%);pointer-events:none;font-weight:700;font-size:15px;color:var(--fuego)}
@@ -444,7 +452,7 @@ select:hover{border-color:var(--ink-3)}
 .p0-suma b{color:var(--ink);font-size:17px;font-variant-numeric:tabular-nums;margin-left:6px}
 .p0-suma .bono b{color:#7ee0a0}
 .p0-costos .p0-edit{margin-top:12px;padding-top:0;border-top:0}
-@media (max-width:520px){ .p0-fila{grid-template-columns:minmax(0,1fr) 112px 38px} }
+@media (max-width:520px){ .p0-fila{grid-template-columns:26px minmax(0,1fr) 108px 38px;gap:6px} .p0-mover{width:26px} }
 
 /* ---------- inventario de cierre ----------
    Se llena de pie, al final del día y con una mano: botones grandes, una
@@ -1092,8 +1100,6 @@ function costosIniciales(f){
   filas.push(filaCosto("Transporte del stand", ""));
   for (let i = 1; i <= n; i++) filas.push(filaCosto("Insumos día " + i, ""));
   filas.push(filaCosto("Extras", ""));
-  // Si ya había un punto 0 escrito a mano, no se pierde: queda como su propia fila.
-  if (+f.punto0) filas.push(filaCosto("Punto 0 anterior", +f.punto0));
   return filas;
 }
 function sumaCostos(c){ return Math.round((c || []).reduce((t, x) => t + Math.max(0, +x.monto || 0), 0) * 100) / 100; }
@@ -2408,18 +2414,18 @@ function panelPunto0(a){
   const totalDraft = sumaCostos(dP0.costos);
   const bpDraft = Math.max(0, +dP0.bonoPct || 0);
   const filas = dP0.costos.map(c =>
-    '<div class="p0-fila">' +
+    '<div class="p0-fila" data-p0fila="' + esc(c.k) + '">' +
+      '<button class="p0-mover" data-p0mover="' + esc(c.k) + '" title="Arrastra para ordenar (o usa ↑ ↓)" aria-label="Mover ' +
+        esc(c.nombre || "gasto") + ' — arrastra o usa las flechas arriba y abajo">⠿</button>' +
       '<input class="p0-nom" type="text" data-p0nom="' + esc(c.k) + '" value="' + esc(c.nombre) + '" placeholder="Nombre del gasto" aria-label="Nombre del gasto">' +
       '<span class="unidad"><b>S/</b><input type="number" min="0" step="10" inputmode="decimal" data-p0monto="' + esc(c.k) +
         '" value="' + esc(c.monto) + '" placeholder="0.00" aria-label="Monto de ' + esc(c.nombre || "gasto") + '"></span>' +
       '<button class="p0-quitar" data-p0quitar="' + esc(c.k) + '" title="Quitar este gasto" aria-label="Quitar ' + esc(c.nombre || "gasto") + '">✕</button>' +
     "</div>").join("");
-  const sigDia = Math.max(0, ...dP0.costos.map(c => +((/^(?:personal|insumos) d[ií]a (\d+)$/i.exec(c.nombre) || [])[1] || 0))) + 1;
   const editor = '<div class="p0-costos">' +
-    '<span class="lbl">Gastos de la feria — la suma es el punto 0</span>' + filas +
-    '<div class="p0-mas">' +
-      '<button data-p0mas="dia" title="Agrega Personal e Insumos del día ' + sigDia + '">+ Día ' + sigDia + " (personal e insumos)</button>" +
-      '<button data-p0mas="">+ Otro gasto</button></div>' +
+    '<span class="lbl">Gastos de la feria — la suma es el punto 0 (vender eso = ni ganas ni pierdes)</span>' +
+    '<div class="p0-lista">' + filas + "</div>" +
+    '<div class="p0-mas"><button data-p0mas="">+ Otro gasto</button></div>' +
     '<div class="p0-suma"><span>Punto 0 (total de gastos)<b id="p0Total">' + soles(totalDraft) + "</b></span>" +
       '<span class="bono">Bono al llegar a<b id="p0BonoTotal">' + soles(totalDraft * (1 + bpDraft / 100)) +
       '</b> <span class="mut">(+<span id="p0BonoPct">' + bpDraft + "</span>%)</span></span></div>" +
@@ -2810,7 +2816,7 @@ const cerrarSheet = () => { S.sheet = null; pintarModal(); };
 document.addEventListener("click", ev => { manejarClick(ev).catch(err => {
   console.error("[potente]", err); toast("Algo falló al tocar ese botón. Vuelve a intentarlo."); }); });
 async function manejarClick(ev){
-  const t = ev.target.closest("[data-p0quitar],[data-p0mas],[data-feria],[data-ped],[data-edi],[data-anu],[data-pos],[data-caned],[data-rol],[data-cat],[data-add],[data-q],[data-opt],[data-salsa],[data-qs],[data-editar],[data-pay],[data-est],[data-tab],[data-bajar],[data-matriz],[data-anular],[data-dia],[data-sub],[data-volver],[data-verferia],[data-precio],[data-activo],[data-cerrar-sheet],[data-bg],button");
+  const t = ev.target.closest("[data-p0mover],[data-p0quitar],[data-p0mas],[data-feria],[data-ped],[data-edi],[data-anu],[data-pos],[data-caned],[data-rol],[data-cat],[data-add],[data-q],[data-opt],[data-salsa],[data-qs],[data-editar],[data-pay],[data-est],[data-tab],[data-bajar],[data-matriz],[data-anular],[data-dia],[data-sub],[data-volver],[data-verferia],[data-precio],[data-activo],[data-cerrar-sheet],[data-bg],button");
   if (!t) return;
   const g = a => t.getAttribute(a);
 
@@ -3050,29 +3056,17 @@ async function manejarClick(ev){
       "Sale del total de ventas y del conteo por producto. Puedes restaurarla después.",
       "Anular", async () => { cerrarSheet(); await anularOrden(id, true); });
   }
+  if (t.hasAttribute("data-p0mover")) return;
   if (t.hasAttribute("data-p0quitar") && S.p0Draft){
     const k = g("data-p0quitar");
     S.p0Draft.costos = S.p0Draft.costos.filter(c => c.k !== k);
     return render();
   }
   if (t.hasAttribute("data-p0mas") && S.p0Draft){
-    const C = S.p0Draft.costos;
-    // Mete la fila justo después del último gasto de su grupo (o antes de Extras).
-    const meter = (fila, grupo) => {
-      let i = -1;
-      if (grupo) C.forEach((c, j) => { if (grupo.test(c.nombre)) i = j; });
-      if (i < 0) i = C.findIndex(c => /^extras$/i.test(c.nombre)) - 1;
-      if (i < -1 || (i === -1 && !C.some(c => /^extras$/i.test(c.nombre)))) C.push(fila); else C.splice(i + 1, 0, fila);
-      return fila;
-    };
-    let fila;
-    if (g("data-p0mas") === "dia"){
-      const d = Math.max(0, ...C.map(c => +((/^(?:personal|insumos) d[ií]a (\d+)$/i.exec(c.nombre) || [])[1] || 0))) + 1;
-      fila = meter(filaCosto("Personal día " + d, ""), /^personal d[ií]a/i);
-      meter(filaCosto("Insumos día " + d, ""), /^insumos d[ií]a/i);
-    } else fila = meter(filaCosto("", ""), null);
+    const fila = filaCosto("", "");
+    S.p0Draft.costos.push(fila);
     render();
-    const el = document.querySelector(fila.nombre ? '[data-p0monto="' + fila.k + '"]' : '[data-p0nom="' + fila.k + '"]');
+    const el = document.querySelector('[data-p0nom="' + fila.k + '"]');
     if (el) el.focus();
     return;
   }
@@ -3092,6 +3086,61 @@ async function manejarClick(ev){
   if (t.id === "confirmSi" && S.sheet && S.sheet.fn) return S.sheet.fn();
 }
 
+
+/* Ordenar gastos: se arrastra la manija ⠿ (mouse o dedo). Las filas se mueven en
+   el DOM mientras dura el arrastre —sin repintar, para que nada parpadee— y al
+   soltar se copia ese orden al borrador. Con teclado: foco en la manija y ↑ ↓. */
+let p0Arr = null;
+function p0OrdenDesdeDom(){
+  if (!S.p0Draft) return;
+  const orden = [...document.querySelectorAll(".p0-lista [data-p0fila]")].map(e => e.getAttribute("data-p0fila"));
+  const porK = {}; S.p0Draft.costos.forEach(c => porK[c.k] = c);
+  S.p0Draft.costos = orden.map(k => porK[k]).filter(Boolean);
+}
+document.addEventListener("pointerdown", ev => {
+  const h = ev.target.closest && ev.target.closest("[data-p0mover]");
+  if (!h || !S.p0Draft || (ev.pointerType === "mouse" && ev.button !== 0)) return;
+  ev.preventDefault();
+  const fila = h.closest(".p0-fila");
+  p0Arr = { fila, lista:fila.parentNode, id:ev.pointerId };
+  try { h.setPointerCapture(ev.pointerId); } catch (e){}
+  fila.classList.add("arrastrando");
+  document.body.classList.add("p0-arrastre");
+});
+document.addEventListener("pointermove", ev => {
+  if (!p0Arr || ev.pointerId !== p0Arr.id) return;
+  ev.preventDefault();
+  const { fila, lista } = p0Arr;
+  // Cuando el dedo pasa la mitad de una vecina, la fila salta a ese lugar.
+  const otras = [...lista.children].filter(e => e !== fila);
+  let antes = null;
+  for (const o of otras){
+    const r = o.getBoundingClientRect();
+    if (ev.clientY < r.top + r.height / 2){ antes = o; break; }
+  }
+  if (antes !== fila.nextSibling && !(antes === null && fila === lista.lastElementChild)) lista.insertBefore(fila, antes);
+}, { passive:false });
+function p0Soltar(ev){
+  if (!p0Arr || (ev && ev.pointerId !== p0Arr.id)) return;
+  const { fila } = p0Arr;
+  fila.classList.remove("arrastrando");
+  document.body.classList.remove("p0-arrastre");
+  p0Arr = null;
+  p0OrdenDesdeDom();
+  const h = fila.querySelector("[data-p0mover]"); if (h) h.focus({ preventScroll:true });
+}
+document.addEventListener("pointerup", p0Soltar);
+document.addEventListener("pointercancel", p0Soltar);
+document.addEventListener("keydown", ev => {
+  const h = ev.target.closest && ev.target.closest("[data-p0mover]");
+  if (!h || !S.p0Draft || (ev.key !== "ArrowUp" && ev.key !== "ArrowDown")) return;
+  ev.preventDefault();
+  const fila = h.closest(".p0-fila"), lista = fila.parentNode;
+  if (ev.key === "ArrowUp" && fila.previousElementSibling) lista.insertBefore(fila, fila.previousElementSibling);
+  if (ev.key === "ArrowDown" && fila.nextElementSibling) lista.insertBefore(fila.nextElementSibling, fila);
+  p0OrdenDesdeDom();
+  h.focus();
+});
 
 document.addEventListener("keydown", ev => {
   if (ev.key === "Escape" && S.sheet) cerrarSheet();
