@@ -566,6 +566,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
 .calor .cz.v0{color:transparent}
 .calor .cz.alto{color:#1a0d05}
 .calor .cz.pico{outline:2px solid var(--brasa);outline-offset:1px}
+.calor .cgap{display:flex;align-items:center;justify-content:center;color:var(--ink-3);font-size:12px;opacity:.6}
 .calor .cl{font-size:12px;color:var(--ink-2);display:flex;align-items:center;padding-right:6px;white-space:nowrap;font-weight:600}
 .calor .ch{font-size:11px;color:var(--ink-3);text-align:center;padding-bottom:2px}
 .calor .ct{font-size:12px;color:var(--ink-2);display:flex;align-items:center;justify-content:flex-end;padding-left:6px;white-space:nowrap}
@@ -2763,19 +2764,30 @@ function panelCalor(){
     return "background:rgba(242,129,29," + (0.14 + t * 0.7).toFixed(2) + ")";
   };
   const [pd, ph] = pico.split("|");
-  const cols = "auto repeat(" + hs.length + ",minmax(34px,1fr)) auto";
+  // Tres o más horas seguidas sin un solo pedido se juntan en una columna angosta "…":
+  // así un pedido suelto de madrugada no estira el mapa con columnas vacías.
+  const vis = [];
+  for (let i = 0; i < hs.length; ){
+    let j = i; while (j < hs.length && !porHora[hs[j]]) j++;
+    if (j - i >= 3){ vis.push({ gap:hs[i] + "–" + hs[j - 1] + "h" }); i = j; }
+    else { vis.push(hs[i]); i++; }
+  }
+  const hueco = x => '<div class="cgap" title="Sin pedidos ' + x.gap + '">…</div>';
+  const cols = "auto " + vis.map(x => typeof x === "number" ? "minmax(34px,1fr)" : "18px").join(" ") + " auto";
   let g = '<div class="calor" style="grid-template-columns:' + cols + '">' +
-    '<div></div>' + hs.map(h => '<div class="ch">' + h + "h</div>").join("") + '<div class="ch">Total</div>';
+    '<div></div>' + vis.map(h => typeof h === "number" ? '<div class="ch">' + h + "h</div>" : '<div class="ch">…</div>').join("") + '<div class="ch">Total</div>';
   dias.forEach(d => {
     let tot = 0;
-    g += '<div class="cl">' + esc(diaLargo(d)) + "</div>" + hs.map(h => {
+    g += '<div class="cl">' + esc(diaLargo(d)) + "</div>" + vis.map(h => {
+      if (typeof h !== "number") return hueco(h);
       const c = celdas[d + "|" + h]; const v = c ? val(c) : 0; tot += v;
       return '<div class="cz' + (v ? (v / max > .8 ? " alto" : "") : " v0") + (d + "|" + h === pico ? " pico" : "") + '" style="' + color(v, max) +
         '" data-tip="' + esc(diaLargo(d) + " · " + h + ":00–" + (h + 1) + ":00||Pedidos:" + (c ? c.n : 0) + "||Venta:" + soles(c ? c.s : 0)) + '">' + (v ? fmtCorto(v) : "·") + "</div>";
     }).join("") + '<div class="ct">' + fmt(tot) + "</div>";
   });
   if (dias.length > 1){
-    g += '<div class="cl" style="color:var(--ink)">Todos</div>' + hs.map(h => {
+    g += '<div class="cl" style="color:var(--ink)">Todos</div>' + vis.map(h => {
+      if (typeof h !== "number") return hueco(h);
       const c = porHora[h]; const v = c ? val(c) : 0;
       return '<div class="cz' + (v ? (v / maxTot > .8 ? " alto" : "") : " v0") + '" style="' + color(v, maxTot) +
         '" data-tip="' + esc("Todos los días · " + h + ":00–" + (h + 1) + ":00||Pedidos:" + (c ? c.n : 0) + "||Venta:" + soles(c ? c.s : 0)) + '">' + (v ? fmtCorto(v) : "·") + "</div>";
