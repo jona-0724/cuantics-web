@@ -2228,9 +2228,9 @@ function resumenCocina(items){
   const suma = (k, n, cls) => { if (!cuenta[k]) { cuenta[k] = { n:0, cls }; orden.push(k); } cuenta[k].n += n; };
   items.forEach(i => {
     const q = +i.qty || 1, pc = partesCocina(i);
-    pc.principal.forEach(m => /^papas/i.test(m) ? suma("Papas", q, "pap") : suma(m, q, ""));
+    pc.principal.forEach(m => suma(/^papas/i.test(m) ? "Porción de papas" : m, q, ""));
     pc.bebidas.forEach(b => suma(b.sabor + (b.tam ? " " + b.tam : ""), q, "beb"));
-    if (pc.papas) suma("Papas", q, "pap");
+    if (pc.papas) suma("Papas de combo", q, "pap");   // media bandeja junto al sándwich: no es lo mismo que una porción
   });
   return orden.map(k => ({ txt:k, n:cuenta[k].n, cls:cuenta[k].cls }));
 }
@@ -2244,7 +2244,7 @@ function kcard(o, est){
                 : pc.tipo ? '<span class="kcombo simple">' + esc(pc.tipo) + "</span>" : "") +
       pc.principal.map(m => '<span class="kmain">' + esc(m) + "</span>").join("") +
       pc.bebidas.map(b => '<span class="kbeb">🥤 ' + esc(b.sabor) + (b.tam ? "<small>" + esc(b.tam) + "</small>" : "") + "</span>").join("") +
-      (pc.papas ? '<span class="kpap">🍟 Papas crujientes</span>' : "") +
+      (pc.papas ? '<span class="kpap">🍟 Papas de combo</span>' : "") +
       (pc.sinOpciones ? "<span>" + esc(i.detalle) + "</span>" : "") +
       sal +
       (i.nota ? '<span class="knot">✎ ' + esc(i.nota) + "</span>" : "") +
