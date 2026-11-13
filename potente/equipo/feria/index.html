@@ -1086,10 +1086,12 @@ const filaCosto = (nombre, monto) => ({ k:"c" + (++p0Llave), nombre:nombre || ""
   monto:monto == null || monto === "" || +monto === 0 ? "" : String(monto) });
 /* La lista de gastos con la que arranca una feria sin desglose guardado. */
 function costosIniciales(f){
-  const filas = [filaCosto("Personal", "")];
   const n = diasDeFeria(f);
+  const filas = [filaCosto("Costo del stand", "")];
+  for (let i = 1; i <= n; i++) filas.push(filaCosto("Personal día " + i, ""));
+  filas.push(filaCosto("Transporte del stand", ""));
   for (let i = 1; i <= n; i++) filas.push(filaCosto("Insumos día " + i, ""));
-  filas.push(filaCosto("Transporte stand", ""), filaCosto("Transporte equipos", ""));
+  filas.push(filaCosto("Extras", ""));
   // Si ya había un punto 0 escrito a mano, no se pierde: queda como su propia fila.
   if (+f.punto0) filas.push(filaCosto("Punto 0 anterior", +f.punto0));
   return filas;
@@ -2412,11 +2414,11 @@ function panelPunto0(a){
         '" value="' + esc(c.monto) + '" placeholder="0.00" aria-label="Monto de ' + esc(c.nombre || "gasto") + '"></span>' +
       '<button class="p0-quitar" data-p0quitar="' + esc(c.k) + '" title="Quitar este gasto" aria-label="Quitar ' + esc(c.nombre || "gasto") + '">✕</button>' +
     "</div>").join("");
-  const sigDia = dP0.costos.filter(c => /^insumos d[ií]a \d+$/i.test(c.nombre)).length + 1;
+  const sigDia = Math.max(0, ...dP0.costos.map(c => +((/^(?:personal|insumos) d[ií]a (\d+)$/i.exec(c.nombre) || [])[1] || 0))) + 1;
   const editor = '<div class="p0-costos">' +
     '<span class="lbl">Gastos de la feria — la suma es el punto 0</span>' + filas +
     '<div class="p0-mas">' +
-      '<button data-p0mas="Insumos día ' + sigDia + '">+ Insumos día ' + sigDia + "</button>" +
+      '<button data-p0mas="dia" title="Agrega Personal e Insumos del día ' + sigDia + '">+ Día ' + sigDia + " (personal e insumos)</button>" +
       '<button data-p0mas="">+ Otro gasto</button></div>' +
     '<div class="p0-suma"><span>Punto 0 (total de gastos)<b id="p0Total">' + soles(totalDraft) + "</b></span>" +
       '<span class="bono">Bono al llegar a<b id="p0BonoTotal">' + soles(totalDraft * (1 + bpDraft / 100)) +
@@ -2434,7 +2436,7 @@ function panelPunto0(a){
   const pedidos = falta => { if (!ticket) return ""; const n = Math.ceil(falta / ticket);
     return " · " + (n === 1 ? "un <b>1</b> pedido más" : "unos <b>" + n + "</b> pedidos más") + " al ticket promedio"; };
   const cabeza = {
-    sin:      { pill:"○ Sin meta",         num:vendido,          txt:"vendido en la feria. Anota abajo cada gasto de la feria — personal, insumos por día, transporte — y esta tarjeta te dirá en vivo si ya lo cubriste y a cuánto está el equipo del bono." },
+    sin:      { pill:"○ Sin meta",         num:vendido,          txt:"vendido en la feria. Anota abajo cada gasto de la feria — stand, personal e insumos por día, transporte, extras — y esta tarjeta te dirá en vivo si ya lo cubriste y a cuánto está el equipo del bono." },
     rojo:     { pill:"▼ En rojo",          num:meta - vendido,   txt:(vendido ? "te faltan para llegar al punto 0 de <b>" + soles(meta) + "</b>" : "es el punto 0 de esta feria · todavía no hay ventas registradas") + pedidos(meta - vendido) },
     cubierto: { pill:"✔ Costos cubiertos", num:vendido - meta,   txt:"sobre el punto 0 · faltan <b>" + soles(bono - vendido) + "</b> para el bono del equipo" + pedidos(bono - vendido) },
     bono:     { pill:"★ Bono alcanzado",   num:vendido - bono,   txt:"por encima del punto de bono — el equipo se lo ganó" }
@@ -3054,11 +3056,21 @@ async function manejarClick(ev){
     return render();
   }
   if (t.hasAttribute("data-p0mas") && S.p0Draft){
-    const fila = filaCosto(g("data-p0mas"), "");
-    // Un día nuevo de insumos va junto a los otros días, no al final.
-    let i = -1;
-    if (fila.nombre) S.p0Draft.costos.forEach((c, j) => { if (/^insumos d[ií]a/i.test(c.nombre)) i = j; });
-    if (i >= 0) S.p0Draft.costos.splice(i + 1, 0, fila); else S.p0Draft.costos.push(fila);
+    const C = S.p0Draft.costos;
+    // Mete la fila justo después del último gasto de su grupo (o antes de Extras).
+    const meter = (fila, grupo) => {
+      let i = -1;
+      if (grupo) C.forEach((c, j) => { if (grupo.test(c.nombre)) i = j; });
+      if (i < 0) i = C.findIndex(c => /^extras$/i.test(c.nombre)) - 1;
+      if (i < -1 || (i === -1 && !C.some(c => /^extras$/i.test(c.nombre)))) C.push(fila); else C.splice(i + 1, 0, fila);
+      return fila;
+    };
+    let fila;
+    if (g("data-p0mas") === "dia"){
+      const d = Math.max(0, ...C.map(c => +((/^(?:personal|insumos) d[ií]a (\d+)$/i.exec(c.nombre) || [])[1] || 0))) + 1;
+      fila = meter(filaCosto("Personal día " + d, ""), /^personal d[ií]a/i);
+      meter(filaCosto("Insumos día " + d, ""), /^insumos d[ií]a/i);
+    } else fila = meter(filaCosto("", ""), null);
     render();
     const el = document.querySelector(fila.nombre ? '[data-p0monto="' + fila.k + '"]' : '[data-p0nom="' + fila.k + '"]');
     if (el) el.focus();
