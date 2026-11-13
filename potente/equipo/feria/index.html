@@ -425,6 +425,26 @@ select:hover{border-color:var(--ink-3)}
 .p0-edit .unidad input{-moz-appearance:textfield;appearance:textfield}
 .p0-edit .unidad input::-webkit-inner-spin-button,
 .p0-edit .unidad input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+/* Desglose de gastos: cada fila es un gasto; la suma ES el punto 0. */
+.p0-costos{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.p0-costos > .lbl{display:block;margin-bottom:8px}
+.p0-fila{display:grid;grid-template-columns:minmax(0,1fr) 150px 38px;gap:8px;align-items:center;margin-bottom:8px}
+.p0-fila input.p0-nom{width:100%}
+.p0-fila .unidad{position:relative;display:block;width:100%}
+.p0-fila .unidad b{position:absolute;top:50%;left:12px;transform:translateY(-50%);pointer-events:none;font-weight:700;font-size:15px;color:var(--fuego)}
+.p0-fila .unidad input{width:100%;padding-left:38px;-moz-appearance:textfield;appearance:textfield}
+.p0-fila .unidad input::-webkit-inner-spin-button,
+.p0-fila .unidad input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.p0-quitar{width:38px;height:38px;padding:0;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink-2);font-size:15px;cursor:pointer}
+.p0-quitar:hover{color:var(--fuego);border-color:var(--fuego)}
+.p0-mas{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px}
+.p0-mas button{padding:8px 12px;border-radius:10px;border:1px dashed var(--line);background:transparent;color:var(--ink-2);font-size:13px;cursor:pointer}
+.p0-mas button:hover{color:var(--ink);border-color:var(--ink-2)}
+.p0-suma{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:14px;color:var(--ink-2)}
+.p0-suma b{color:var(--ink);font-size:17px;font-variant-numeric:tabular-nums;margin-left:6px}
+.p0-suma .bono b{color:#7ee0a0}
+.p0-costos .p0-edit{margin-top:12px;padding-top:0;border-top:0}
+@media (max-width:520px){ .p0-fila{grid-template-columns:minmax(0,1fr) 112px 38px} }
 
 /* ---------- inventario de cierre ----------
    Se llena de pie, al final del día y con una mano: botones grandes, una
@@ -675,7 +695,17 @@ function mapFeria(f){
   return { id:f.id, nombre:f.nombre, lugar:f.lugar || "", inicio:f.fecha_inicio, fin:f.fecha_fin,
            estadoWeb:f.estado, punto0:+f.punto0 || 0,
            bonoPct:f.bono_pct == null ? 50 : +f.bono_pct,
-           mostrarEquipo:f.mostrar_equipo !== false };
+           mostrarEquipo:f.mostrar_equipo !== false,
+           costos:Array.isArray(f.costos) && f.costos.length ? f.costos : costosLocales(f.id) };
+}
+/* Si la base todavía no tiene la columna `costos`, el desglose se guarda en este
+   navegador para no perderlo; el punto 0 (la suma) sí va siempre a la base. */
+function costosLocales(id){
+  try { const v = JSON.parse(localStorage.getItem("potente_costos_" + id) || "null"); return Array.isArray(v) && v.length ? v : null; }
+  catch (e){ return null; }
+}
+function guardarCostosLocales(id, c){
+  try { localStorage.setItem("potente_costos_" + id, JSON.stringify(c)); } catch (e){}
 }
 function mapOrden(o, items){
   const ts = o.creado_en;
@@ -1046,33 +1076,73 @@ async function guardarCarta(){
 
 /* Lo que el administrador está escribiendo vive aquí, no solo en el campo:
    así un refresco de fondo no puede borrárselo a media edición. */
+function diasDeFeria(f){
+  if (!f.inicio || !f.fin) return 1;
+  const n = Math.round((new Date(f.fin + "T12:00:00") - new Date(f.inicio + "T12:00:00")) / 864e5) + 1;
+  return Math.max(1, Math.min(10, n || 1));
+}
+let p0Llave = 0;
+const filaCosto = (nombre, monto) => ({ k:"c" + (++p0Llave), nombre:nombre || "",
+  monto:monto == null || monto === "" || +monto === 0 ? "" : String(monto) });
+/* La lista de gastos con la que arranca una feria sin desglose guardado. */
+function costosIniciales(f){
+  const filas = [filaCosto("Personal", "")];
+  const n = diasDeFeria(f);
+  for (let i = 1; i <= n; i++) filas.push(filaCosto("Insumos día " + i, ""));
+  filas.push(filaCosto("Transporte stand", ""), filaCosto("Transporte equipos", ""));
+  // Si ya había un punto 0 escrito a mano, no se pierde: queda como su propia fila.
+  if (+f.punto0) filas.push(filaCosto("Punto 0 anterior", +f.punto0));
+  return filas;
+}
+function sumaCostos(c){ return Math.round((c || []).reduce((t, x) => t + Math.max(0, +x.monto || 0), 0) * 100) / 100; }
 function draftP0(f){
   if (!S.p0Draft || S.p0Draft.id !== f.id)
     S.p0Draft = { id:f.id,
-      punto0: f.punto0 ? String(f.punto0) : "",
+      costos: f.costos ? f.costos.map(x => filaCosto(x.nombre, x.monto)) : costosIniciales(f),
       bonoPct: String(f.bonoPct == null ? 50 : f.bonoPct),
       ver: f.mostrarEquipo !== false };
   return S.p0Draft;
+}
+/* Repinta solo los totales mientras se escribe: así el cursor no salta de casilla. */
+function pintarSumaP0(){
+  const d = S.p0Draft; if (!d) return;
+  const total = sumaCostos(d.costos);
+  const bp = Math.max(0, +d.bonoPct || 0);
+  const a = $("#p0Total"), b = $("#p0BonoTotal"), c = $("#p0BonoPct");
+  if (a) a.textContent = soles(total);
+  if (b) b.textContent = soles(total * (1 + bp / 100));
+  if (c) c.textContent = bp;
 }
 async function guardarPunto0(){
   const f = S.ferias.find(x => x.id === S.feriaSel);
   if (!f) return;
   const d = draftP0(f);
-  const txt = String(($("#p0") ? $("#p0").value : d.punto0) || "").trim();
-  if (txt === ""){
-    toast("Escribe cuánto te cuesta poner esta feria en pie, y después guarda.");
-    if ($("#p0")) $("#p0").focus();
+  const costos = d.costos
+    .map(x => ({ nombre:String(x.nombre || "").trim(), monto:Math.round(Math.max(0, +x.monto || 0) * 100) / 100 }))
+    .filter(x => x.nombre || x.monto);
+  if (!costos.some(x => x.monto)){
+    toast("Escribe al menos un gasto —personal, insumos, transporte— y después guarda.");
+    const primero = document.querySelector("[data-p0monto]"); if (primero) primero.focus();
     return;
   }
-  const v = Math.max(0, +txt || 0);
+  const v = sumaCostos(costos);
   const bp = Math.max(0, +(($("#p0bono") ? $("#p0bono").value : d.bonoPct) || 50));
   const ver = $("#p0Ver") ? $("#p0Ver").getAttribute("aria-pressed") === "true" : d.ver;
-  const { error } = await sb.from("ferias")
-    .update({ punto0:v, bono_pct:bp, mostrar_equipo:ver }).eq("id", f.id);
+  const cambios = { punto0:v, bono_pct:bp, mostrar_equipo:ver, costos };
+  let { error } = await sb.from("ferias").update(cambios).eq("id", f.id);
+  let soloLocal = false;
+  if (error && /costos/i.test(error.message || "")){
+    // La base aún no tiene la columna del desglose: la suma va allá y el detalle queda aquí.
+    delete cambios.costos;
+    ({ error } = await sb.from("ferias").update(cambios).eq("id", f.id));
+    soloLocal = !error;
+  }
   if (error){ toast("No se pudo guardar: " + error.message); return; }
-  f.punto0 = v; f.bonoPct = bp; f.mostrarEquipo = ver;
+  guardarCostosLocales(f.id, costos);
+  f.punto0 = v; f.bonoPct = bp; f.mostrarEquipo = ver; f.costos = costos;
   S.p0Draft = null;
-  toast(v ? "Punto 0 guardado: " + soles(v) + " · bono al superar " + soles(v * (1 + bp / 100)) : "Punto 0 borrado.");
+  toast("Punto 0 guardado: " + soles(v) + " · bono al superar " + soles(v * (1 + bp / 100)) +
+        (soloLocal ? " (el desglose quedó solo en este equipo)" : ""));
   render();
 }
 
@@ -2333,23 +2403,38 @@ function panelPunto0(a){
   const dP0 = draftP0(f);
   const vendido = a.porDia.reduce((t, d) => t + d.total, 0);
   const ordenes = a.porDia.reduce((t, d) => t + d.n, 0);
-  const editor = '<div class="p0-edit">' +
-    '<label><span class="lbl" style="display:block;margin-bottom:5px">Punto 0 de esta feria</span>' +
-    '<span class="unidad pre"><b>S/</b>' +
-    '<input id="p0" type="number" min="0" step="10" value="' + esc(dP0.punto0) + '" placeholder="0.00"></span></label>' +
+  const totalDraft = sumaCostos(dP0.costos);
+  const bpDraft = Math.max(0, +dP0.bonoPct || 0);
+  const filas = dP0.costos.map(c =>
+    '<div class="p0-fila">' +
+      '<input class="p0-nom" type="text" data-p0nom="' + esc(c.k) + '" value="' + esc(c.nombre) + '" placeholder="Nombre del gasto" aria-label="Nombre del gasto">' +
+      '<span class="unidad"><b>S/</b><input type="number" min="0" step="10" inputmode="decimal" data-p0monto="' + esc(c.k) +
+        '" value="' + esc(c.monto) + '" placeholder="0.00" aria-label="Monto de ' + esc(c.nombre || "gasto") + '"></span>' +
+      '<button class="p0-quitar" data-p0quitar="' + esc(c.k) + '" title="Quitar este gasto" aria-label="Quitar ' + esc(c.nombre || "gasto") + '">✕</button>' +
+    "</div>").join("");
+  const sigDia = dP0.costos.filter(c => /^insumos d[ií]a \d+$/i.test(c.nombre)).length + 1;
+  const editor = '<div class="p0-costos">' +
+    '<span class="lbl">Gastos de la feria — la suma es el punto 0</span>' + filas +
+    '<div class="p0-mas">' +
+      '<button data-p0mas="Insumos día ' + sigDia + '">+ Insumos día ' + sigDia + "</button>" +
+      '<button data-p0mas="">+ Otro gasto</button></div>' +
+    '<div class="p0-suma"><span>Punto 0 (total de gastos)<b id="p0Total">' + soles(totalDraft) + "</b></span>" +
+      '<span class="bono">Bono al llegar a<b id="p0BonoTotal">' + soles(totalDraft * (1 + bpDraft / 100)) +
+      '</b> <span class="mut">(+<span id="p0BonoPct">' + bpDraft + "</span>%)</span></span></div>" +
+    '<div class="p0-edit">' +
     '<label><span class="lbl" style="display:block;margin-bottom:5px">Bono al superar el punto 0</span>' +
     '<span class="unidad suf">' +
     '<input id="p0bono" type="number" min="0" step="5" value="' + esc(dP0.bonoPct) + '" placeholder="50"><b>%</b></span></label>' +
     '<button class="toggle" id="p0Ver" aria-pressed="' + dP0.ver + '" style="align-self:end;padding:10px 13px">' +
       (dP0.ver ? "El equipo ve su avance" : "Oculto para el equipo") + "</button>" +
-    '<button class="btn sm" id="p0Guardar" style="align-self:end">Guardar</button></div>';
+    '<button class="btn sm" id="p0Guardar" style="align-self:end">Guardar</button></div></div>';
 
   const estado = !meta ? "sin" : vendido >= bono ? "bono" : vendido >= meta ? "cubierto" : "rojo";
   const ticket = ordenes ? vendido / ordenes : 0;
   const pedidos = falta => { if (!ticket) return ""; const n = Math.ceil(falta / ticket);
     return " · " + (n === 1 ? "un <b>1</b> pedido más" : "unos <b>" + n + "</b> pedidos más") + " al ticket promedio"; };
   const cabeza = {
-    sin:      { pill:"○ Sin meta",         num:vendido,          txt:"vendido en la feria. Escribe abajo cuánto te cuesta ponerla en pie — insumos, personal, transporte, el puesto — y esta tarjeta te dirá en vivo si ya lo cubriste y a cuánto está el equipo del bono." },
+    sin:      { pill:"○ Sin meta",         num:vendido,          txt:"vendido en la feria. Anota abajo cada gasto de la feria — personal, insumos por día, transporte — y esta tarjeta te dirá en vivo si ya lo cubriste y a cuánto está el equipo del bono." },
     rojo:     { pill:"▼ En rojo",          num:meta - vendido,   txt:(vendido ? "te faltan para llegar al punto 0 de <b>" + soles(meta) + "</b>" : "es el punto 0 de esta feria · todavía no hay ventas registradas") + pedidos(meta - vendido) },
     cubierto: { pill:"✔ Costos cubiertos", num:vendido - meta,   txt:"sobre el punto 0 · faltan <b>" + soles(bono - vendido) + "</b> para el bono del equipo" + pedidos(bono - vendido) },
     bono:     { pill:"★ Bono alcanzado",   num:vendido - bono,   txt:"por encima del punto de bono — el equipo se lo ganó" }
@@ -2723,7 +2808,7 @@ const cerrarSheet = () => { S.sheet = null; pintarModal(); };
 document.addEventListener("click", ev => { manejarClick(ev).catch(err => {
   console.error("[potente]", err); toast("Algo falló al tocar ese botón. Vuelve a intentarlo."); }); });
 async function manejarClick(ev){
-  const t = ev.target.closest("[data-feria],[data-ped],[data-edi],[data-anu],[data-pos],[data-caned],[data-rol],[data-cat],[data-add],[data-q],[data-opt],[data-salsa],[data-qs],[data-editar],[data-pay],[data-est],[data-tab],[data-bajar],[data-matriz],[data-anular],[data-dia],[data-sub],[data-volver],[data-verferia],[data-precio],[data-activo],[data-cerrar-sheet],[data-bg],button");
+  const t = ev.target.closest("[data-p0quitar],[data-p0mas],[data-feria],[data-ped],[data-edi],[data-anu],[data-pos],[data-caned],[data-rol],[data-cat],[data-add],[data-q],[data-opt],[data-salsa],[data-qs],[data-editar],[data-pay],[data-est],[data-tab],[data-bajar],[data-matriz],[data-anular],[data-dia],[data-sub],[data-volver],[data-verferia],[data-precio],[data-activo],[data-cerrar-sheet],[data-bg],button");
   if (!t) return;
   const g = a => t.getAttribute(a);
 
@@ -2963,6 +3048,22 @@ async function manejarClick(ev){
       "Sale del total de ventas y del conteo por producto. Puedes restaurarla después.",
       "Anular", async () => { cerrarSheet(); await anularOrden(id, true); });
   }
+  if (t.hasAttribute("data-p0quitar") && S.p0Draft){
+    const k = g("data-p0quitar");
+    S.p0Draft.costos = S.p0Draft.costos.filter(c => c.k !== k);
+    return render();
+  }
+  if (t.hasAttribute("data-p0mas") && S.p0Draft){
+    const fila = filaCosto(g("data-p0mas"), "");
+    // Un día nuevo de insumos va junto a los otros días, no al final.
+    let i = -1;
+    if (fila.nombre) S.p0Draft.costos.forEach((c, j) => { if (/^insumos d[ií]a/i.test(c.nombre)) i = j; });
+    if (i >= 0) S.p0Draft.costos.splice(i + 1, 0, fila); else S.p0Draft.costos.push(fila);
+    render();
+    const el = document.querySelector(fila.nombre ? '[data-p0monto="' + fila.k + '"]' : '[data-p0nom="' + fila.k + '"]');
+    if (el) el.focus();
+    return;
+  }
   if (t.id === "p0Ver"){
     const on = t.getAttribute("aria-pressed") === "true";
     t.setAttribute("aria-pressed", String(!on));
@@ -2982,14 +3083,20 @@ async function manejarClick(ev){
 
 document.addEventListener("keydown", ev => {
   if (ev.key === "Escape" && S.sheet) cerrarSheet();
-  if (ev.key === "Enter" && (ev.target.id === "p0" || ev.target.id === "p0bono")) guardarPunto0();
+  if (ev.key === "Enter" && ev.target.hasAttribute &&
+      (ev.target.id === "p0bono" || ev.target.hasAttribute("data-p0monto") || ev.target.hasAttribute("data-p0nom"))) guardarPunto0();
 });
 document.addEventListener("input", ev => {
   if (S.sheet && (ev.target.id === "nota" || ev.target.id === "notaLinea")) S.sheet.nota = ev.target.value;
   if (S.sheet && ev.target.id === "cliente"){ S.sheet.cliente = ev.target.value; S.cliente = ev.target.value; }
   if (ev.target.id === "clienteCaja") S.cliente = ev.target.value;
-  if (S.p0Draft && ev.target.id === "p0")     S.p0Draft.punto0  = ev.target.value;
-  if (S.p0Draft && ev.target.id === "p0bono") S.p0Draft.bonoPct = ev.target.value;
+  if (S.p0Draft && ev.target.id === "p0bono"){ S.p0Draft.bonoPct = ev.target.value; pintarSumaP0(); }
+  if (S.p0Draft && ev.target.hasAttribute && (ev.target.hasAttribute("data-p0monto") || ev.target.hasAttribute("data-p0nom"))){
+    const k = ev.target.getAttribute("data-p0monto") || ev.target.getAttribute("data-p0nom");
+    const c = S.p0Draft.costos.find(x => x.k === k);
+    if (c){ if (ev.target.hasAttribute("data-p0monto")) c.monto = ev.target.value; else c.nombre = ev.target.value; }
+    pintarSumaP0();
+  }
   const campoInv = S.inv && ev.target.getAttribute && ev.target.getAttribute("data-inv");
   if (campoInv){
     const [grupo, k] = campoInv.split(":");
