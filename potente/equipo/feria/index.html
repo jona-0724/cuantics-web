@@ -149,6 +149,11 @@ input.falta{border-color:var(--bad) !important;box-shadow:0 0 0 3px rgba(220,80,
 .ped__i{font-size:14px;color:var(--ink-2);margin:7px 0 10px;line-height:1.35}
 .ped__a{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .ped__hora{margin-left:auto;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+/* La hora del pedido va arriba, junto al número: es lo primero que se busca cuando alguien reclama. */
+.ped__reloj{display:inline-flex;align-items:center;gap:5px;font-size:13.5px;font-weight:700;color:var(--ink);
+  background:var(--panel-3);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-variant-numeric:tabular-nums}
+.ped__reloj small{font-weight:600;color:var(--ink-3);font-size:12px}
+.ped__reloj.tarde small{color:var(--warn)}
 .ped .toggle.ok{border-color:var(--ok);color:var(--ok)}
 .ped .toggle.pend{border-color:var(--brasa);color:var(--brasa);background:#33210c}
 .btn.peligro.sm{color:#e88a8a;border-color:#5a2727}
@@ -543,6 +548,28 @@ td .mut{color:var(--ink-3)}
 tbody tr:hover td{background:rgba(255,255,255,.02)}
 
 .hours{display:flex;gap:4px;align-items:flex-end;height:120px}
+/* ---------- mapa de calor día × hora ---------- */
+.calor-top{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;justify-content:space-between;margin-bottom:12px}
+.calor-ins{display:flex;gap:8px;flex-wrap:wrap}
+.calor-ins div{background:var(--panel-3);border:1px solid var(--line);border-radius:10px;padding:8px 11px;min-width:130px}
+.calor-ins small{display:block;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.calor-ins b{display:block;font-size:16px;color:var(--brasa);margin-top:2px;font-variant-numeric:tabular-nums}
+.calor-ins span{font-size:12px;color:var(--ink-2)}
+.calor-met{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+.calor-met button{padding:7px 12px;background:transparent;border:0;color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer}
+.calor-met button[aria-pressed="true"]{background:var(--fuego);color:#1a0d05}
+.calor{display:grid;gap:3px;min-width:max-content;font-variant-numeric:tabular-nums}
+.calor .cz{height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;
+  color:var(--ink);background:rgba(255,255,255,.03);position:relative}
+.calor .cz.v0{color:transparent}
+.calor .cz.alto{color:#1a0d05}
+.calor .cz.pico{outline:2px solid var(--brasa);outline-offset:1px}
+.calor .cl{font-size:12px;color:var(--ink-2);display:flex;align-items:center;padding-right:6px;white-space:nowrap;font-weight:600}
+.calor .ch{font-size:11px;color:var(--ink-3);text-align:center;padding-bottom:2px}
+.calor .ct{font-size:12px;color:var(--ink-2);display:flex;align-items:center;justify-content:flex-end;padding-left:6px;white-space:nowrap}
+.calor .tot .cl,.calor .tot .ct{color:var(--ink);font-weight:700}
+.calor-ley{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11.5px;color:var(--ink-3)}
+.calor-ley i{display:block;width:120px;height:8px;border-radius:4px;background:linear-gradient(90deg,rgba(242,129,29,.12),rgba(242,129,29,.55),#ffc63c)}
 .hours .hcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;min-width:0}
 .hours .hbar{background:var(--fuego);border-radius:4px 4px 0 0;min-height:2px;opacity:.9}
 .hours .hlab{font-size:10.5px;color:var(--ink-3);text-align:center;font-variant-numeric:tabular-nums}
@@ -1760,6 +1787,7 @@ function filaPedido(o){
       (o.cliente ? '<span class="ped__c">' + esc(o.cliente) + "</span>" : "") +
       '<span class="pill"><span class="sw" style="background:' + pg.color + '"></span>' + esc(pg.corto) + "</span>" +
       '<span class="ped__e">' + esc(anulado ? "Anulada" : (ESTADOS[o.estado] || o.estado)) + "</span>" +
+      relojPedido(o) +
       (o.editada ? '<span class="keditada">corregida</span>' : "") +
       (o.total != null ? '<span class="ped__t num">' + soles(o.total) + "</span>" : "") + "</div>" +
     '<div class="ped__i">' +
@@ -1773,8 +1801,15 @@ function filaPedido(o){
         ? '<button class="btn ghost sm" data-anu="' + o.id + '|no">Restaurar</button>'
         : (puedeCorregir ? '<button class="btn ghost sm" data-edi="' + o.id + '">Corregir</button>' : "") +
           '<button class="btn ghost sm peligro" data-anu="' + o.id + '|si">Anular</button>') +
-      '<span class="ped__hora">' + horaDe(new Date(o.ts)) + "</span>" +
     "</div></article>";
+}
+/* 🕐 14:32 · hace 12 min. "Hace" solo mientras el pedido sigue vivo; si espera mucho, se pinta en ámbar. */
+function relojPedido(o){
+  const min = Math.floor((Date.now() - new Date(o.ts).getTime()) / 60000);
+  const vivo = o.estado !== "anulado" && o.estado !== "entregado";
+  const hace = min < 1 ? "recién" : min < 60 ? "hace " + min + " min" : "hace " + Math.floor(min / 60) + " h " + (min % 60) + " min";
+  return '<span class="ped__reloj' + (vivo && min >= 15 ? " tarde" : "") + '" title="Hora en que se cobró">🕐 ' +
+    horaDe(new Date(o.ts)) + (vivo ? " <small>· " + hace + "</small>" : "") + "</span>";
 }
 
 /* Corregir = volver a armar el pedido en el carrito. Se trabaja igual que
@@ -2398,7 +2433,7 @@ function tabResumen(){
     kpi("Producto estrella", mejor ? mejor.nombre : "—", mejor ? mejor.unid + " uds · " + soles(mejor.monto) : "Sin ventas aún") +
     "</div>";
 
-  return barraDia() + panelPunto0(a) + panelStand() + kpis + panelProductos(a) + chartDias(a) + panelProductoDia(a) +
+  return barraDia() + panelPunto0(a) + panelStand() + kpis + panelCalor() + panelProductos(a) + chartDias(a) + panelProductoDia(a) +
     panelProduccion(a) + panelHoras(a) + panelPagos(a) + panelMatriz(a);
 }
 function panelStand(){
@@ -2669,6 +2704,86 @@ function panelMatriz(a){
     PAGOS.map(p => "<th>" + esc(p.corto) + "</th>").join("") + "<th>Total</th></tr></thead><tbody>" + filas + "</tbody></table></div></div>";
 }
 
+/* Mapa de calor: cada fila es un día de la feria, cada columna una hora. Cuanto más
+   encendida la celda, más pedidos (o más soles) entraron. Va siempre sobre la feria
+   completa, aunque arriba se esté mirando un solo día: el punto es comparar. */
+function panelCalor(){
+  const vivas = (S.ordSel || []).filter(o => o.estado !== "anulado");
+  if (!vivas.length) return "";
+  const met = S.calor === "s" ? "s" : "n";
+  const val = c => met === "s" ? c.s : c.n;
+  const celdas = {}, dias = [], porHora = {};
+  vivas.forEach(o => {
+    const h = hhDe(new Date(o.ts));
+    if (dias.indexOf(o.dia) < 0) dias.push(o.dia);
+    const k = o.dia + "|" + h;
+    const c = celdas[k] || (celdas[k] = { n:0, s:0 });
+    c.n++; c.s += +o.total || 0;
+    const t = porHora[h] || (porHora[h] = { n:0, s:0 });
+    t.n++; t.s += +o.total || 0;
+  });
+  dias.sort();
+  const hsCon = Object.keys(porHora).map(Number);
+  const h0 = Math.min(10, Math.min.apply(null, hsCon)), h1 = Math.max(21, Math.max.apply(null, hsCon));
+  const hs = []; for (let h = h0; h <= h1; h++) hs.push(h);
+  const max = Math.max.apply(null, Object.values(celdas).map(val).concat([1]));
+  const maxTot = Math.max.apply(null, hs.map(h => porHora[h] ? val(porHora[h]) : 0).concat([1]));
+  // celda pico
+  let pico = null;
+  Object.keys(celdas).forEach(k => { if (!pico || val(celdas[k]) > val(celdas[pico])) pico = k; });
+  // las 2 horas seguidas que más concentran (sumando todos los días)
+  const nTot = vivas.length, sTot = vivas.reduce((t, o) => t + (+o.total || 0), 0);
+  let ven = hs[0], venV = -1;
+  hs.forEach(h => { const v = (porHora[h] ? val(porHora[h]) : 0) + (porHora[h + 1] ? val(porHora[h + 1]) : 0); if (v > venV){ venV = v; ven = h; } });
+  const pct = Math.round(venV / (met === "s" ? (sTot || 1) : nTot) * 100);
+  const mejorDia = dias.slice().sort((a, b) =>
+    hs.reduce((t, h) => t + (celdas[b + "|" + h] ? val(celdas[b + "|" + h]) : 0), 0) -
+    hs.reduce((t, h) => t + (celdas[a + "|" + h] ? val(celdas[a + "|" + h]) : 0), 0))[0];
+  const fmt = v => met === "s" ? soles(v) : String(v);
+  const fmtCorto = v => met === "s" ? solesK(v).replace("S/ ", "") : String(v);
+  const color = (v, m) => {
+    if (!v) return "";
+    const t = v / m;
+    if (t > .8) return "background:#ffc63c";
+    return "background:rgba(242,129,29," + (0.14 + t * 0.7).toFixed(2) + ")";
+  };
+  const [pd, ph] = pico.split("|");
+  const cols = "auto repeat(" + hs.length + ",minmax(34px,1fr)) auto";
+  let g = '<div class="calor" style="grid-template-columns:' + cols + '">' +
+    '<div></div>' + hs.map(h => '<div class="ch">' + h + "h</div>").join("") + '<div class="ch">Total</div>';
+  dias.forEach(d => {
+    let tot = 0;
+    g += '<div class="cl">' + esc(diaLargo(d)) + "</div>" + hs.map(h => {
+      const c = celdas[d + "|" + h]; const v = c ? val(c) : 0; tot += v;
+      return '<div class="cz' + (v ? (v / max > .8 ? " alto" : "") : " v0") + (d + "|" + h === pico ? " pico" : "") + '" style="' + color(v, max) +
+        '" data-tip="' + esc(diaLargo(d) + " · " + h + ":00–" + (h + 1) + ":00||Pedidos:" + (c ? c.n : 0) + "||Venta:" + soles(c ? c.s : 0)) + '">' + (v ? fmtCorto(v) : "·") + "</div>";
+    }).join("") + '<div class="ct">' + fmt(tot) + "</div>";
+  });
+  if (dias.length > 1){
+    g += '<div class="cl" style="color:var(--ink)">Todos</div>' + hs.map(h => {
+      const c = porHora[h]; const v = c ? val(c) : 0;
+      return '<div class="cz' + (v ? (v / maxTot > .8 ? " alto" : "") : " v0") + '" style="' + color(v, maxTot) +
+        '" data-tip="' + esc("Todos los días · " + h + ":00–" + (h + 1) + ":00||Pedidos:" + (c ? c.n : 0) + "||Venta:" + soles(c ? c.s : 0)) + '">' + (v ? fmtCorto(v) : "·") + "</div>";
+    }).join("") + '<div class="ct" style="color:var(--ink);font-weight:700">' + fmt(met === "s" ? sTot : nTot) + "</div>";
+  }
+  g += "</div>";
+  const ins = '<div class="calor-ins">' +
+    '<div><small>Momento más fuerte</small><b>' + esc(diaLargo(pd)) + " · " + ph + ":00</b><span>" + fmt(val(celdas[pico])) + (met === "s" ? "" : " pedidos") + " en esa hora</span></div>" +
+    '<div><small>Franja pico</small><b>' + ven + ":00 – " + (ven + 2) + ":00</b><span>" + pct + "% de " + (met === "s" ? "la venta" : "los pedidos") + "</span></div>" +
+    (dias.length > 1 ? '<div><small>Día más movido</small><b>' + esc(diaLargo(mejorDia)) + "</b><span>" +
+      fmt(hs.reduce((t, h) => t + (celdas[mejorDia + "|" + h] ? val(celdas[mejorDia + "|" + h]) : 0), 0)) + (met === "s" ? "" : " pedidos") + "</span></div>" : "") +
+    "</div>";
+  return '<div class="panel"><h3>¿Cuándo llegan los pedidos?</h3>' +
+    '<div class="ph">Cada fila es un día de la feria y cada columna una hora. Más encendido = más ' + (met === "s" ? "venta" : "pedidos") +
+    ". Sirve para poner más gente y tener todo listo antes del pico.</div>" +
+    '<div class="calor-top">' + ins +
+      '<div class="calor-met" role="group" aria-label="Medir por">' +
+        '<button data-calor="n" aria-pressed="' + (met === "n") + '">Pedidos</button>' +
+        '<button data-calor="s" aria-pressed="' + (met === "s") + '">Soles</button></div></div>' +
+    '<div class="tblwrap">' + g + "</div>" +
+    '<div class="calor-ley">Menos <i></i> Más · el borde amarillo marca la hora más fuerte</div></div>';
+}
+
 function panelHoras(a){
   const hs = []; for (let h = 9; h <= 23; h++) hs.push(h);
   const max = Math.max.apply(null, hs.map(h => a.horas[h] || 0).concat([1]));
@@ -2894,7 +3009,7 @@ const cerrarSheet = () => { S.sheet = null; pintarModal(); };
 document.addEventListener("click", ev => { manejarClick(ev).catch(err => {
   console.error("[potente]", err); toast("Algo falló al tocar ese botón. Vuelve a intentarlo."); }); });
 async function manejarClick(ev){
-  const t = ev.target.closest("[data-p0mover],[data-p0quitar],[data-p0mas],[data-feria],[data-ped],[data-edi],[data-anu],[data-pos],[data-caned],[data-rol],[data-cat],[data-add],[data-q],[data-opt],[data-salsa],[data-qs],[data-editar],[data-pay],[data-est],[data-tab],[data-bajar],[data-matriz],[data-anular],[data-dia],[data-sub],[data-volver],[data-verferia],[data-precio],[data-activo],[data-cerrar-sheet],[data-bg],button");
+  const t = ev.target.closest("[data-calor],[data-p0mover],[data-p0quitar],[data-p0mas],[data-feria],[data-ped],[data-edi],[data-anu],[data-pos],[data-caned],[data-rol],[data-cat],[data-add],[data-q],[data-opt],[data-salsa],[data-qs],[data-editar],[data-pay],[data-est],[data-tab],[data-bajar],[data-matriz],[data-anular],[data-dia],[data-sub],[data-volver],[data-verferia],[data-precio],[data-activo],[data-cerrar-sheet],[data-bg],button");
   if (!t) return;
   const g = a => t.getAttribute(a);
 
@@ -3142,6 +3257,7 @@ async function manejarClick(ev){
       "Anular", async () => { cerrarSheet(); await anularOrden(id, true); });
   }
   if (t.hasAttribute("data-p0mover")) return;
+  if (t.hasAttribute("data-calor")){ S.calor = g("data-calor"); return render(); }
   if (t.hasAttribute("data-p0quitar") && S.p0Draft){
     const k = g("data-p0quitar");
     S.p0Draft.costos = S.p0Draft.costos.filter(c => c.k !== k);
