@@ -334,6 +334,8 @@ input.falta{border-color:var(--bad) !important;box-shadow:0 0 0 3px rgba(220,80,
 /* Cocina lee de arriba abajo: QUÉ se arma (pan/plato) grande y blanco, la bebida con su
    propio color, las papas en gris, y las salsas al final, más chicas: son un detalle. */
 .kit .kb .kcombo{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:2px}
+/* Lo que NO es combo lleva su tipo ("Sándwich simple") en otro tono: así no se confunde con un combo. */
+.kit .kb .kcombo.simple{color:#8fb3a0}
 .kit .kb .kmain{font-size:19px;font-weight:800;color:var(--ink);line-height:1.15;display:block}
 .kit .kb .kbeb{font-size:15.5px;font-weight:700;color:#7cc8ff;display:block;line-height:1.3;margin-top:2px}
 .kit .kb .kbeb small{font-size:12.5px;font-weight:600;color:#7cc8ff;opacity:.75;margin-left:4px}
@@ -2201,6 +2203,7 @@ function partesCocina(i){
   const soloBebida = !principal.length && bebidas.length && !/combo/i.test(i.nombre);
   return {
     combo: esCombo ? i.nombre : "",
+    tipo: esCombo ? "" : tipoSimple(i, p),
     // Si no hay opción de plato, el plato ES el producto (Hotdog Callejero, Pancho…).
     // Combo sin opción de plato (Combo Pancho): el plato es el nombre sin "Combo".
     principal: principal.length ? principal : (soloBebida ? [] : [esCombo ? i.nombre.replace(/^combo\s+/i, "") : i.nombre]),
@@ -2209,12 +2212,23 @@ function partesCocina(i){
     sinOpciones: !grupos.length && !!i.detalle
   };
 }
+/* Etiqueta para lo que se vende suelto: cocina sabe al toque que va solo,
+   sin papas ni bebida. */
+function tipoSimple(i, p){
+  const cat = (p && p.cat) || i.cat || "";
+  if (/s[aá]nd/i.test(cat)) return "Sándwich simple";
+  if (/salchipapa/i.test(cat)) return "Salchipapa simple";
+  if (/pancho/i.test(cat)) return "Pancho simple";
+  if (/acompa/i.test(cat)) return "Acompañamiento";
+  if (/refresco|bebida/i.test(cat)) return "Bebida sola";
+  return cat ? cat + " · simple" : "";
+}
 function resumenCocina(items){
   const cuenta = {}, orden = [];
   const suma = (k, n, cls) => { if (!cuenta[k]) { cuenta[k] = { n:0, cls }; orden.push(k); } cuenta[k].n += n; };
   items.forEach(i => {
     const q = +i.qty || 1, pc = partesCocina(i);
-    pc.principal.forEach(m => suma(m, q, ""));
+    pc.principal.forEach(m => /^papas/i.test(m) ? suma("Papas", q, "pap") : suma(m, q, ""));
     pc.bebidas.forEach(b => suma(b.sabor + (b.tam ? " " + b.tam : ""), q, "beb"));
     if (pc.papas) suma("Papas", q, "pap");
   });
@@ -2226,7 +2240,8 @@ function kcard(o, est){
     const sal = i.salsas && i.salsas.length
       ? '<span class="ksal">' + (i.salsas[0] === SIN_SALSA ? "⊘ Sin salsa" : "<em>Salsas</em>" + esc(i.salsas.join(" · "))) + "</span>" : "";
     return '<div class="kit"><span class="kq num">' + i.qty + '×</span><span class="kb">' +
-      (pc.combo ? '<span class="kcombo">' + esc(pc.combo) + "</span>" : "") +
+      (pc.combo ? '<span class="kcombo">' + esc(pc.combo) + "</span>"
+                : pc.tipo ? '<span class="kcombo simple">' + esc(pc.tipo) + "</span>" : "") +
       pc.principal.map(m => '<span class="kmain">' + esc(m) + "</span>").join("") +
       pc.bebidas.map(b => '<span class="kbeb">🥤 ' + esc(b.sabor) + (b.tam ? "<small>" + esc(b.tam) + "</small>" : "") + "</span>").join("") +
       (pc.papas ? '<span class="kpap">🍟 Papas crujientes</span>' : "") +
