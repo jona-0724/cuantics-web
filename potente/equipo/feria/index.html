@@ -326,6 +326,22 @@ input.falta{border-color:var(--bad) !important;box-shadow:0 0 0 3px rgba(220,80,
 .kit .kb span{font-size:14px;color:var(--fuego);display:block;line-height:1.25}
 .kit .kb i{font-size:13.5px;color:var(--ink-3);font-style:normal;display:block}
 .kit .kb .ksal{font-size:14.5px;color:var(--brasa);font-weight:600;display:block;line-height:1.3}
+/* Cocina lee de arriba abajo: QUÉ se arma (pan/plato) grande y blanco, la bebida con su
+   propio color, las papas en gris, y las salsas al final, más chicas: son un detalle. */
+.kit .kb .kcombo{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:2px}
+.kit .kb .kmain{font-size:19px;font-weight:800;color:var(--ink);line-height:1.15;display:block}
+.kit .kb .kbeb{font-size:15.5px;font-weight:700;color:#7cc8ff;display:block;line-height:1.3;margin-top:2px}
+.kit .kb .kbeb small{font-size:12.5px;font-weight:600;color:#7cc8ff;opacity:.75;margin-left:4px}
+.kit .kb .kpap{font-size:14px;color:var(--ink-2);display:block;line-height:1.3}
+.kit .kb .ksal{font-size:13.5px;font-weight:600;color:var(--brasa);opacity:.9;margin-top:4px;line-height:1.3}
+.kit .kb .ksal em{font-style:normal;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-right:5px}
+.kit + .kit{border-top:1px dashed var(--line);padding-top:8px}
+/* Resumen de lo que hay que sacar en el pedido: cuántos de cada pan y de cada bebida. */
+.kres{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 11px;padding:8px 9px;border-radius:10px;background:var(--panel-3)}
+.kres span{font-size:13.5px;font-weight:700;color:var(--ink);background:rgba(255,255,255,.06);border-radius:7px;padding:3px 8px;white-space:nowrap}
+.kres span b{color:var(--brasa);margin-right:3px}
+.kres span.beb{color:#7cc8ff}
+.kres span.pap{color:var(--ink-2);font-weight:600}
 .kit .kb .knot{font-size:14px;color:#17130F;background:var(--brasa);border-radius:6px;padding:1px 7px;display:inline-block;margin-top:3px;font-weight:600}
 .opt.opt-s[aria-pressed="true"]{border-color:var(--brasa);background:#3a2a10;color:var(--brasa)}
 .opt.opt-no[aria-pressed="true"]{border-color:var(--bad);background:#2c1214;color:#ff9a9a}
@@ -2134,13 +2150,62 @@ function tarjetaSegura(o, est){
   }
 }
 
+/* Separa una línea en lo que cocina tiene que sacar: el plato principal
+   (pan o salchipapa), la bebida con su tamaño y las papas del combo. */
+function partesCocina(i){
+  const p = CARTA.find(x => x.sku === i.sku);
+  const grupos = (p && p.opciones) || [];
+  const opts = i.opts || {};
+  const esBebida = g => /refresco|bebida|oz/i.test(g.label || "") || g.id === "sabor";
+  const oz = t => ((/(\d+\s*oz)/i.exec(t || "") || [])[1] || "");
+  // El tamaño sale de la etiqueta del grupo ("Refresco 12 oz") o, si no, de la descripción del producto.
+  const tam = g => oz(g.label) || oz(g.etiqueta) || oz(p && p.desc);
+  const principal = grupos.filter(g => !esBebida(g)).map(g => opts[g.id]).filter(Boolean);
+  const bebidas = grupos.filter(esBebida).filter(g => opts[g.id]).map(g => ({ sabor:opts[g.id], tam:tam(g) }));
+  const esCombo = grupos.length > 0 && (principal.length > 0 || /combo/i.test(i.nombre));
+  const soloBebida = !principal.length && bebidas.length && !/combo/i.test(i.nombre);
+  return {
+    combo: esCombo ? i.nombre : "",
+    // Si no hay opción de plato, el plato ES el producto (Hotdog Callejero, Pancho…).
+    // Combo sin opción de plato (Combo Pancho): el plato es el nombre sin "Combo".
+    principal: principal.length ? principal : (soloBebida ? [] : [esCombo ? i.nombre.replace(/^combo\s+/i, "") : i.nombre]),
+    bebidas,
+    papas: i.sku === "combo",
+    sinOpciones: !grupos.length && !!i.detalle
+  };
+}
+function resumenCocina(items){
+  const cuenta = {}, orden = [];
+  const suma = (k, n, cls) => { if (!cuenta[k]) { cuenta[k] = { n:0, cls }; orden.push(k); } cuenta[k].n += n; };
+  items.forEach(i => {
+    const q = +i.qty || 1, pc = partesCocina(i);
+    pc.principal.forEach(m => suma(m, q, ""));
+    pc.bebidas.forEach(b => suma(b.sabor + (b.tam ? " " + b.tam : ""), q, "beb"));
+    if (pc.papas) suma("Papas", q, "pap");
+  });
+  return orden.map(k => ({ txt:k, n:cuenta[k].n, cls:cuenta[k].cls }));
+}
 function kcard(o, est){
-  const items = o.items.map(i =>
-    '<div class="kit"><span class="kq num">' + i.qty + '×</span><span class="kb"><b>' + esc(i.nombre) + "</b>" +
-    (i.detalle ? "<span>" + esc(i.detalle) + "</span>" : "") +
-    (i.salsas && i.salsas.length ? '<span class="ksal">' + (i.salsas[0] === SIN_SALSA ? "⊘ " : "◆ ") + esc(i.salsas.join(", ")) + "</span>" : "") +
-    (i.nota ? '<span class="knot">✎ ' + esc(i.nota) + "</span>" : "") +
-    (i.sku === "combo" ? "<i>+ papas crujientes</i>" : "") + "</span></div>").join("");
+  const items = o.items.map(i => {
+    const pc = partesCocina(i);
+    const sal = i.salsas && i.salsas.length
+      ? '<span class="ksal">' + (i.salsas[0] === SIN_SALSA ? "⊘ Sin salsa" : "<em>Salsas</em>" + esc(i.salsas.join(" · "))) + "</span>" : "";
+    return '<div class="kit"><span class="kq num">' + i.qty + '×</span><span class="kb">' +
+      (pc.combo ? '<span class="kcombo">' + esc(pc.combo) + "</span>" : "") +
+      pc.principal.map(m => '<span class="kmain">' + esc(m) + "</span>").join("") +
+      pc.bebidas.map(b => '<span class="kbeb">🥤 ' + esc(b.sabor) + (b.tam ? "<small>" + esc(b.tam) + "</small>" : "") + "</span>").join("") +
+      (pc.papas ? '<span class="kpap">🍟 Papas crujientes</span>' : "") +
+      (pc.sinOpciones ? "<span>" + esc(i.detalle) + "</span>" : "") +
+      sal +
+      (i.nota ? '<span class="knot">✎ ' + esc(i.nota) + "</span>" : "") +
+      "</span></div>";
+  }).join("");
+  const res = resumenCocina(o.items);
+  const totalU = o.items.reduce((t, i) => t + (+i.qty || 1), 0);
+  const resumen = (o.items.length > 1 || totalU > 1) && res.length
+    ? '<div class="kres" aria-label="Para sacar en este pedido">' +
+        res.map(r => '<span class="' + r.cls + '"><b>' + r.n + "×</b>" + esc(r.txt) + "</span>").join("") + "</div>"
+    : "";
   const nuevo = est === "cola" && (Date.now() - new Date(o.ts).getTime() < 45000);
   const acciones = est === "cola"
     ? '<button class="btn primary" data-est="' + o.id + '|prep">Empezar</button>'
@@ -2154,6 +2219,7 @@ function kcard(o, est){
       (o.editada ? '<span class="keditada">corregida</span>' : "") +
       '<span class="pill"><span class="sw" style="background:' + pg.color + '"></span>' + esc(pg.corto) + "</span>" +
       '<span class="kt num" data-espera="' + esc(o.ts) + '">' + espera(o.ts) + "</span></div>" +
+    resumen +
     '<div class="kitems">' + items + "</div>" +
     (o.nota ? '<div class="knota">✎ ' + esc(o.nota) + "</div>" : "") +
     '<div class="kacts">' + acciones + "</div>" +
