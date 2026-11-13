@@ -125,6 +125,10 @@ button{cursor:pointer;border:0;background:none}
   font-weight:600;flex:none}
 .clientebar input{flex:1;min-width:0}
 .clientebar input:focus{border-color:var(--fuego);outline:none}
+.clientebar label i{font-style:normal;color:var(--fuego)}
+/* Falta el nombre: borde rojo y una sacudida corta para que el ojo vaya ahí. */
+input.falta{border-color:var(--bad) !important;box-shadow:0 0 0 3px rgba(220,80,80,.25);animation:sacude .35s}
+@keyframes sacude{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 .line .btn.peligro{color:#e88a8a;border-color:#5a2727}
 .line .btn.peligro:hover{border-color:var(--bad);color:#ff9a9a}
 @media (max-width:520px){
@@ -1015,6 +1019,14 @@ function itemsDelCarrito(){
   }));
 }
 
+/* Marca la casilla del nombre, la pone a la vista y deja el cursor ahí. */
+function faltaNombre(sel){
+  toast("Primero escribe el nombre del cliente.");
+  const el = $(sel); if (!el) return;
+  el.classList.remove("falta"); void el.offsetWidth; el.classList.add("falta");
+  el.scrollIntoView({ block:"center", behavior:"smooth" });
+  el.focus({ preventScroll:true });
+}
 async function registrarOrden(pago, nota, cliente){
   const f = feriaEnCurso();
   if (!f) throw new Error("sin feria");
@@ -1662,8 +1674,8 @@ function vistaCaja(){
   // El nombre se pregunta al empezar el pedido, mientras el cliente está
   // hablando, no al final: al cobrar ya se fue a esperar.
   const quien = '<div class="clientebar">' +
-    '<label for="clienteCaja">Cliente</label>' +
-    '<input id="clienteCaja" type="text" autocomplete="off" placeholder="¿A nombre de quién? (opcional)" value="' +
+    '<label for="clienteCaja">Cliente <i>*</i></label>' +
+    '<input id="clienteCaja" type="text" autocomplete="off" required aria-required="true" placeholder="Nombre del cliente (obligatorio)" value="' +
       esc(S.cliente || "") + '">' +
     (S.cliente ? '<button class="btn ghost sm" data-limpiacli="1">Borrar</button>' : "") +
     "</div>";
@@ -2916,6 +2928,8 @@ async function manejarClick(ev){
   /* --- caja --- */
   if (t.hasAttribute("data-cat")){ S.cat = g("data-cat"); return render(); }
   if (t.hasAttribute("data-add")){
+    // Sin nombre no se arma el pedido: así cocina siempre sabe a quién llamar.
+    if (!S.editando && !S.reemplazando && !String(S.cliente || "").trim()) return faltaNombre("#clienteCaja");
     S.sheet = { t:"opts", sku:g("data-add"), opts:{}, salsas:[], nota:"", qty:1 };
     return pintarModal();
   }
@@ -2993,6 +3007,7 @@ async function manejarClick(ev){
   if (t.hasAttribute("data-pay")){ S.sheet.pago = g("data-pay"); return pintarModal(); }
   if (t.id === "confirmar"){
     const s = S.sheet; if (!s.pago || s.enviando) return;
+    if (!S.editando && !String(($("#cliente") ? $("#cliente").value : s.cliente) || "").trim()) return faltaNombre("#cliente");
     s.enviando = true; pintarModal();
     const total = totalCarrito();
     const nota = ($("#nota") && $("#nota").value) || s.nota || "";
@@ -3151,6 +3166,7 @@ document.addEventListener("input", ev => {
   if (S.sheet && (ev.target.id === "nota" || ev.target.id === "notaLinea")) S.sheet.nota = ev.target.value;
   if (S.sheet && ev.target.id === "cliente"){ S.sheet.cliente = ev.target.value; S.cliente = ev.target.value; }
   if (ev.target.id === "clienteCaja") S.cliente = ev.target.value;
+  if ((ev.target.id === "clienteCaja" || ev.target.id === "cliente") && ev.target.value.trim()) ev.target.classList.remove("falta");
   if (S.p0Draft && ev.target.id === "p0bono"){ S.p0Draft.bonoPct = ev.target.value; pintarSumaP0(); }
   if (S.p0Draft && ev.target.hasAttribute && (ev.target.hasAttribute("data-p0monto") || ev.target.hasAttribute("data-p0nom"))){
     const k = ev.target.getAttribute("data-p0monto") || ev.target.getAttribute("data-p0nom");
