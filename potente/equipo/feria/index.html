@@ -1675,7 +1675,7 @@ function vistaCaja(){
   // hablando, no al final: al cobrar ya se fue a esperar.
   const quien = '<div class="clientebar">' +
     '<label for="clienteCaja">Cliente <i>*</i></label>' +
-    '<input id="clienteCaja" type="text" autocomplete="off" required aria-required="true" placeholder="Nombre del cliente (obligatorio)" value="' +
+    '<input id="clienteCaja" type="text" autocomplete="off" required aria-required="true" placeholder="Nombre del cliente (puedes ponerlo al cobrar)" value="' +
       esc(S.cliente || "") + '">' +
     (S.cliente ? '<button class="btn ghost sm" data-limpiacli="1">Borrar</button>' : "") +
     "</div>";
@@ -2777,8 +2777,8 @@ function pintarModal(){
         '<span class="lp num">' + soles(l.precio * l.qty) + "</span></div>").join("") + "</div>" +
       '<label style="display:block;margin-bottom:16px">' +
         '<span class="lbl" style="display:block;margin-bottom:7px">Cliente ' +
-        '<span style="text-transform:none;letter-spacing:0;color:var(--ink-3)">· se lo llama cuando esté listo</span></span>' +
-        '<input id="cliente" type="text" placeholder="Carlos" value="' + esc(s.cliente || "") + '" style="width:100%"></label>' +
+        '<i style="font-style:normal;color:var(--fuego)">*</i> <span style="text-transform:none;letter-spacing:0;color:var(--ink-3)">· obligatorio, se lo llama cuando esté listo</span></span>' +
+        '<input id="cliente" type="text" placeholder="Nombre del cliente" value="' + esc(s.cliente || "") + '" style="width:100%"></label>' +
       '<span class="lbl" style="display:block;margin-bottom:8px">¿Con qué pagó?</span><div class="pays">' +
       PAGOS.map(p => '<button class="pay" data-pay="' + p.id + '" aria-pressed="' + (s.pago === p.id) + '" style="color:' + p.color + '">' +
         '<span class="sw" style="background:' + p.color + '"></span><span style="color:var(--ink)">' + esc(p.nombre) +
@@ -2928,8 +2928,6 @@ async function manejarClick(ev){
   /* --- caja --- */
   if (t.hasAttribute("data-cat")){ S.cat = g("data-cat"); return render(); }
   if (t.hasAttribute("data-add")){
-    // Sin nombre no se arma el pedido: así cocina siempre sabe a quién llamar.
-    if (!S.editando && !S.reemplazando && !String(S.cliente || "").trim()) return faltaNombre("#clienteCaja");
     S.sheet = { t:"opts", sku:g("data-add"), opts:{}, salsas:[], nota:"", qty:1 };
     return pintarModal();
   }
@@ -2978,7 +2976,13 @@ async function manejarClick(ev){
   if (t.id === "cobrar"){
     const ed = S.editando;
     S.sheet = { t:"cobro", pago: ed ? ed.pago : null, nota: ed ? ed.nota : "", cliente: S.cliente || "" };
-    return pintarModal();
+    pintarModal();
+    // Primero se toma el pedido, rápido; el nombre se pide aquí, al cobrar.
+    if (!ed && !String(S.cliente || "").trim()){
+      const c = $("#cliente"); if (c){ c.classList.add("falta"); c.focus(); }
+      toast("Escribe el nombre del cliente para cobrar.");
+    }
+    return;
   }
   if (t.hasAttribute("data-opt")){
     const [id, val] = g("data-opt").split("|");

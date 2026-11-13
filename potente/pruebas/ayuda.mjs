@@ -50,9 +50,9 @@ export async function entrar(p, feria, rol){
 
 /* Agrega un producto al carrito eligiendo la primera opción de cada grupo. */
 export async function agregar(p, sku, cliente = 'Cliente prueba'){
-  // Sin nombre de cliente la caja no deja armar el pedido: se escribe uno si falta.
+  // Sin nombre de cliente la caja no deja cobrar: se escribe uno si falta (pasa '' para no hacerlo).
   const casilla = p.locator('#clienteCaja');
-  if (await casilla.count() && !(await casilla.inputValue()).trim()){
+  if (cliente && await casilla.count() && !(await casilla.inputValue()).trim()){
     await casilla.fill(cliente); await p.waitForTimeout(80);
   }
   await p.locator('.prod[data-add="' + sku + '"]').click();
