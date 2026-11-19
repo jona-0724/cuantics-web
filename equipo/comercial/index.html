@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CUANTICS · Prospección</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0C1218">
+<link rel="icon" href="../img/libelula.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wdth,wght@125,600;125,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../lib/erp.css">
+<style>
+.pagina{display:flex;flex-direction:column;gap:26px}
+.cabeza{margin-bottom:0}
+.lectura{margin:8px 0 0;max-width:80ch;font-size:15px}
+section h2{margin:0 0 10px;font-size:15px;font-weight:600}
+section > p.nota,.nota{margin:-4px 0 10px;color:var(--muted);font-size:12.5px;max-width:86ch}
+.alertas{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.alerta{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.alerta[data-n=rojo]{border-left-color:var(--red)}.alerta[data-n=ambar]{border-left-color:var(--amber)}.alerta[data-n=verde]{border-left-color:var(--green)}
+.alerta small{color:var(--muted);font-size:12px}
+.alerta b{font-weight:600;font-variant-numeric:tabular-nums}
+.alerta span{color:var(--muted);font-size:12px}
+.todo{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.todo li{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline;padding:10px 14px;border-bottom:1px solid var(--line-2)}
+.todo li:last-child{border-bottom:none}
+.todo .tag{font-size:11.5px;border:1px solid var(--line);border-radius:99px;padding:1px 9px;color:var(--muted);white-space:nowrap}
+.todo .tag[data-t=Seguimiento]{border-color:var(--amber);color:var(--amber)}
+.todo .tag[data-t=LinkedIn]{border-color:#60A5FA;color:#60A5FA}
+.todo .tag[data-t=Correo]{border-color:var(--cyan);color:var(--cyan)}
+.todo .por{color:var(--muted);font-size:12.5px}
+.todo a{text-decoration:none}
+.grupo{color:var(--muted);font-size:12px;margin:12px 0 6px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile small{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+.tile .big{font-family:"Open Sans",system-ui,sans-serif;font-stretch:125%;font-variation-settings:"wdth" 125;font-weight:700;font-size:26px;line-height:1.15;font-variant-numeric:tabular-nums}
+.tile .big em{font-style:normal;font-family:"IBM Plex Sans",system-ui,sans-serif;font-weight:400;font-size:14px;color:var(--muted)}
+.tile span{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.dos{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.caja{min-width:0}
+.tanque{display:flex;height:16px;border-radius:4px;overflow:hidden;background:var(--line-2);margin:8px 0}
+.tanque i{display:block;height:100%}
+.ley{display:flex;flex-wrap:wrap;gap:14px;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.ley i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.fila{display:grid;grid-template-columns:minmax(120px,36%) 1fr;gap:10px;align-items:center;margin:6px 0}
+.fila small{color:var(--muted);font-size:12px}
+.barra{position:relative;height:24px}
+.barra i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;min-width:3px}
+.barra span{position:absolute;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:12px;font-variant-numeric:tabular-nums}
+.graf{position:relative;min-height:200px}
+.graf svg{display:block;width:100%;height:auto}
+.graf text{fill:var(--muted);font:11px "IBM Plex Sans",system-ui,sans-serif}
+.tip{position:absolute;pointer-events:none;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:12px;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.4);z-index:3}
+.chip{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11.5px;border:1px solid var(--line);white-space:nowrap;margin-right:4px;color:var(--muted)}
+.chip[data-n=rojo]{border-color:var(--red);color:var(--red)}.chip[data-n=ambar]{border-color:var(--amber);color:var(--amber)}.chip[data-n=verde]{border-color:var(--green);color:var(--green)}
+.pie{color:var(--muted);font-size:12px;margin:0}.pie[data-n=rojo]{color:var(--red)}
+details summary{cursor:pointer;color:var(--muted);font-size:13px}
+details li{color:var(--muted);font-size:12.5px;max-width:86ch;margin:4px 0}
+</style>
+</head>
+<body>
+<div id="bloqueo">Cargando…</div>
+
+<main class="pagina">
+  <div class="cabeza">
+    <div>
+      <div class="migas"><a href="../">Inicio</a> · <a href="../ventas/">Ventas</a></div>
+      <h1>Prospección</h1>
+      <p id="sello">Correo en frío, LinkedIn y Apollo.</p>
+      <p class="lectura" id="lectura"></p>
+    </div>
+  </div>
+
+  <section aria-label="Alertas"><div class="alertas" id="alertas"></div></section>
+
+  <section>
+    <h2>Hoy toca</h2>
+    <p class="nota">Reglas fijas: leads de prospección con más de 7 días sin moverse o con la fecha del próximo paso vencida, personas que abrieron el flyer 2 o más veces (o en los últimos 2 días) y aún no son lead, y empresas donde abrieron 2 o más personas.</p>
+    <ul class="todo" id="todo"></ul>
+  </section>
+
+  <section>
+    <h2>Resultados</h2>
+    <p class="grupo">Correo en frío</p>
+    <div class="tiles">
+      <div class="tile"><small>Respondieron</small><div class="big" id="kResp">—</div><span id="kRespT"></span></div>
+      <div class="tile"><small>Abrieron el flyer</small><div class="big" id="kAbr">—</div><span>Señal de interés, no prueba: los filtros de correo pueden abrir enlaces solos.</span></div>
+      <div class="tile"><small>Enviados en 7 días</small><div class="big" id="kEnv7">—</div><span>objetivo: 40 por día hábil (200 por semana)</span></div>
+    </div>
+    <p class="grupo">LinkedIn</p>
+    <div class="tiles">
+      <div class="tile"><small>Aceptaron la invitación</small><div class="big" id="kCon">—</div><span id="kConT"></span></div>
+      <div class="tile"><small>Invitaciones en 7 días</small><div class="big" id="kInv7">—</div><span>tope del agente: 40 por ronda</span></div>
+    </div>
+    <p class="grupo">Leads de prospección (tablero de Leads del ERP, en vivo)</p>
+    <div class="tiles">
+      <div class="tile"><small>Respondieron</small><div class="big" id="kLeads">—</div><span id="kLeadsT"></span></div>
+      <div class="tile"><small>En conversación</small><div class="big" id="kConv">—</div><span>piden info o la pasan a su equipo</span></div>
+      <div class="tile"><small>Con reunión</small><div class="big" id="kReu">—</div><span>"reunión" en el próximo paso</span></div>
+      <div class="tile"><small>Oportunidades</small><div class="big" id="kOpo">—</div><span>leads calificados · meta: 1 por mes</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cuánto alcanza</h2>
+    <div class="dos">
+      <div class="caja"><h2>Cola de correo</h2><div id="tanque"></div>
+        <p class="nota" style="margin:8px 0 0">A 40 correos por día hábil. Si la cola de prioridad A baja de 10 días, toca pedirle a Apollo que revele más.</p></div>
+      <div class="caja"><h2>Créditos de Apollo en el ciclo</h2><div id="apollo"></div>
+        <p class="nota" style="margin:8px 0 0">Tope de 2.500 por ciclo. El agente revela solo hasta el ritmo parejo del mes.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Contactos y empresas nuevas por día</h2>
+    <div class="tiles">
+      <div class="tile"><small>Correos revelados en 7 días</small><div class="big" id="kRev7">—</div><span id="kRevH"></span></div>
+      <div class="tile"><small>Contactos con correo</small><div class="big" id="kCtot">—</div><span id="kCnue"></span></div>
+      <div class="tile"><small>Empresas aprobadas</small><div class="big" id="kEmp">—</div><span id="kEnue"></span></div>
+    </div>
+    <div class="caja" style="margin-top:10px"><div class="graf" id="gAltas"></div></div>
+    <p class="nota" style="margin-top:8px">Los correos revelados salen del registro del agente Apollo (desde el 17-nov). Los contactos y empresas nuevas se cuentan comparando la foto de cada día con la del día anterior (desde el 19-nov).</p>
+  </section>
+
+  <section>
+    <h2>Embudo por canal</h2>
+    <div class="dos">
+      <div class="caja"><h2>Correo en frío</h2><div id="fCorreo"></div></div>
+      <div class="caja"><h2>LinkedIn</h2><div id="fLinkedin"></div></div>
+    </div>
+    <p class="nota" style="margin-top:8px">"Respondió" no significa lo mismo en los dos canales: por correo es una respuesta al mensaje en frío; por LinkedIn, una respuesta al mensaje que recibe quien acepta.</p>
+  </section>
+
+  <section>
+    <h2>Aceptación en LinkedIn por semana de invitación</h2>
+    <p class="nota">Qué parte de cada semana de invitaciones ya aceptó. Las semanas con menos de 14 días aún están en curso (barra clara). Una semana madura muy por debajo de las anteriores avisa que la lista o el perfil están perdiendo efecto.</p>
+    <div class="caja"><div class="graf" id="gCohortes"></div></div>
+  </section>
+
+  <section>
+    <h2>Aperturas calientes</h2>
+    <p class="nota">Quienes abrieron el flyer, ordenados por señal: más aperturas, más recientes y prioridad A primero. Arriba los que todavía no son lead.</p>
+    <div class="tabla-env"><table class="tabla"><thead><tr><th>Persona</th><th>Cargo</th><th>Empresa</th><th class="num">Aperturas</th><th>Última</th><th>Estado</th></tr></thead><tbody id="tCalientes"></tbody></table></div>
+  </section>
+
+  <section>
+    <h2>Empresas con interés de varias personas</h2>
+    <p class="nota">En una planta deciden varios: mantenimiento, producción y TI. Dos o más personas que abren en la misma empresa pesan más que una.</p>
+    <div class="tabla-env"><table class="tabla"><thead><tr><th>Empresa</th><th>País</th><th class="num">Personas</th><th class="num">Aperturas</th><th>Última</th><th>Cargos</th></tr></thead><tbody id="tCuentas"></tbody></table></div>
+  </section>
+
+  <section>
+    <h2>Dónde abren más el flyer</h2>
+    <p class="nota">Índice = parte de las aperturas ÷ parte de la base de contactos. Sobre 1,0 abren más de lo esperado. Solo segmentos con 20 o más contactos: es una pista para orientar a Apollo, no una conclusión.</p>
+    <div class="dos">
+      <div class="caja"><h2>Por país</h2><div class="graf" id="gPais"></div></div>
+      <div class="caja"><h2>Por sector</h2><div class="graf" id="gSector"></div></div>
+    </div>
+  </section>
+
+  <p class="pie" id="cuadre"></p>
+
+  <details>
+    <summary>Cómo se cuenta cada número</summary>
+    <ul>
+      <li><b>De dónde sale:</b> el Manager Comercial sube una foto después de cada agente con los números de la base de prospección (cuantics-leads), Apollo y los registros de los agentes. Los leads y oportunidades se leen en vivo del ERP.</li>
+      <li><b>Enviados</b>: contactos con fecha de envío del correo en frío, incluidos los que rebotaron.</li>
+      <li><b>Rebotes</b>: contactos marcados como rebotados sobre los enviados. Puede incluir rebotes de cargas anteriores al correo en frío.</li>
+      <li><b>Abrieron el flyer</b>: abrieron el enlace del flyer al menos una vez, sin contar aperturas de robots detectadas.</li>
+      <li><b>Aceptaron en LinkedIn</b>: invitados que aceptaron y recibieron el mensaje de plantilla (en la cohorte se cruzan invitación y mensaje por la URL del perfil).</li>
+      <li><b>Leads de prospección</b>: leads del ERP con origen "Correo en frío" o "LinkedIn".</li>
+    </ul>
+  </details>
+</main>
+
+<script src="../lib/supabase-js-2.113.0.js"></script>
+<script src="../lib/conexion.js"></script>
+<script src="../lib/erp.js"></script>
+<script>
+const {$,esc}=ERP;
+const NS='http://www.w3.org/2000/svg';
+const C={cyan:'#22C7D6',azul:'#60A5FA',ambar:'#F2A93B',lila:'#A78BFA',gris:'#5f7583',linea:'#1d2c36'};
+const fmt=n=>(n==null||isNaN(n))?'—':Math.round(n).toLocaleString('es-PE').replace(/,/g,'.');
+const pct=n=>(n==null||isNaN(n))?'—':(n*100).toFixed(1).replace('.',',')+' %';
+const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const dia=s=>{if(!s)return'—';const[,m,d]=String(s).slice(0,10).split('-');return `${+d}-${MES[+m-1]}`};
+const hoy=ERP.hoy();
+const dias=(a,b=hoy)=>Math.round((new Date(String(b).slice(0,10)+'T00:00:00Z')-new Date(String(a).slice(0,10)+'T00:00:00Z'))/864e5);
+const norm=s=>String(s??'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\(.*?\)/g,' ').replace(/[^a-z0-9]+/g,' ').trim();
+const nivelDias=d=>d>=8?'rojo':d>=5?'ambar':'verde';
+let sb,yo,F,LEADS=[],OPS=[];
+
+function svg(el,W,H,label){el.replaceChildren();const s=document.createElementNS(NS,'svg');s.setAttribute('viewBox',`0 0 ${W} ${H}`);s.setAttribute('role','img');s.setAttribute('aria-label',label);el.append(s);return s}
+function nodo(p,tag,at,txt){const n=document.createElementNS(NS,tag);for(const k in at)n.setAttribute(k,at[k]);if(txt!=null)n.textContent=txt;p.append(n);return n}
+function tip(el){const t=document.createElement('div');t.className='tip';t.hidden=true;el.append(t);return(ev,texto)=>{if(!texto){t.hidden=true;return}t.hidden=false;t.textContent=texto;const r=el.getBoundingClientRect();const x=ev.clientX-r.left;t.style.left=Math.max(0,Math.min(el.clientWidth-t.offsetWidth,x-t.offsetWidth/2))+'px';t.style.top='0px'}}
+function ancho(el){return Math.max(280,el.clientWidth||600)}
+
+/* ---------- datos derivados ---------- */
+const deProspeccion=l=>['Correo en frío','LinkedIn'].includes(l.origen);
+const ultimoMov=l=>{const a=(l.actividad||[]).map(x=>x.en).filter(Boolean).sort();return a.length?a[a.length-1]:(l.creado_en||l.actualizado_en)};
+function enLeads(nombre,empresa){return LEADS.some(p=>{const pn=norm(p.contacto).split(' ').filter(w=>w.length>2),an=norm(nombre).split(' ');const pe=norm(p.empresa).split(' ')[0],ae=norm(empresa).split(' ');return pn.filter(w=>an.includes(w)).length>=2||(pe&&pe.length>3&&ae.includes(pe))})}
+function cuentas(){const g=new Map();for(const a of F.aperturas){if(!g.has(a.empresa))g.set(a.empresa,[]);g.get(a.empresa).push(a)}
+  return[...g].filter(([,l])=>l.length>=2).map(([empresa,l])=>({empresa,pais:l.find(x=>x.pais)?.pais||'',personas:l.length,aperturas:l.reduce((s,x)=>s+Number(x.aperturas),0),ultima:l.map(x=>x.ultima_apertura).sort().pop(),cargos:[...new Set(l.map(x=>x.cargo).filter(Boolean))].join(' · ')}))
+  .sort((a,b)=>b.personas-a.personas||String(b.ultima).localeCompare(String(a.ultima)))}
+function kpis(){const r=F.resumen,pl=LEADS.filter(deProspeccion),vivos=pl.filter(l=>l.estado!=='Descartado');
+  const correo=vivos.filter(l=>l.origen==='Correo en frío').length;
+  return{correo,linkedin:vivos.filter(l=>l.origen==='LinkedIn').length,vivos:vivos.length,conv:vivos.filter(l=>l.estado==='En conversación').length,
+    reu:vivos.filter(l=>/reuni/i.test(l.proximo_paso||'')).length,opo:vivos.filter(l=>l.estado==='Calificado'||l.oportunidad_id).length,
+    tApe:r.correos_enviados_total?r.abrieron_flyer/r.correos_enviados_total:null,tAce:r.li_invitados_total?r.li_conexiones_total/r.li_invitados_total:null,
+    tReb:r.correos_enviados_total?r.rebotados/r.correos_enviados_total:null,tResp:r.correos_enviados_total?correo/r.correos_enviados_total:null}}
+
+/* ---------- pintar ---------- */
+function cabecera(){const r=F.resumen,k=kpis();const g=r.generado?new Date(r.generado):null;
+  $('sello').textContent=`Correo en frío, LinkedIn y Apollo · foto del ${dia(r.fecha_corte)}`+(g?`, ${String(g.getHours()).padStart(2,'0')}:${String(g.getMinutes()).padStart(2,'0')}`:'')+' · leads del ERP en vivo';
+  $('lectura').textContent=`${fmt(k.vivos)} personas respondieron (${fmt(k.correo)} por correo de ${fmt(r.correos_enviados_total)} enviados y ${fmt(k.linkedin)} por LinkedIn); ${fmt(k.reu)} con reunión y ${k.opo?fmt(k.opo)+' ya son oportunidad.':'todavía no hay oportunidades.'}`+(k.tReb>0.05?` Ojo: los rebotes de correo están en ${pct(k.tReb)}.`:'')}
+function alertas(){const r=F.resumen,k=kpis();const diasA=r.cola_A/40,diasT=r.cola_correos/40;
+  const det=LEADS.filter(l=>deProspeccion(l)&&['Contactado','En conversación'].includes(l.estado)&&dias(ultimoMov(l))>7).length;
+  const mad=F.cohortes.filter(c=>c.dias_de_vida>=14),u=mad[mad.length-1],p=mad[mad.length-2];
+  const horas=r.generado?(Date.now()-new Date(r.generado))/36e5:999;
+  const A=[
+    ['Rebotes de correo',`${r.rebotados} (${pct(k.tReb)})`,k.tReb>0.05?'rojo':k.tReb>0.03?'ambar':'verde',k.tReb>0.03?'Sobre 3 % se arriesga el dominio: revisar la fuente de esos correos.':'Dentro de lo sano (menos de 3 %).'],
+    ['Cola de correo',`${Math.floor(diasT)} días hábiles`,diasA<10?'ambar':'verde',`${Math.floor(diasA)} días de prioridad A.`+(diasA<10?' Pedir a Apollo que revele más.':'')],
+    ['Créditos de Apollo',r.apollo_gastados==null?'sin dato':`${fmt(r.apollo_gastados)} de ${fmt(r.apollo_tope)}`,r.apollo_gastados==null?'ambar':'verde',r.apollo_gastados==null?'No se pudo leer el ciclo.':r.apollo_margen_ritmo>0?`Quedan ${r.apollo_margen_ritmo} por revelar al ritmo parejo de hoy.`:'Al día o adelantado con el ritmo del mes.'],
+    ['Leads detenidos',String(det),det?'ambar':'verde',det?'Más de 7 días sin movimiento en Contactado o En conversación.':'Ninguno con más de 7 días sin moverse.'],
+    ['Aceptación LinkedIn',u?pct(u.tasa):'sin semana madura',u&&p&&u.tasa<p.tasa*0.6?'ambar':'verde',u?`Última semana madura (desde el ${dia(u.semana)})`+(p?`; la anterior, ${pct(p.tasa)}.`:'.'):''],
+    ['Foto de prospección',horas<30?'al día':'desactualizada',horas<30?'verde':'rojo',horas<30?'Subida en las últimas 30 horas.':'Más de 30 horas sin actualizar: revisar si corrió el manager.']];
+  $('alertas').innerHTML=A.map(([t,v,n,d])=>`<div class="alerta" data-n="${n}"><small>${esc(t)}</small><b>${esc(v)}</b><span>${esc(d)}</span></div>`).join('')}
+function hoyToca(){const out=[];
+  for(const l of LEADS.filter(deProspeccion)){if(!['Contactado','En conversación'].includes(l.estado))continue;const d=dias(ultimoMov(l));
+    const vencido=l.proximo_fecha&&l.proximo_fecha<=hoy;
+    if(d>7||vencido)out.push({o:1,t:'Seguimiento',txt:`Escribirle a ${l.contacto} (${l.empresa})`,por:vencido?`Próximo paso con fecha ${dia(l.proximo_fecha)}: ${l.proximo_paso||'sin detalle'}`:`${d} días sin movimiento en "${l.estado}"`+(l.proximo_paso?` · ${l.proximo_paso}`:''),href:`../ventas/?vista=leads&id=${encodeURIComponent(l.id)}`})}
+  const cal=F.aperturas.filter(a=>(Number(a.aperturas)>=2||dias(a.ultima_apertura,F.resumen.fecha_corte)<=2)&&!enLeads(a.nombre,a.empresa))
+    .sort((a,b)=>(a.prioridad==='A'?0:1)-(b.prioridad==='A'?0:1)||b.aperturas-a.aperturas||String(b.ultima_apertura).localeCompare(String(a.ultima_apertura)));
+  for(const a of cal.slice(0,5))out.push({o:2,t:a.invitado_linkedin?'Correo':'LinkedIn',txt:a.invitado_linkedin?`Seguimiento por correo a ${a.nombre} (${a.empresa})`:`Invitar en LinkedIn a ${a.nombre} (${a.empresa})`,por:`${a.cargo||'sin cargo'} · abrió ${a.aperturas} ${a.aperturas==1?'vez':'veces'}, la última el ${dia(a.ultima_apertura)}`});
+  for(const c of cuentas().filter(c=>!enLeads('',c.empresa)).slice(0,3))out.push({o:3,t:'Cuenta',txt:`Mirar ${c.empresa} como cuenta`,por:`${c.personas} personas abrieron el flyer (${c.aperturas} aperturas)`});
+  out.sort((a,b)=>a.o-b.o);
+  $('todo').innerHTML=out.length?out.map(x=>`<li><span class="tag" data-t="${esc(x.t)}">${esc(x.t)}</span><div>${x.href?`<a href="${esc(x.href)}">${esc(x.txt)}</a>`:esc(x.txt)}<div class="por">${esc(x.por)}</div></div></li>`).join(''):'<li><span></span><div class="por">Nada pendiente con estas reglas.</div></li>'}
+function resultados(){const r=F.resumen,k=kpis();
+  $('kResp').innerHTML=`${fmt(k.correo)} <em>de ${fmt(r.correos_enviados_total)}</em>`;$('kRespT').textContent=`${pct(k.tResp)} de los enviados`;
+  $('kAbr').innerHTML=`${fmt(r.abrieron_flyer)} <em>${pct(k.tApe)}</em>`;$('kEnv7').textContent=fmt(r.correos_enviados_7d);
+  $('kCon').innerHTML=`${fmt(r.li_conexiones_total)} <em>de ${fmt(r.li_invitados_total)}</em>`;$('kConT').textContent=`${pct(k.tAce)} acumulado (mezcla invitaciones nuevas y viejas)`;
+  $('kInv7').textContent=fmt(r.li_invitaciones_7d);
+  $('kLeads').textContent=fmt(k.vivos);$('kLeadsT').textContent=`${fmt(k.correo)} por correo · ${fmt(k.linkedin)} por LinkedIn`;
+  $('kConv').textContent=fmt(k.conv);$('kReu').textContent=fmt(k.reu);$('kOpo').textContent=fmt(k.opo)}
+function cuanto(){const r=F.resumen;const ps=[['A',r.cola_A,C.cyan],['B',r.cola_B,C.azul],['C',r.cola_C,C.ambar]];
+  $('tanque').innerHTML=`<div><b>${Math.floor(r.cola_correos/40)} días hábiles</b> <span style="color:var(--muted)">· ${fmt(r.cola_correos)} correos de ${fmt(r.cola_empresas)} empresas</span></div>
+    <div class="tanque" role="img" aria-label="${ps.map(p=>`Prioridad ${p[0]}: ${p[1]} correos`).join(', ')}">${ps.map(p=>`<i style="width:${p[1]/r.cola_correos*100}%;background:${p[2]}"></i>`).join('')}</div>
+    <div class="ley">${ps.map(p=>`<span><i style="background:${p[2]}"></i>${p[0]}: ${fmt(p[1])} (${Math.floor(p[1]/40)} días)</span>`).join('')}</div>`;
+  $('apollo').innerHTML=r.apollo_gastados==null?'<p class="nota">No se pudo leer el ciclo de Apollo en esta foto.</p>':
+    `<div><b>${fmt(r.apollo_gastados)}</b> <span style="color:var(--muted)">de ${fmt(r.apollo_tope)} usados</span></div>
+    <div class="tanque" role="img" aria-label="${r.apollo_gastados} de ${r.apollo_tope} créditos usados"><i style="width:${r.apollo_gastados/r.apollo_tope*100}%;background:${C.cyan}"></i></div>
+    <div class="ley"><span>${r.apollo_margen_ritmo>0?`Quedan ${r.apollo_margen_ritmo} por revelar al ritmo parejo de hoy`:'Al día o adelantado con el ritmo parejo del mes'}</span><span>${fmt(r.apollo_disponibles)} créditos en la cuenta</span></div>`}
+function altas(){const r=F.resumen,a=F.altas||[];const ult=a.filter(x=>dias(x.fecha,r.fecha_corte)<7);
+  const suma=k=>ult.some(x=>x[k]!=null)?ult.reduce((s,x)=>s+Number(x[k]??0),0):null;const h=a.find(x=>x.fecha===r.fecha_corte)||{};
+  $('kRev7').textContent=fmt(suma('correos_revelados'));$('kRevH').textContent=`hoy: ${fmt(Number(h.correos_revelados||0))} · cada uno gasta 1 crédito de Apollo`;
+  $('kCtot').textContent=fmt(r.contactos_con_correo);const cn=suma('contactos_nuevos');$('kCnue').textContent='nuevos en 7 días: '+(cn==null?'desde el próximo día':fmt(cn));
+  $('kEmp').innerHTML=`${fmt(r.empresas_aprobadas)} <em>de ${fmt(r.empresas_total)}</em>`;const en=suma('empresas_nuevas');$('kEnue').textContent='nuevas en 7 días: '+(en==null?'desde el próximo día':fmt(en));
+  barrasAgrupadas($('gAltas'),a.map(x=>({k:x.fecha,v:[Number(x.correos_revelados||0),x.contactos_nuevos,x.empresas_nuevas]})),
+    [['Correos revelados',C.cyan],['Contactos nuevos',C.azul],['Empresas nuevas',C.ambar]],'Correos revelados, contactos y empresas nuevas por día')}
+function barrasAgrupadas(el,rows,series,label){const W=ancho(el),H=210,m={t:26,r:8,b:24,l:34};const s=svg(el,W,H,label);
+  const max=Math.max(1,...rows.flatMap(r=>r.v.filter(v=>v!=null)));const y=v=>H-m.b-(H-m.t-m.b)*v/max;
+  const ticks=[0,max/2,max].map(v=>Math.round(v));ticks.forEach(t=>{nodo(s,'line',{x1:m.l,x2:W-m.r,y1:y(t),y2:y(t),stroke:C.linea});nodo(s,'text',{x:m.l-6,y:y(t)+4,'text-anchor':'end'},fmt(t))});
+  let lx=m.l;series.forEach(([n,c])=>{nodo(s,'rect',{x:lx,y:6,width:10,height:10,fill:c});const t=nodo(s,'text',{x:lx+14,y:15},n);lx+=14+t.getComputedTextLength()+16});
+  const bw=(W-m.l-m.r)/Math.max(1,rows.length),gw=bw*0.7,sw=gw/series.length;const tp=tip(el);
+  rows.forEach((r,i)=>{const x0=m.l+i*bw+(bw-gw)/2;r.v.forEach((v,j)=>{if(v==null)return;const vv=Math.max(0,v);nodo(s,'rect',{x:x0+j*sw,y:y(vv),width:Math.max(1,sw-2),height:H-m.b-y(vv),fill:series[j][1]})});
+    if(r.v[0])nodo(s,'text',{x:x0+sw/2,y:y(r.v[0])-4,'text-anchor':'middle'},fmt(r.v[0]));
+    nodo(s,'text',{x:m.l+i*bw+bw/2,y:H-6,'text-anchor':'middle'},dia(r.k));
+    const h=nodo(s,'rect',{x:m.l+i*bw,y:m.t,width:bw,height:H-m.t-m.b,fill:'transparent'});
+    h.addEventListener('pointermove',e=>tp(e,`${dia(r.k)}: `+series.map(([n],j)=>r.v[j]==null?null:`${n.toLowerCase()} ${fmt(r.v[j])}`).filter(Boolean).join(' · ')));h.addEventListener('pointerleave',e=>tp(e,null))})}
+function embudo(el,rows,col){const max=Math.max(1,...rows.map(r=>r[1]||0));
+  el.innerHTML=rows.map(([et,n],i)=>{const w=Math.max(0.5,(n||0)/max*100),dentro=w>55,prev=i?rows[i-1][1]:null;
+    return `<div class="fila"><small>${esc(et)}</small><div class="barra"><i style="width:${w}%;background:${col};opacity:${1-i*0.15}"></i><span style="left:${dentro?'8px':`calc(${w}% + 8px)`};${dentro?'color:#06181c':''}"><b>${fmt(n)}</b>${prev?` · ${pct(n/prev)} del paso anterior`:''}</span></div></div>`}).join('')}
+function embudos(){const r=F.resumen,pl=LEADS.filter(l=>deProspeccion(l)&&l.estado!=='Descartado');
+  const de=o=>pl.filter(l=>l.origen===o),av=l=>l.filter(x=>/reuni/i.test(x.proximo_paso||'')||x.estado==='Calificado').length;
+  embudo($('fCorreo'),[['Enviados',r.correos_enviados_total],['Abrieron el flyer',r.abrieron_flyer],['Respondieron',de('Correo en frío').length],['Reunión u oportunidad',av(de('Correo en frío'))]],C.cyan);
+  embudo($('fLinkedin'),[['Invitaciones',r.li_invitados_total],['Aceptaron',r.li_conexiones_total],['Respondieron',de('LinkedIn').length],['Reunión u oportunidad',av(de('LinkedIn'))]],C.azul)}
+function cohortes(){const el=$('gCohortes'),rows=F.cohortes;const W=ancho(el),H=210,m={t:22,r:8,b:40,l:38};const s=svg(el,W,H,'Porcentaje de invitaciones aceptadas por semana de invitación');
+  const max=Math.max(0.3,...rows.map(r=>r.tasa));const y=v=>H-m.b-(H-m.t-m.b)*v/max;[0,max/2,max].forEach(t=>{nodo(s,'line',{x1:m.l,x2:W-m.r,y1:y(t),y2:y(t),stroke:C.linea});nodo(s,'text',{x:m.l-6,y:y(t)+4,'text-anchor':'end'},Math.round(t*100)+' %')});
+  const bw=(W-m.l-m.r)/Math.max(1,rows.length),gw=Math.min(80,bw*0.6);const tp=tip(el);
+  rows.forEach((r,i)=>{const cx=m.l+i*bw+bw/2;nodo(s,'rect',{x:cx-gw/2,y:y(r.tasa),width:gw,height:H-m.b-y(r.tasa),fill:C.azul,opacity:r.dias_de_vida>=14?1:0.4});
+    nodo(s,'text',{x:cx,y:y(r.tasa)-6,'text-anchor':'middle',style:'fill:var(--text);font-size:12px'},pct(r.tasa));
+    nodo(s,'text',{x:cx,y:H-m.b+16,'text-anchor':'middle'},'sem. '+dia(r.semana));
+    nodo(s,'text',{x:cx,y:H-m.b+30,'text-anchor':'middle',style:'font-size:10px'},bw>90?`${r.aceptaron} de ${r.invitaciones}${r.dias_de_vida<14?' · en curso':''}`:`${r.aceptaron}/${r.invitaciones}`);
+    const h=nodo(s,'rect',{x:m.l+i*bw,y:m.t,width:bw,height:H-m.t-m.b,fill:'transparent'});
+    h.addEventListener('pointermove',e=>tp(e,`Semana del ${dia(r.semana)}: ${r.aceptaron} de ${r.invitaciones} aceptaron (${pct(r.tasa)})`+(r.mediana_dias!=null?` · mediana ${r.mediana_dias} días`:'')));h.addEventListener('pointerleave',e=>tp(e,null))})}
+function calientes(){const corte=F.resumen.fecha_corte;const sc=r=>Number(r.aperturas)*2+Math.max(0,10-dias(r.ultima_apertura,corte))+(r.prioridad==='A'?3:0);
+  const rows=F.aperturas.map(r=>({...r,lead:enLeads(r.nombre,r.empresa),s:sc(r)})).sort((a,b)=>(a.lead?1:0)-(b.lead?1:0)||b.s-a.s).slice(0,15);
+  $('tCalientes').innerHTML=rows.map(r=>`<tr><td>${esc(r.nombre)}</td><td>${esc(r.cargo)}</td><td>${esc(r.empresa)}</td><td class="num">${esc(r.aperturas)}</td><td>${dia(r.ultima_apertura)}</td><td>${r.lead?'<span class="chip" data-n="verde">ya es lead</span>':''}<span class="chip"${r.invitado_linkedin?'':' data-n="ambar"'}>${r.invitado_linkedin?'invitado en LinkedIn':'sin invitar en LinkedIn'}</span></td></tr>`).join('')||'<tr><td colspan="6" class="vacio">Nadie abrió el flyer todavía.</td></tr>'}
+function tablaCuentas(){const rows=cuentas().slice(0,12);
+  $('tCuentas').innerHTML=rows.map(r=>`<tr><td>${esc(r.empresa)}</td><td>${esc(r.pais)}</td><td class="num">${r.personas}</td><td class="num">${r.aperturas}</td><td>${dia(r.ultima)}</td><td><small>${esc(r.cargos)}</small></td></tr>`).join('')||'<tr><td colspan="6" class="vacio">Sin empresas con dos o más personas.</td></tr>'}
+function segmentos(el,tipo){const rows=F.segmentos.filter(r=>r.tipo===tipo).sort((a,b)=>b.indice-a.indice).slice(0,8);if(!rows.length){el.innerHTML='<p class="nota">Sin segmentos con 20 o más contactos.</p>';return}
+  const W=ancho(el),rh=24,m={t:6,r:100,b:18};const H=m.t+m.b+rows.length*rh;const s=svg(el,W,H,`Índice de aperturas del flyer por ${tipo.toLowerCase()}`);
+  const labs=rows.map((r,i)=>nodo(s,'text',{x:0,y:m.t+i*rh+rh/2+4},r.segmento));let lw=Math.min(W*0.4,Math.max(...labs.map(t=>t.getComputedTextLength())))+8;
+  labs.forEach((t,i)=>{let txt=rows[i].segmento;while(t.getComputedTextLength()>lw-8&&txt.length>4){txt=txt.slice(0,-2);t.textContent=txt+'…'}});
+  const max=Math.max(2,...rows.map(r=>r.indice));const x=v=>lw+(W-m.r-lw)*v/max;
+  nodo(s,'line',{x1:x(1),x2:x(1),y1:m.t-2,y2:H-m.b+2,stroke:C.gris,'stroke-dasharray':'3 3'});nodo(s,'text',{x:x(1),y:H-4,'text-anchor':'middle'},'1,0×');
+  rows.forEach((r,i)=>{nodo(s,'rect',{x:x(0),y:m.t+i*rh+4,height:rh-8,width:Math.max(1,x(r.indice)-x(0)),fill:r.indice>=1?C.cyan:C.gris});
+    nodo(s,'text',{x:x(r.indice)+4,y:m.t+i*rh+rh/2+4},`${String(r.indice.toFixed(1)).replace('.',',')}× · ${r.abrieron}/${r.base}`)})}
+function cuadre(){const r=F.resumen;const inv=F.actividad.reduce((s,d)=>s+Number(d.invitaciones),0),aprox=r.dias_con_lote*40;
+  const mal=Math.abs(aprox-r.correos_enviados_total)/r.correos_enviados_total>0.15||Math.abs(inv-r.li_invitados_total)/r.li_invitados_total>0.1;
+  $('cuadre').dataset.n=mal?'rojo':'';
+  $('cuadre').textContent=`Cuadre: ${r.dias_con_lote} lotes × 40 ≈ ${fmt(aprox)} correos frente a ${fmt(r.correos_enviados_total)} enviados (los primeros lotes fueron más chicos); ${fmt(inv)} invitaciones en el registro de LinkedIn frente a ${fmt(r.li_invitados_total)} invitados en la base. Historial: ${F.historial.length} ${F.historial.length===1?'día':'días'}.`}
+
+function pintar(){cabecera();alertas();hoyToca();resultados();cuanto();altas();embudos();cohortes();calientes();tablaCuentas();segmentos($('gPais'),'País');segmentos($('gSector'),'Sector');cuadre()}
+
+(async()=>{
+  try{({sb,yo}=await ERP.entrar())}catch(e){return}
+  ERP.menu('comercial',{sb,yo});
+  const [f,l]=await Promise.all([
+    sb.from('prospeccion_fotos').select('fecha,datos,subido_en').order('fecha',{ascending:false}).limit(1),
+    sb.from('leads').select('id,estado,empresa,contacto,origen,proximo_paso,proximo_fecha,oportunidad_id,actividad,creado_en,actualizado_en')]);
+  if(f.error)return ERP.falla(ERP.faltaTabla(f.error,'20261119120000_erp_prospeccion.sql'));
+  if(!f.data.length)return ERP.falla('Todavía no hay una foto de prospección.<br>El Manager Comercial la sube después de cada agente (<code>node tools/panel_subir_erp.mjs</code>).');
+  F=f.data[0].datos;LEADS=l.error?[]:l.data;
+  if(l.error)ERP.toast('No se pudieron leer los leads: '+l.error.message,true);
+  ERP.listo();pintar();
+  let t;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{altas();cohortes();segmentos($('gPais'),'País');segmentos($('gSector'),'Sector')},150)});
+})();
+</script>
+</body>
+</html>

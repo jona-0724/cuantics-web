@@ -74,6 +74,7 @@
     inicio: 'M3 10.5 10 4l7 6.5V17a1 1 0 0 1-1 1h-4v-5H8v5H4a1 1 0 0 1-1-1z',
     leads: 'M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-6 8a6 6 0 0 1 12 0',
     oportunidades: 'M3 4h14l-5 6v5l-4 2v-7z',
+    comercial: 'M3 17h14M5 14V9M9 14V5M13 14v-3M17 14V7',
     cotizaciones: 'M5 2h7l4 4v12H5zM12 2v4h4M8 10h5M8 13h5',
     clientes: 'M3 18V6l7-3 7 3v12M7 18v-4h6v4M7 8h1M12 8h1M7 11h1M12 11h1',
     productos: 'M10 2 3 6v8l7 4 7-4V6zM3 6l7 4 7-4M10 10v8',
@@ -82,7 +83,7 @@
   }
   const MENU = [
     ['', [['inicio', 'Inicio', '']]],
-    ['Ventas', [['leads', 'Leads', 'ventas/?vista=leads'], ['oportunidades', 'Oportunidades', 'ventas/?vista=oportunidades'],
+    ['Ventas', [['comercial', 'Prospección', 'comercial/'], ['leads', 'Leads', 'ventas/?vista=leads'], ['oportunidades', 'Oportunidades', 'ventas/?vista=oportunidades'],
       ['cotizaciones', 'Cotizaciones', 'ventas/cotizaciones/'], ['clientes', 'Clientes', 'clientes/']]],
     ['Catálogo', [['productos', 'Productos', 'productos/']]],
     ['Compras', [['compras', 'Órdenes de compra', 'compras/']]],

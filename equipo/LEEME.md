@@ -91,6 +91,24 @@ celular, mantener presionada la tarjeta y arrastrar) y cada movimiento queda en 
   interés del lead y en las líneas de la oportunidad, y se ven en las tarjetas del pipeline.
   Escribir una que no existe y pulsar Enter la crea. El color se cambia en Líneas de producto.
 
+## Prospección (comercial/)
+
+Panel de los agentes de prospección: correo en frío, LinkedIn y Apollo. Muestra alertas, "Hoy toca",
+resultados, cuánto alcanza la cola, contactos y empresas nuevas por día, embudos, aceptación de
+LinkedIn por semana, aperturas del flyer y segmentos.
+
+- Los números de prospección vienen de otra base (cuantics-leads), cuya clave no puede ir en la
+  web. El **Manager Comercial** (`7_ManagerComercial`) sube una foto en JSON después de cada agente
+  con `node tools/panel_subir_erp.mjs`, que llama a `prospeccion_guardar` con su propia clave.
+- La foto queda en `prospeccion_fotos` (una fila por día) y solo la leen las cuentas activas.
+- Los **leads y oportunidades** se leen en vivo de este ERP. Los de prospección son los leads con
+  origen "Correo en frío" o "LinkedIn"; una reunión se anota en el próximo paso.
+
+Puesta en marcha (una vez): correr `supabase/migrations/20261119120000_erp_prospeccion.sql`
+(también carga los 8 leads que respondieron hasta el 19-nov-2026), ver la clave con
+`select clave from public.prospeccion_clave;` y guardarla en la PC del Manager Comercial con
+`setx PANEL_ERP_CLAVE "<la clave>"`. La clave no va en este repo.
+
 ## Seguridad
 
 - Sin sesión no se lee nada (`anon` no tiene permisos en ninguna tabla).
