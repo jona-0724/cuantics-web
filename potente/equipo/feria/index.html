@@ -965,9 +965,14 @@ function avisoDuro(txt){
 }
 
 async function cargarBase(){
+  // El equipo solo ve ferias que ya salieron de borrador. El administrador las
+  // ve todas: una feria que se quedó en borrador en Equipo igual pudo vender, y
+  // sus ventas tienen que poder consultarse.
+  let qFerias = sb.from("ferias").select("*").order("fecha_inicio", { ascending:false });
+  if (!esAdmin()) qFerias = qFerias.neq("estado", "borrador");
   const [prod, fer, turno, inv] = await Promise.all([
     sb.from("productos").select("*").order("posicion"),
-    sb.from("ferias").select("*").neq("estado", "borrador").order("fecha_inicio", { ascending:false }),
+    qFerias,
     sb.rpc("mi_turno_hoy"),
     sb.rpc("mis_ferias_inventario")
   ]);
